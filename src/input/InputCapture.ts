@@ -235,34 +235,32 @@ export class InputCapture {
   }
 
   private attachSteeringWheel(el: HTMLElement) {
-    // Steering is driven by how far you've dragged horizontally from where
-    // you first touched down — not by your touch's absolute position (which
-    // would snap the wheel to an angle the instant you tap it, wherever that
-    // happened to land) and not by tracking the exact angle around the
-    // wheel's center (which gets wildly oversensitive if you touch anywhere
-    // near the middle rather than right on the rim). A plain horizontal
-    // delta is predictable no matter where on the wheel you grab it. The
-    // wheel graphic still rotates for visual feedback and springs back to
-    // center on release. The kart always drives forward on its own
-    // regardless of steering, and the track has hard walls so oversteering
-    // can't send it off the road.
-    const MAX_ROTATION_DEG = 120;
-    const DRAG_RANGE_PX = 85; // horizontal drag distance for full lock
+    // Simplest possible model, like a basic on-screen wheel: wherever your
+    // finger currently is, left or right of the wheel's center, is exactly
+    // how much you're steering — no gesture to learn, no dragging a precise
+    // amount, no tracking where you first touched. Move your finger and the
+    // wheel (and the car's turn) follows it immediately; let go and it
+    // snaps straight back to center. The kart always drives forward on its
+    // own regardless of steering, and the track has hard walls so
+    // oversteering can't send it off the road.
+    const MAX_ROTATION_DEG = 45;
+    const FULL_LOCK_PX = 55; // horizontal distance from center for full lock
     let active = false;
-    let grabX = 0;
-    let grabRotationDeg = 0;
-    let currentRotationDeg = 0;
 
-    const apply = (rotationDeg: number) => {
-      currentRotationDeg = Math.max(-MAX_ROTATION_DEG, Math.min(MAX_ROTATION_DEG, rotationDeg));
-      this.state.steer = currentRotationDeg / MAX_ROTATION_DEG;
-      el.style.transform = `rotate(${currentRotationDeg}deg)`;
+    const apply = (ratio: number) => {
+      const clamped = Math.max(-1, Math.min(1, ratio));
+      this.state.steer = clamped;
+      el.style.transform = `rotate(${clamped * MAX_ROTATION_DEG}deg)`;
     };
     const reset = () => {
       active = false;
       el.classList.remove("engaged");
       apply(0);
-      this.state.steer = 0;
+    };
+    const onMove = (clientX: number) => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      apply((clientX - cx) / FULL_LOCK_PX);
     };
 
     el.addEventListener("pointerdown", (e) => {
@@ -270,14 +268,11 @@ export class InputCapture {
       active = true;
       el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
-      grabX = e.clientX;
-      grabRotationDeg = currentRotationDeg;
+      onMove(e.clientX);
     });
     el.addEventListener("pointermove", (e) => {
       e.preventDefault();
-      if (!active) return;
-      const dx = e.clientX - grabX;
-      apply(grabRotationDeg + (dx / DRAG_RANGE_PX) * MAX_ROTATION_DEG);
+      if (active) onMove(e.clientX);
     });
     el.addEventListener("pointerup", reset);
     el.addEventListener("pointercancel", reset);
