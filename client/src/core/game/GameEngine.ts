@@ -246,7 +246,7 @@ export class RaceSession {
     this.accumulator += dt;
 
     while (this.accumulator >= this.fixedDt) {
-      const groundAngle = this.rig.groundedWheels >= 2
+      const groundAngle = this.rig.grounded
         ? this.track.getGroundAngleNear(this.rig.chassis.position.x, this.rig.chassis.position.y)
         : 0;
       applyCarControl(this.rig, this.controlEnabled && this.input.held, this.fixedDt, groundAngle);

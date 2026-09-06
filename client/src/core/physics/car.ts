@@ -96,12 +96,10 @@ function normalizeAngle(a: number): number {
 }
 
 /** Call once per physics step, before Engine.update. `groundAngle` is the
- * local terrain slope under the car right now (only used while both wheels
- * are grounded). */
+ * local terrain slope under the car right now (only used while grounded). */
 export function applyCarControl(rig: CarRig, throttle: boolean, dt: number, groundAngle = 0) {
   const p = rig.profile;
   rig.throttleHeld = throttle;
-  const bothWheelsDown = rig.groundedWheels >= 2;
 
   if (throttle) {
     const target = p.maxWheelSpeed;
@@ -116,14 +114,20 @@ export function applyCarControl(rig: CarRig, throttle: boolean, dt: number, grou
 
   if (!rig.grounded) {
     rig.airborneRotation += rig.chassis.angularVelocity;
-  } else if (bothWheelsDown) {
-    // Glue the chassis to the local slope while both wheels are down, like
-    // the reference game: driving on the ground stays flat and stable, all
-    // rotation control happens in the air. Without this, the soft wheel
-    // suspension lets the chassis tip onto one wheel on its own.
+  } else {
+    // Gently steer the chassis toward the local slope whenever any wheel is
+    // down, like the reference game: driving on the ground stays flat and
+    // stable, all rotation control happens in the air. This nudges the
+    // *angular velocity* (a spring+damper, never teleports the body), so it
+    // never fights the wheel suspension constraints the way directly
+    // setting the angle would — that caused violent corrective jolts every
+    // time contact flickered between one and two wheels on rolling terrain,
+    // which is what made the car pitch onto one wheel in the first place.
     const diff = normalizeAngle(groundAngle - rig.chassis.angle);
-    Body.setAngle(rig.chassis, rig.chassis.angle + diff * p.groundStability);
-    Body.setAngularVelocity(rig.chassis, rig.chassis.angularVelocity * 0.5);
+    const springRate = p.groundStability * 40; // rad/s^2 per radian of error
+    const dampingRate = 6; // 1/s, ~critically damped for the springRate range above
+    const angularAccel = diff * springRate - rig.chassis.angularVelocity * dampingRate;
+    Body.setAngularVelocity(rig.chassis, rig.chassis.angularVelocity + angularAccel * dt);
   }
 }
 
