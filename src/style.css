@@ -445,6 +445,14 @@ button.small {
   pointer-events: none;
 }
 
+.touch-controls.kart-controls {
+  justify-content: center;
+}
+
+.touch-controls.kart-controls .joystick {
+  pointer-events: auto;
+}
+
 .touch-controls .pad,
 .touch-controls .actions {
   display: flex;

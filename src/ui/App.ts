@@ -4,6 +4,8 @@ import { generateRoomCode, randomColor } from "../utils/id";
 import { GameController } from "../game/GameController";
 import { CIRCUITS } from "../game/course/circuits";
 import { SHOOTER_MAPS } from "../game/shooter/maps";
+import { KART_TRACKS } from "../game/kart/tracks";
+import { LAPS_TOTAL } from "../game/kart/sim";
 
 const PROFILE_KEY = "party-arena-profile-v1";
 const MAX_PLAYERS = 10;
@@ -326,22 +328,27 @@ export class App {
     const shareUrl = `${location.origin}${location.pathname}?room=${this.roomCode}`;
     const canStart = !!this.mode && !!this.levelId && this.players.length >= 1;
 
-    const modeCards = (["course", "shooter"] as GameMode[])
+    const modeMeta: Record<GameMode, { emoji: string; name: string }> = {
+      course: { emoji: "🏃", name: "Parkour" },
+      shooter: { emoji: "🔫", name: "Tir" },
+      kart: { emoji: "🏎️", name: "Course" },
+    };
+    const modeCards = (["course", "shooter", "kart"] as GameMode[])
       .map(
         (m) => `
         <div class="mode-card ${this.mode === m ? "selected" : ""}" data-mode="${m}">
-          <span class="emoji">${m === "course" ? "🏎️" : "🔫"}</span>
-          <span class="name">${m === "course" ? "Course" : "Tir"}</span>
+          <span class="emoji">${modeMeta[m].emoji}</span>
+          <span class="name">${modeMeta[m].name}</span>
         </div>`
       )
       .join("");
 
-    const levels = this.mode === "shooter" ? SHOOTER_MAPS : this.mode === "course" ? CIRCUITS : [];
+    const levels = this.mode === "shooter" ? SHOOTER_MAPS : this.mode === "course" ? CIRCUITS : this.mode === "kart" ? KART_TRACKS : [];
     const levelCards = levels
       .map(
         (l) => `
         <div class="mode-card ${this.levelId === l.id ? "selected" : ""}" data-level="${l.id}">
-          <span class="emoji">${this.mode === "course" ? "🏁" : "🗺️"}</span>
+          <span class="emoji">${this.mode === "course" ? "🏁" : this.mode === "kart" ? "🏁" : "🗺️"}</span>
           <span class="name">${escapeHtml(l.name)}</span>
         </div>`
       )
@@ -390,7 +397,7 @@ export class App {
               </div>`
             : `<div class="card">
                 <h2>Mode de jeu</h2>
-                <div class="hint">${this.mode ? `${this.mode === "course" ? "Course" : "Tir"} — ${this.levelId ?? "..."}` : "En attente du choix de l'hôte..."}</div>
+                <div class="hint">${this.mode ? `${modeMeta[this.mode].name} — ${this.levelId ?? "..."}` : "En attente du choix de l'hôte..."}</div>
                 <div class="hint" style="margin-top:8px;">En attente que l'hôte démarre la partie...</div>
               </div>`
         }
@@ -428,7 +435,7 @@ export class App {
       this.root.querySelectorAll<HTMLElement>("[data-mode]").forEach((el) => {
         el.addEventListener("click", () => {
           this.mode = el.dataset.mode as GameMode;
-          this.levelId = this.mode === "course" ? CIRCUITS[0].id : SHOOTER_MAPS[0].id;
+          this.levelId = this.mode === "course" ? CIRCUITS[0].id : this.mode === "kart" ? KART_TRACKS[0].id : SHOOTER_MAPS[0].id;
           this.broadcastLobby();
           this.renderLobby();
         });
@@ -501,6 +508,7 @@ export class App {
         <div class="countdown" id="countdown" hidden>3</div>
         <div id="touch-root"></div>
         ${mode === "course" ? '<div class="course-hint">Ton personnage avance tout seul — appuie n\'importe où pour sauter</div>' : ""}
+        ${mode === "kart" ? '<div class="course-hint">Ta voiture avance toute seule — dirige avec les flèches ou le joystick</div>' : ""}
         <div class="rotate-hint">🔄 Tourne ton téléphone en paysage pour jouer</div>
         <div class="results-overlay" id="results-overlay" hidden></div>
       </div>
@@ -510,7 +518,7 @@ export class App {
 
   private updateHud() {
     if (!this.gameController || this.screen !== "game") return;
-    const { course, shooter } = this.gameController.getHudSnapshot();
+    const { course, shooter, kart } = this.gameController.getHudSnapshot();
     const board = this.root.querySelector("#hud-leaderboard");
     const timerEl = this.root.querySelector("#hud-timer");
     if (!board || !timerEl) return;
@@ -543,6 +551,23 @@ export class App {
           return `<div class="${cls}">${i + 1}. ${escapeHtml(meta?.name ?? "?")} — ${e.kills} 🎯</div>`;
         })
         .join("");
+    } else if (kart) {
+      timerEl.textContent = formatTime(kart.elapsedMs);
+      const ranked = [...kart.entities].sort((a, b) => {
+        if (a.finished && b.finished) return (a.finishTimeMs ?? 0) - (b.finishTimeMs ?? 0);
+        if (a.finished) return -1;
+        if (b.finished) return 1;
+        return b.lap - a.lap || b.nextWaypoint - a.nextWaypoint;
+      });
+      board.innerHTML = ranked
+        .slice(0, 6)
+        .map((e, i) => {
+          const meta = this.gameController!.metas.get(e.id);
+          const cls = e.id === this.localId ? "me" : "";
+          const label = e.finished ? "🏁" : `Tour ${Math.min(e.lap + 1, LAPS_TOTAL)}/${LAPS_TOTAL}`;
+          return `<div class="${cls}">${i + 1}. ${escapeHtml(meta?.name ?? "?")} — ${label}</div>`;
+        })
+        .join("");
     }
   }
 
@@ -561,7 +586,17 @@ export class App {
             <span class="rank">${medals[r.rank - 1] ?? r.rank}</span>
             <div style="width:12px;height:12px;border-radius:50%;background:${r.color};"></div>
             <div style="flex:1;">${escapeHtml(r.name)}</div>
-            <div>${r.finished !== undefined ? (r.finished ? formatTime(r.timeMs ?? 0) : `${r.distance}m`) : `${r.kills} 🎯 / ${r.deaths} 💀`}</div>
+            <div>${
+              r.kills !== undefined
+                ? `${r.kills} 🎯 / ${r.deaths} 💀`
+                : r.laps !== undefined
+                  ? r.finished
+                    ? formatTime(r.timeMs ?? 0)
+                    : `${r.laps}/${LAPS_TOTAL} tours`
+                  : r.finished
+                    ? formatTime(r.timeMs ?? 0)
+                    : `${r.distance}m`
+            }</div>
           </div>`
           )
           .join("")}

@@ -1,14 +1,13 @@
 import type { CircuitDef } from "./circuits";
-import { groundYAt, isWaterSegAt } from "./circuits";
+import { isWaterSegAt } from "./circuits";
 import type { CourseSnapshot, PlayerMeta } from "../../net/protocol";
 import { PLAYER_H } from "./sim";
 
 const GROUND_DEPTH = 1400;
+const CAM_Y_OFFSET = 90;
 
 export class CourseRenderer {
   private camX = 0;
-  private camY = 0;
-  private camGroundY: number | null = null;
   private camInit = false;
 
   draw(
@@ -22,19 +21,15 @@ export class CourseRenderer {
   ) {
     const local = snapshot.entities.find((e) => e.id === localId) ?? snapshot.entities[0];
     const targetX = local ? local.x : circuit.startX;
-    // Track the ground height under the player, not the player's own Y —
-    // otherwise jumping (or swinging on a zipline) scrolls the ground out
-    // of view instead of just showing the character rising above it.
-    const groundHere = groundYAt(circuit.ground, targetX);
-    const targetGroundY = groundHere ?? this.camGroundY ?? circuit.startY;
-    this.camGroundY = targetGroundY;
+    // The vertical camera position is completely fixed to the circuit's
+    // baseline — it never tracks the player, so jumps, ramps and the
+    // zipline never scroll the view. Only horizontal scroll follows.
+    const camY = circuit.startY - CAM_Y_OFFSET;
     if (!this.camInit) {
       this.camX = targetX;
-      this.camY = targetGroundY;
       this.camInit = true;
     } else {
       this.camX += (targetX - this.camX) * 0.15;
-      this.camY += (targetGroundY - 90 - this.camY) * 0.05;
     }
 
     // sky
@@ -45,7 +40,7 @@ export class CourseRenderer {
     ctx.fillRect(0, 0, w, h);
 
     ctx.save();
-    ctx.translate(w / 2 - this.camX, h / 2 - this.camY + 60);
+    ctx.translate(w / 2 - this.camX, h / 2 - camY + 60);
 
     // parallax hills
     ctx.fillStyle = "rgba(0,0,0,0.08)";

@@ -1,4 +1,13 @@
-import type { GameMode, PlayerMeta, InputState, ResultEntry, HostToClientMessage, CourseSnapshot, ShooterSnapshot } from "../net/protocol";
+import type {
+  GameMode,
+  PlayerMeta,
+  InputState,
+  ResultEntry,
+  HostToClientMessage,
+  CourseSnapshot,
+  ShooterSnapshot,
+  KartSnapshot,
+} from "../net/protocol";
 import type { HostNetwork, ClientNetwork } from "../net/PeerNetwork";
 import { CourseSimulation } from "./course/sim";
 import { CourseRenderer } from "./course/renderer";
@@ -8,6 +17,10 @@ import { ShooterSimulation } from "./shooter/sim";
 import { ShooterRenderer } from "./shooter/renderer";
 import { ShooterBotController } from "./shooter/bots";
 import { getMap, type ShooterMap } from "./shooter/maps";
+import { KartSimulation } from "./kart/sim";
+import { KartRenderer } from "./kart/renderer";
+import { KartBotController } from "./kart/bots";
+import { getTrack, type KartTrack } from "./kart/tracks";
 import { InputCapture } from "../input/InputCapture";
 
 export interface GameStartInfo {
@@ -28,20 +41,25 @@ export class GameController {
   private ctx: CanvasRenderingContext2D;
   private circuit: CircuitDef | null = null;
   private map: ShooterMap | null = null;
+  private track: KartTrack | null = null;
 
   private courseSim: CourseSimulation | null = null;
   private shooterSim: ShooterSimulation | null = null;
+  private kartSim: KartSimulation | null = null;
   private courseBots: CourseBotController | null = null;
   private shooterBots: ShooterBotController | null = null;
+  private kartBots: KartBotController | null = null;
   private lastFrameTime = 0;
   private accumulator = 0;
   private gameOverFired = false;
 
   private lastCourseSnap: CourseSnapshot | null = null;
   private lastShooterSnap: ShooterSnapshot | null = null;
+  private lastKartSnap: KartSnapshot | null = null;
 
   private courseRenderer = new CourseRenderer();
   private shooterRenderer = new ShooterRenderer();
+  private kartRenderer = new KartRenderer();
 
   constructor(
     private isHost: boolean,
@@ -57,7 +75,8 @@ export class GameController {
     this.ctx = canvas.getContext("2d")!;
     for (const p of info.players) this.metas.set(p.id, p);
     if (info.mode === "course") this.circuit = getCircuit(info.levelId);
-    else this.map = getMap(info.levelId);
+    else if (info.mode === "shooter") this.map = getMap(info.levelId);
+    else this.track = getTrack(info.levelId);
 
     this.input = new InputCapture(info.mode, canvas, touchRoot);
     if (info.mode === "shooter") {
@@ -76,10 +95,14 @@ export class GameController {
         this.courseSim = new CourseSimulation(this.circuit, this.info.players);
         this.courseBots = new CourseBotController(this.circuit);
         for (const p of this.info.players) if (p.isBot) this.courseBots.register(p.id);
-      } else if (this.map) {
+      } else if (this.info.mode === "shooter" && this.map) {
         this.shooterSim = new ShooterSimulation(this.map, this.info.seed, this.info.players);
         this.shooterBots = new ShooterBotController();
         for (const p of this.info.players) if (p.isBot) this.shooterBots.register(p.id);
+      } else if (this.track) {
+        this.kartSim = new KartSimulation(this.track, this.info.players);
+        this.kartBots = new KartBotController(this.track);
+        for (const p of this.info.players) if (p.isBot) this.kartBots.register(p.id);
       }
     }
 
@@ -93,16 +116,20 @@ export class GameController {
     this.input.detach();
   }
 
-  getHudSnapshot(): { course: CourseSnapshot | null; shooter: ShooterSnapshot | null } {
+  getHudSnapshot(): { course: CourseSnapshot | null; shooter: ShooterSnapshot | null; kart: KartSnapshot | null } {
     if (this.info.mode === "course") {
-      return { course: this.isHost ? this.courseSim?.snapshot() ?? null : this.lastCourseSnap, shooter: null };
+      return { course: this.isHost ? this.courseSim?.snapshot() ?? null : this.lastCourseSnap, shooter: null, kart: null };
     }
-    return { course: null, shooter: this.isHost ? this.shooterSim?.snapshot() ?? null : this.lastShooterSnap };
+    if (this.info.mode === "shooter") {
+      return { course: null, shooter: this.isHost ? this.shooterSim?.snapshot() ?? null : this.lastShooterSnap, kart: null };
+    }
+    return { course: null, shooter: null, kart: this.isHost ? this.kartSim?.snapshot() ?? null : this.lastKartSnap };
   }
 
   handleSnapshotMessage(msg: HostToClientMessage) {
     if (msg.t === "courseState") this.lastCourseSnap = msg.snapshot;
     else if (msg.t === "shooterState") this.lastShooterSnap = msg.snapshot;
+    else if (msg.t === "kartState") this.lastKartSnap = msg.snapshot;
   }
 
   handlePeerInput(peerId: string, input: InputState) {
@@ -135,17 +162,17 @@ export class GameController {
   private stepHostSimulation() {
     if (this.info.mode === "course" && this.courseSim && this.courseBots) {
       const snapNow = this.courseSim.snapshot();
-      const positions = new Map(snapNow.entities.map((e) => [e.id, e.x]));
+      const positions = new Map(snapNow.entities.map((e) => [e.id, { x: e.x, onGround: e.onGround }]));
       const inputs = new Map<string, InputState>(this.remoteInputs);
       inputs.set(this.localId, this.input.getInput());
       for (const p of this.info.players) {
         if (p.isBot) {
-          const botX = positions.get(p.id) ?? this.circuit!.startX;
-          inputs.set(p.id, this.courseBots.computeInput(p.id, botX));
+          const pos = positions.get(p.id) ?? { x: this.circuit!.startX, onGround: true };
+          inputs.set(p.id, this.courseBots.computeInput(p.id, pos.x, pos.onGround));
         }
       }
       this.courseSim.step(FIXED_DT, inputs);
-    } else if (this.shooterSim && this.shooterBots && this.map) {
+    } else if (this.info.mode === "shooter" && this.shooterSim && this.shooterBots && this.map) {
       const players = this.shooterSim.getPlayersPublic();
       const inputs = new Map<string, InputState>(this.remoteInputs);
       inputs.set(this.localId, this.input.getInput());
@@ -153,6 +180,18 @@ export class GameController {
         if (p.isBot) inputs.set(p.id, this.shooterBots.computeInput(p.id, this.map, players));
       }
       this.shooterSim.step(FIXED_DT, inputs);
+    } else if (this.kartSim && this.kartBots) {
+      const positions = this.kartSim.getPlayersPublic();
+      const byId = new Map(positions.map((p) => [p.id, p]));
+      const inputs = new Map<string, InputState>(this.remoteInputs);
+      inputs.set(this.localId, this.input.getInput());
+      for (const p of this.info.players) {
+        if (p.isBot) {
+          const pos = byId.get(p.id);
+          if (pos) inputs.set(p.id, this.kartBots.computeInput(p.id, pos.x, pos.y, pos.heading, pos.nextWaypoint));
+        }
+      }
+      this.kartSim.step(FIXED_DT, inputs);
     }
   }
 
@@ -187,13 +226,23 @@ export class GameController {
           this.hostNetwork?.broadcast({ t: "gameOver", results });
           this.onGameOver(results);
         }
-      } else if (this.shooterSim && this.map) {
+      } else if (this.info.mode === "shooter" && this.shooterSim && this.map) {
         const snap = this.shooterSim.snapshot();
         this.hostNetwork?.broadcast({ t: "shooterState", snapshot: snap });
         this.shooterRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.map, snap, this.localId, this.metas);
         if (remaining <= 0 && !this.gameOverFired && this.shooterSim.isMatchOver()) {
           this.gameOverFired = true;
           const results = this.shooterSim.results();
+          this.hostNetwork?.broadcast({ t: "gameOver", results });
+          this.onGameOver(results);
+        }
+      } else if (this.kartSim && this.track) {
+        const snap = this.kartSim.snapshot();
+        this.hostNetwork?.broadcast({ t: "kartState", snapshot: snap });
+        this.kartRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.track, snap, this.localId, this.metas);
+        if (remaining <= 0 && !this.gameOverFired && this.kartSim.isRaceOver()) {
+          this.gameOverFired = true;
+          const results = this.kartSim.results();
           this.hostNetwork?.broadcast({ t: "gameOver", results });
           this.onGameOver(results);
         }
@@ -204,6 +253,8 @@ export class GameController {
         this.courseRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.circuit, this.lastCourseSnap, this.localId, this.metas);
       } else if (this.info.mode === "shooter" && this.lastShooterSnap && this.map) {
         this.shooterRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.map, this.lastShooterSnap, this.localId, this.metas);
+      } else if (this.info.mode === "kart" && this.lastKartSnap && this.track) {
+        this.kartRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.track, this.lastKartSnap, this.localId, this.metas);
       }
     }
   };

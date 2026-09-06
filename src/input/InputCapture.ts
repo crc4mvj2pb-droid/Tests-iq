@@ -49,13 +49,15 @@ export class InputCapture {
       this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
       this.canvas.addEventListener("mousedown", this.mouseDownHandler);
       window.addEventListener("mouseup", this.mouseUpHandler);
-    } else {
+    } else if (this.mode === "course") {
       // Course mode: press anywhere (mouse, touch, or keyboard) to jump —
       // the character runs forward on its own.
       this.canvas.addEventListener("pointerdown", this.holdDownHandler);
       window.addEventListener("pointerup", this.holdUpHandler);
       window.addEventListener("pointercancel", this.holdUpHandler);
     }
+    // Kart mode needs neither: it steers via keyboard arrows/AD (handled
+    // generically in onKey) plus its own touch joystick built below.
     this.buildTouchControls();
   }
 
@@ -122,6 +124,17 @@ export class InputCapture {
 
   private buildTouchControls() {
     if (this.mode === "course") return; // whole canvas already acts as the control
+
+    if (this.mode === "kart") {
+      const wrap = document.createElement("div");
+      wrap.className = "touch-controls kart-controls";
+      const stick = this.makeStick();
+      wrap.append(stick.el);
+      this.attachSteeringJoystick(stick.el, stick.knob);
+      this.touchRoot.append(wrap);
+      this.touchNodes.push(wrap);
+      return;
+    }
 
     const fireZone = document.createElement("div");
     fireZone.className = "fire-zone";
@@ -199,6 +212,45 @@ export class InputCapture {
     el.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       e.stopPropagation();
+      active = true;
+      el.classList.add("engaged");
+      el.setPointerCapture(e.pointerId);
+      onMove(e.clientX, e.clientY);
+    });
+    el.addEventListener("pointermove", (e) => {
+      e.preventDefault();
+      if (active) onMove(e.clientX, e.clientY);
+    });
+    el.addEventListener("pointerup", reset);
+    el.addEventListener("pointercancel", reset);
+  }
+
+  private attachSteeringJoystick(el: HTMLElement, knob: HTMLElement) {
+    let active = false;
+    const radius = 30;
+    const setKnob = (dx: number, dy: number) => {
+      const d = Math.hypot(dx, dy);
+      const scale = d > radius ? radius / d : 1;
+      knob.style.transform = `translate(${dx * scale}px, ${Math.min(Math.max(dy * scale, -8), 8)}px)`;
+    };
+    const reset = () => {
+      active = false;
+      this.state.left = this.state.right = false;
+      el.classList.remove("engaged");
+      knob.style.transform = "translate(0px, 0px)";
+    };
+    const onMove = (clientX: number, clientY: number) => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = clientX - cx;
+      const r = rect.width / 2;
+      this.state.left = dx < -r * 0.2;
+      this.state.right = dx > r * 0.2;
+      setKnob(dx, clientY - cy);
+    };
+    el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
       active = true;
       el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);

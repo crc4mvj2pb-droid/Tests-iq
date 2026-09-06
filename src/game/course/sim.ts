@@ -5,9 +5,9 @@ import type { InputState, PlayerMeta, CourseSnapshot, ResultEntry } from "../../
 export const PLAYER_W = 22;
 export const PLAYER_H = 46;
 
-const RUN_SPEED = 5.2;
-const GRAVITY = 0.62;
-const JUMP_VELOCITY = -14.5;
+export const RUN_SPEED = 5.2;
+export const GRAVITY = 0.62;
+export const JUMP_VELOCITY = -14.5;
 const DOUBLE_JUMP_VELOCITY = -12;
 const MAX_JUMPS = 2;
 const RESPAWN_LIFT = 40;

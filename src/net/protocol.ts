@@ -1,4 +1,4 @@
-export type GameMode = "course" | "shooter";
+export type GameMode = "course" | "shooter" | "kart";
 
 export interface PlayerMeta {
   id: string;
@@ -36,6 +36,8 @@ export interface ResultEntry {
   // Shooter:
   kills?: number;
   deaths?: number;
+  // Kart:
+  laps?: number;
 }
 
 // ---- Course mode (parkour platformer) ----
@@ -104,6 +106,26 @@ export interface ShooterSnapshot {
   pickups: PickupSnapshot[];
 }
 
+// ---- Kart mode (top-down arcade racing) ----
+export interface KartEntitySnapshot {
+  id: string;
+  x: number;
+  y: number;
+  heading: number;
+  speed: number;
+  lap: number;
+  nextWaypoint: number;
+  offTrack: boolean;
+  finished: boolean;
+  finishTimeMs: number | null;
+}
+
+export interface KartSnapshot {
+  tick: number;
+  elapsedMs: number;
+  entities: KartEntitySnapshot[];
+}
+
 // ---- Messages: client -> host ----
 export type ClientToHostMessage =
   | { t: "hello"; name: string; color: string }
@@ -116,5 +138,6 @@ export type HostToClientMessage =
   | { t: "gameStart"; mode: GameMode; levelId: string; seed: number; players: PlayerMeta[]; startAt: number }
   | { t: "courseState"; snapshot: CourseSnapshot }
   | { t: "shooterState"; snapshot: ShooterSnapshot }
+  | { t: "kartState"; snapshot: KartSnapshot }
   | { t: "gameOver"; results: ResultEntry[] }
   | { t: "toLobby" };
