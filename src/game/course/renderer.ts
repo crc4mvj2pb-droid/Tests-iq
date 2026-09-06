@@ -1,6 +1,6 @@
 import type { CircuitDef } from "./circuits";
 import type { CourseSnapshot, PlayerMeta } from "../../net/protocol";
-import { VEHICLE_W, VEHICLE_H } from "./sim";
+import { PLAYER_H } from "./sim";
 
 const GROUND_DEPTH = 1400;
 
@@ -26,8 +26,8 @@ export class CourseRenderer {
       this.camY = targetY;
       this.camInit = true;
     } else {
-      this.camX += (targetX - this.camX) * 0.12;
-      this.camY += (targetY - 120 - this.camY) * 0.08;
+      this.camX += (targetX - this.camX) * 0.15;
+      this.camY += (targetY - 90 - this.camY) * 0.08;
     }
 
     // sky
@@ -69,10 +69,13 @@ export class CourseRenderer {
       ctx.stroke();
     }
 
-    // walls
-    ctx.fillStyle = circuit.theme.accent;
+    // walls (hurdles to jump over)
     for (const wobs of circuit.walls) {
+      ctx.fillStyle = circuit.theme.accent;
       ctx.fillRect(wobs.x - wobs.w / 2, wobs.y - wobs.h / 2, wobs.w, wobs.h);
+      ctx.strokeStyle = "rgba(0,0,0,0.35)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(wobs.x - wobs.w / 2, wobs.y - wobs.h / 2, wobs.w, wobs.h);
     }
 
     // checkpoints (subtle markers)
@@ -96,40 +99,15 @@ export class CourseRenderer {
     }
     ctx.restore();
 
-    // players
+    // players (stick figures)
     for (const e of snapshot.entities) {
       const meta = metas.get(e.id);
       const color = meta?.color ?? "#ffffff";
+      const flashHidden = e.crashFlash > 0 && e.crashFlash % 6 < 3;
+      drawStickFigure(ctx, e.x, e.y, color, e.onGround, flashHidden, e.finished);
+
       ctx.save();
-      ctx.translate(e.x, e.y);
-      if (e.crashFlash > 0 && e.crashFlash % 6 < 3) {
-        ctx.globalAlpha = 0.35;
-      }
-      ctx.rotate(e.angle);
-      ctx.fillStyle = "rgba(0,0,0,0.35)";
-      ctx.beginPath();
-      ctx.ellipse(0, VEHICLE_H, VEHICLE_W * 0.6, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = color;
-      roundRect(ctx, -VEHICLE_W / 2, -VEHICLE_H / 2, VEHICLE_W, VEHICLE_H, 8);
-      ctx.fill();
-
-      ctx.fillStyle = "#111";
-      ctx.beginPath();
-      ctx.arc(-VEHICLE_W / 2 + 10, VEHICLE_H / 2, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(VEHICLE_W / 2 - 10, VEHICLE_H / 2, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(255,255,255,0.9)";
-      ctx.fillRect(VEHICLE_W / 2 - 10, -VEHICLE_H / 2 + 4, 8, 6);
-      ctx.restore();
-
-      // nameplate (unrotated)
-      ctx.save();
-      ctx.translate(e.x, e.y - VEHICLE_H - 14);
+      ctx.translate(e.x, e.y - PLAYER_H - 14);
       ctx.font = "700 12px Segoe UI, sans-serif";
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(0,0,0,0.5)";
@@ -148,6 +126,84 @@ export class CourseRenderer {
 
     ctx.restore();
   }
+}
+
+function drawStickFigure(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  color: string,
+  onGround: boolean,
+  hidden: boolean,
+  finished: boolean
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (hidden) ctx.globalAlpha = 0.3;
+
+  ctx.fillStyle = "rgba(0,0,0,0.3)";
+  ctx.beginPath();
+  ctx.ellipse(0, 2, 12, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const headR = 8;
+  const hipY = -14;
+  const shoulderY = -34;
+  const headY = shoulderY - headR - 2;
+  const phase = (x * 0.14) % (Math.PI * 2);
+  const swing = onGround && !finished ? Math.sin(phase) : 0;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+
+  // legs
+  ctx.beginPath();
+  if (onGround) {
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(6 + swing * 8, 0);
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(-6 - swing * 8, 0);
+  } else {
+    // tucked jump pose
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(8, hipY + 10);
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(-4, hipY + 12);
+  }
+  ctx.stroke();
+
+  // torso
+  ctx.beginPath();
+  ctx.moveTo(0, hipY);
+  ctx.lineTo(0, shoulderY);
+  ctx.stroke();
+
+  // arms
+  ctx.beginPath();
+  if (onGround) {
+    ctx.moveTo(0, shoulderY + 4);
+    ctx.lineTo(9 - swing * 10, shoulderY + 16);
+    ctx.moveTo(0, shoulderY + 4);
+    ctx.lineTo(-9 + swing * 10, shoulderY + 16);
+  } else {
+    ctx.moveTo(0, shoulderY + 4);
+    ctx.lineTo(10, shoulderY - 8);
+    ctx.moveTo(0, shoulderY + 4);
+    ctx.lineTo(-10, shoulderY - 8);
+  }
+  ctx.stroke();
+
+  // head
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(0, headY, headR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.7)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.restore();
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

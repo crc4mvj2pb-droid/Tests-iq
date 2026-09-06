@@ -500,7 +500,7 @@ export class App {
         </div>
         <div class="countdown" id="countdown" hidden>3</div>
         <div id="touch-root"></div>
-        ${mode === "course" ? '<div class="course-hint">Maintiens l\'écran pour avancer — maintiens en l\'air pour flipper</div>' : ""}
+        ${mode === "course" ? '<div class="course-hint">Ton personnage avance tout seul — appuie n\'importe où pour sauter</div>' : ""}
         <div class="rotate-hint">🔄 Tourne ton téléphone en paysage pour jouer</div>
         <div class="results-overlay" id="results-overlay" hidden></div>
       </div>

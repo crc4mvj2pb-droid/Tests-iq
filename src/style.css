@@ -388,6 +388,7 @@ button.small {
   position: absolute;
   inset: 0;
   pointer-events: auto;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -435,7 +436,10 @@ button.small {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 0 18px 22px;
+  /* generous bottom/side clearance: real devices often overlay a fixed
+     badge or OS gesture bar in this corner, which would otherwise steal
+     taps meant for our controls */
+  padding: 0 28px 110px;
   pointer-events: none;
 }
 
@@ -457,7 +461,9 @@ button.small {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
 .touch-btn:active {
@@ -468,6 +474,27 @@ button.small {
   width: 90px;
   border-radius: 32px;
   font-size: 1rem;
+}
+
+.joystick {
+  width: 108px !important;
+  height: 108px !important;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.joystick .knob {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  transition: background 0.1s ease;
+}
+
+.joystick.engaged .knob {
+  background: var(--accent-2);
 }
 
 @media (min-width: 900px) {

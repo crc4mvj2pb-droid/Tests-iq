@@ -1,46 +1,37 @@
-import Matter from "matter-js";
-import type { CircuitDef, GroundSeg } from "./circuits";
+import type { CircuitDef } from "./circuits";
 import { groundYAt } from "./circuits";
 import type { InputState, PlayerMeta, CourseSnapshot, ResultEntry } from "../../net/protocol";
 
-const { Engine, World, Bodies, Body, Events } = Matter;
+export const PLAYER_W = 22;
+export const PLAYER_H = 46;
 
-export const VEHICLE_W = 46;
-export const VEHICLE_H = 24;
-const MAX_SPEED = 9.5; // px per physics step (tangential)
-const ACCEL = 0.42;
-const DECEL = 0.28;
-const FLIP_RATE = 0.18; // rad per physics step while holding a flip direction
-const FLIP_DAMPING = 0.94;
-const LAND_SAFE_TOLERANCE = (68 * Math.PI) / 180;
+const RUN_SPEED = 5.2;
+const GRAVITY = 0.62;
+const JUMP_VELOCITY = -14.5;
+const DOUBLE_JUMP_VELOCITY = -12;
+const MAX_JUMPS = 2;
 const RESPAWN_LIFT = 40;
 export const RACE_TIME_LIMIT_MS = 3 * 60 * 1000;
 export const COUNTDOWN_SECONDS = 3;
 
-type BodyPlugin =
-  | { type: "ground"; angle: number }
-  | { type: "wall" }
-  | { type: "player"; id: string };
-
 interface PlayerRuntime {
   meta: PlayerMeta;
-  body: Matter.Body;
-  grounded: boolean;
-  groundAngle: number;
-  airborneAccum: number;
-  flips: number;
+  x: number;
+  y: number; // feet position
+  vx: number;
+  vy: number;
+  onGround: boolean;
+  jumpsLeft: number;
+  prevPressed: boolean;
   distance: number;
   finished: boolean;
   finishTimeMs: number | null;
   lastCheckpoint: { x: number; y: number };
   crashFlash: number;
-  hitWallTick: boolean;
-  wasAirborne: boolean;
 }
 
 export class CourseSimulation {
   circuit: CircuitDef;
-  engine: Matter.Engine;
   private players = new Map<string, PlayerRuntime>();
   private tick = 0;
   private elapsedMs = 0;
@@ -48,109 +39,48 @@ export class CourseSimulation {
 
   constructor(circuit: CircuitDef, playerMetas: PlayerMeta[]) {
     this.circuit = circuit;
-    this.engine = Engine.create({ gravity: { x: 0, y: 1 } });
-
-    const groundBodies = circuit.ground.map((seg, i) => this.makeGroundBody(seg, i));
-    const wallBodies = circuit.walls.map((w) =>
-      Bodies.rectangle(w.x, w.y, w.w, w.h, {
-        isStatic: true,
-        friction: 1,
-        plugin: { type: "wall" } as BodyPlugin,
-        render: {},
-      })
-    );
-    World.add(this.engine.world, [...groundBodies, ...wallBodies]);
-
     playerMetas.forEach((meta, i) => {
-      const body = Bodies.rectangle(circuit.startX - i * 55, circuit.startY, VEHICLE_W, VEHICLE_H, {
-        friction: 0.9,
-        frictionAir: 0.0005,
-        restitution: 0,
-        density: 0.0025,
-        plugin: { type: "player", id: meta.id } as BodyPlugin,
-      });
-      World.add(this.engine.world, body);
       this.players.set(meta.id, {
         meta,
-        body,
-        grounded: false,
-        groundAngle: 0,
-        airborneAccum: 0,
-        flips: 0,
+        x: circuit.startX - i * 30,
+        y: circuit.startY,
+        vx: RUN_SPEED,
+        vy: 0,
+        onGround: true,
+        jumpsLeft: MAX_JUMPS,
+        prevPressed: false,
         distance: 0,
         finished: false,
         finishTimeMs: null,
         lastCheckpoint: { x: circuit.startX, y: circuit.startY },
         crashFlash: 0,
-        hitWallTick: false,
-        wasAirborne: true,
       });
     });
-
-    const handlePairs = (pairs: Matter.Pair[]) => {
-      for (const pair of pairs) {
-        const a = pair.bodyA.plugin as BodyPlugin | undefined;
-        const b = pair.bodyB.plugin as BodyPlugin | undefined;
-        this.applyPairContact(a, pair.bodyA, b, pair.bodyB);
-        this.applyPairContact(b, pair.bodyB, a, pair.bodyA);
-      }
-    };
-    Events.on(this.engine, "collisionStart", (e) => handlePairs(e.pairs));
-    Events.on(this.engine, "collisionActive", (e) => handlePairs(e.pairs));
-  }
-
-  private applyPairContact(
-    selfPlugin: BodyPlugin | undefined,
-    _selfBody: Matter.Body,
-    otherPlugin: BodyPlugin | undefined,
-    otherBody: Matter.Body
-  ) {
-    if (!selfPlugin || selfPlugin.type !== "player") return;
-    const pr = this.players.get(selfPlugin.id);
-    if (!pr) return;
-    if (otherPlugin?.type === "ground") {
-      pr.grounded = true;
-      pr.groundAngle = otherPlugin.angle;
-    } else if (otherPlugin?.type === "wall") {
-      pr.hitWallTick = true;
-    } else if (otherPlugin?.type === "player") {
-      // player-vs-player bumps: let Matter's normal collision response handle it (fun chaos), no extra logic.
-      void otherBody;
-    }
-  }
-
-  private makeGroundBody(seg: GroundSeg, index: number): Matter.Body {
-    const midX = (seg.x0 + seg.x1) / 2;
-    const midY = (seg.y0 + seg.y1) / 2;
-    const len = Math.hypot(seg.x1 - seg.x0, seg.y1 - seg.y0);
-    const thickness = 26;
-    // The authored line is the walkable surface; the body's centroid sits
-    // `thickness/2` below it along the segment's own normal (down-facing at angle 0).
-    const nx = -Math.sin(seg.angle);
-    const ny = Math.cos(seg.angle);
-    const cx = midX + nx * (thickness / 2);
-    const cy = midY + ny * (thickness / 2);
-    const body = Bodies.rectangle(cx, cy, len + 4, thickness, {
-      isStatic: true,
-      friction: 1,
-      plugin: { type: "ground", angle: seg.angle } as BodyPlugin,
-    });
-    Body.setAngle(body, seg.angle);
-    Body.setPosition(body, { x: cx, y: cy });
-    void index;
-    return body;
   }
 
   private respawn(pr: PlayerRuntime) {
-    const { x, y } = pr.lastCheckpoint;
-    Body.setPosition(pr.body, { x, y: y - RESPAWN_LIFT });
-    Body.setVelocity(pr.body, { x: 0, y: 0 });
-    Body.setAngle(pr.body, 0);
-    Body.setAngularVelocity(pr.body, 0);
-    pr.airborneAccum = 0;
+    pr.x = pr.lastCheckpoint.x;
+    pr.y = pr.lastCheckpoint.y - RESPAWN_LIFT;
+    pr.vx = RUN_SPEED;
+    pr.vy = 0;
+    pr.onGround = false;
+    pr.jumpsLeft = MAX_JUMPS;
     pr.crashFlash = 20;
-    pr.grounded = false;
-    pr.wasAirborne = true;
+  }
+
+  private hitsWall(pr: PlayerRuntime): boolean {
+    const left = pr.x - PLAYER_W / 2;
+    const right = pr.x + PLAYER_W / 2;
+    const bottom = pr.y;
+    const top = pr.y - PLAYER_H;
+    for (const w of this.circuit.walls) {
+      const wLeft = w.x - w.w / 2;
+      const wRight = w.x + w.w / 2;
+      const wTop = w.y - w.h / 2;
+      const wBottom = w.y + w.h / 2;
+      if (right > wLeft && left < wRight && bottom > wTop && top < wBottom) return true;
+    }
+    return false;
   }
 
   step(dtMs: number, inputs: Map<string, InputState>) {
@@ -159,74 +89,52 @@ export class CourseSimulation {
     this.elapsedMs += dtMs;
 
     for (const pr of this.players.values()) {
-      pr.hitWallTick = false;
-    }
-
-    Engine.update(this.engine, dtMs);
-
-    for (const pr of this.players.values()) {
       if (pr.crashFlash > 0) pr.crashFlash--;
       if (pr.finished) continue;
 
       const input = inputs.get(pr.meta.id);
-      const pos = pr.body.position;
+      const pressed = !!input?.up || !!input?.jump;
+      const justPressed = pressed && !pr.prevPressed;
+      pr.prevPressed = pressed;
 
-      if (pr.body.position.y > this.circuit.worldBottom || pr.hitWallTick) {
+      if (justPressed && pr.jumpsLeft > 0) {
+        pr.vy = pr.jumpsLeft === MAX_JUMPS ? JUMP_VELOCITY : DOUBLE_JUMP_VELOCITY;
+        pr.jumpsLeft--;
+        pr.onGround = false;
+      }
+
+      pr.x += RUN_SPEED;
+      pr.vy += GRAVITY;
+      pr.y += pr.vy;
+
+      const groundY = groundYAt(this.circuit.ground, pr.x);
+      if (groundY !== null && pr.vy >= 0 && pr.y >= groundY) {
+        pr.y = groundY;
+        pr.vy = 0;
+        pr.onGround = true;
+        pr.jumpsLeft = MAX_JUMPS;
+      } else {
+        pr.onGround = false;
+      }
+
+      if (pr.y > this.circuit.worldBottom || this.hitsWall(pr)) {
         this.respawn(pr);
         continue;
       }
 
-      const landingNow = pr.grounded && pr.wasAirborne;
-      if (landingNow) {
-        const diff = angleDiff(pr.body.angle, pr.groundAngle);
-        if (Math.abs(diff) > LAND_SAFE_TOLERANCE) {
-          this.respawn(pr);
-          continue;
-        }
-        const flipsGained = Math.floor(Math.abs(pr.airborneAccum) / (Math.PI * 2));
-        pr.flips += flipsGained;
-        pr.airborneAccum = 0;
-        Body.setAngle(pr.body, pr.groundAngle);
-        Body.setAngularVelocity(pr.body, 0);
-      }
-
-      if (pr.grounded) {
-        pr.wasAirborne = false;
-        const tangent = { x: Math.cos(pr.groundAngle), y: Math.sin(pr.groundAngle) };
-        const currentSpeed = pr.body.velocity.x * tangent.x + pr.body.velocity.y * tangent.y;
-        const accelerating = !!input?.up || !!input?.jump;
-        const target = accelerating ? MAX_SPEED : Math.max(currentSpeed - DECEL, 0);
-        const rate = accelerating ? ACCEL : DECEL;
-        const newSpeed = moveToward(currentSpeed, target, rate);
-        Body.setVelocity(pr.body, { x: tangent.x * newSpeed, y: tangent.y * newSpeed });
-        Body.setAngle(pr.body, lerpAngle(pr.body.angle, pr.groundAngle, 0.35));
-        Body.setAngularVelocity(pr.body, 0);
-      } else {
-        pr.wasAirborne = true;
-        const holding = !!input?.up || !!input?.jump;
-        let av = pr.body.angularVelocity;
-        if (holding) av = FLIP_RATE;
-        else av *= FLIP_DAMPING;
-        Body.setAngularVelocity(pr.body, av);
-        pr.airborneAccum += av;
-      }
-
-      pr.distance = Math.max(pr.distance, pos.x - this.circuit.startX);
+      pr.distance = Math.max(pr.distance, pr.x - this.circuit.startX);
 
       for (const cpX of this.circuit.checkpoints) {
-        if (pos.x >= cpX && pr.lastCheckpoint.x < cpX) {
+        if (pr.x >= cpX && pr.lastCheckpoint.x < cpX) {
           const gy = groundYAt(this.circuit.ground, cpX);
-          if (gy !== null) pr.lastCheckpoint = { x: cpX, y: gy - 40 };
+          if (gy !== null) pr.lastCheckpoint = { x: cpX, y: gy };
         }
       }
 
-      if (pos.x >= this.circuit.finishX && !pr.finished) {
+      if (pr.x >= this.circuit.finishX && !pr.finished) {
         pr.finished = true;
         pr.finishTimeMs = this.elapsedMs;
       }
-
-      // reset grounded flag; collision events will re-set it next step if still touching
-      pr.grounded = false;
     }
   }
 
@@ -246,16 +154,15 @@ export class CourseSimulation {
       elapsedMs: this.elapsedMs,
       entities: [...this.players.values()].map((p) => ({
         id: p.meta.id,
-        x: p.body.position.x,
-        y: p.body.position.y,
-        angle: p.body.angle,
-        vx: p.body.velocity.x,
-        vy: p.body.velocity.y,
-        onGround: p.grounded,
+        x: p.x,
+        y: p.y,
+        vx: p.vx,
+        vy: p.vy,
+        onGround: p.onGround,
+        facing: 1 as const,
         finished: p.finished,
         finishTimeMs: p.finishTimeMs,
         distance: p.distance,
-        flips: p.flips,
         crashFlash: p.crashFlash,
       })),
     };
@@ -278,27 +185,6 @@ export class CourseSimulation {
       timeMs: p.finishTimeMs ?? undefined,
       distance: Math.round(p.distance),
       finished: p.finished,
-      flips: p.flips,
     }));
   }
-
-  playerBody(id: string): Matter.Body | undefined {
-    return this.players.get(id)?.body;
-  }
-}
-
-function moveToward(current: number, target: number, maxDelta: number): number {
-  if (current < target) return Math.min(current + maxDelta, target);
-  return Math.max(current - maxDelta, target);
-}
-
-function angleDiff(a: number, b: number): number {
-  let d = (a - b) % (Math.PI * 2);
-  if (d > Math.PI) d -= Math.PI * 2;
-  if (d < -Math.PI) d += Math.PI * 2;
-  return d;
-}
-
-function lerpAngle(a: number, b: number, t: number): number {
-  return a + angleDiff(b, a) * t;
 }

@@ -33,25 +33,23 @@ export interface ResultEntry {
   timeMs?: number;
   distance?: number;
   finished?: boolean;
-  flips?: number;
   // Shooter:
   kills?: number;
   deaths?: number;
 }
 
-// ---- Course mode (vehicle physics with flips) ----
+// ---- Course mode (parkour platformer) ----
 export interface CourseEntitySnapshot {
   id: string;
   x: number;
   y: number;
-  angle: number;
   vx: number;
   vy: number;
   onGround: boolean;
+  facing: 1 | -1;
   finished: boolean;
   finishTimeMs: number | null;
   distance: number;
-  flips: number;
   crashFlash: number; // >0 shortly after a crash/respawn, for renderer feedback
 }
 

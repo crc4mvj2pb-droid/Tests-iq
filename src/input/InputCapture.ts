@@ -6,6 +6,8 @@ export class InputCapture {
   private mode: GameMode;
   private canvas: HTMLCanvasElement;
   private touchRoot: HTMLElement;
+  private aimDialTouched = false;
+  private nearestEnemyProvider: () => { x: number; y: number } | null = () => null;
   private keydownHandler = (e: KeyboardEvent) => this.onKey(e, true);
   private keyupHandler = (e: KeyboardEvent) => this.onKey(e, false);
   private mouseMoveHandler = (e: MouseEvent) => this.onMouseMove(e);
@@ -32,6 +34,12 @@ export class InputCapture {
     this.touchRoot = touchRoot;
   }
 
+  /** Shooter only: used as the touch fire-zone's aim when the player hasn't
+   * dragged the aim dial yet, so tapping to shoot is useful immediately. */
+  setNearestEnemyProvider(fn: () => { x: number; y: number } | null) {
+    this.nearestEnemyProvider = fn;
+  }
+
   attach() {
     window.addEventListener("keydown", this.keydownHandler);
     window.addEventListener("keyup", this.keyupHandler);
@@ -40,8 +48,8 @@ export class InputCapture {
       this.canvas.addEventListener("mousedown", this.mouseDownHandler);
       window.addEventListener("mouseup", this.mouseUpHandler);
     } else {
-      // Course mode: press anywhere (mouse or touch) to accelerate / flip —
-      // no need to find a specific button.
+      // Course mode: press anywhere (mouse, touch, or keyboard) to jump —
+      // the character runs forward on its own.
       this.canvas.addEventListener("pointerdown", this.holdDownHandler);
       window.addEventListener("pointerup", this.holdUpHandler);
       window.addEventListener("pointercancel", this.holdUpHandler);
@@ -63,6 +71,14 @@ export class InputCapture {
   }
 
   getInput(): InputState {
+    if (this.mode === "shooter" && this.state.shoot && !this.aimDialTouched) {
+      const target = this.nearestEnemyProvider();
+      if (target) {
+        const l = Math.hypot(target.x, target.y) || 1;
+        this.state.aimX = target.x / l;
+        this.state.aimY = target.y / l;
+      }
+    }
     return { ...this.state };
   }
 
@@ -111,7 +127,10 @@ export class InputCapture {
       e.preventDefault();
       this.state.shoot = true;
     });
-    fireZone.addEventListener("pointerup", () => (this.state.shoot = false));
+    fireZone.addEventListener("pointerup", (e) => {
+      e.preventDefault();
+      this.state.shoot = false;
+    });
     fireZone.addEventListener("pointercancel", () => (this.state.shoot = false));
 
     const wrap = document.createElement("div");
@@ -119,36 +138,43 @@ export class InputCapture {
 
     const pad = document.createElement("div");
     pad.className = "pad";
-    const moveStick = document.createElement("div");
-    moveStick.className = "touch-btn wide";
-    moveStick.style.width = "96px";
-    moveStick.style.height = "96px";
-    moveStick.style.borderRadius = "50%";
-    moveStick.textContent = "🕹";
-    pad.append(moveStick);
-    this.attachMoveJoystick(moveStick);
+    const moveStick = this.makeStick();
+    pad.append(moveStick.el);
+    this.attachMoveJoystick(moveStick.el, moveStick.knob);
 
     const actions = document.createElement("div");
     actions.className = "actions";
-    const aimStick = document.createElement("div");
-    aimStick.className = "touch-btn wide";
-    aimStick.style.width = "96px";
-    aimStick.style.height = "96px";
-    aimStick.style.borderRadius = "50%";
-    aimStick.textContent = "🎯";
-    actions.append(aimStick);
-    this.attachAimDial(aimStick);
+    const aimStick = this.makeStick();
+    actions.append(aimStick.el);
+    this.attachAimDial(aimStick.el, aimStick.knob);
 
     wrap.append(pad, actions);
     this.touchRoot.append(fireZone, wrap);
     this.touchNodes.push(fireZone, wrap);
   }
 
-  private attachMoveJoystick(el: HTMLElement) {
+  private makeStick(): { el: HTMLElement; knob: HTMLElement } {
+    const el = document.createElement("div");
+    el.className = "touch-btn joystick";
+    const knob = document.createElement("div");
+    knob.className = "knob";
+    el.appendChild(knob);
+    return { el, knob };
+  }
+
+  private attachMoveJoystick(el: HTMLElement, knob: HTMLElement) {
     let active = false;
+    const radius = 30;
+    const setKnob = (dx: number, dy: number) => {
+      const d = Math.hypot(dx, dy);
+      const scale = d > radius ? radius / d : 1;
+      knob.style.transform = `translate(${dx * scale}px, ${dy * scale}px)`;
+    };
     const reset = () => {
       active = false;
       this.state.left = this.state.right = this.state.up = this.state.down = false;
+      el.classList.remove("engaged");
+      knob.style.transform = "translate(0px, 0px)";
     };
     const onMove = (clientX: number, clientY: number) => {
       const rect = el.getBoundingClientRect();
@@ -161,23 +187,33 @@ export class InputCapture {
       this.state.right = dx > r * 0.25;
       this.state.up = dy < -r * 0.25;
       this.state.down = dy > r * 0.25;
+      setKnob(dx, dy);
     };
     el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
       e.stopPropagation();
       active = true;
+      el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
       onMove(e.clientX, e.clientY);
     });
     el.addEventListener("pointermove", (e) => {
+      e.preventDefault();
       if (active) onMove(e.clientX, e.clientY);
     });
     el.addEventListener("pointerup", reset);
     el.addEventListener("pointercancel", reset);
   }
 
-  private attachAimDial(el: HTMLElement) {
+  private attachAimDial(el: HTMLElement, knob: HTMLElement) {
     // Drag to set a firing direction; it's kept even after release, so a
     // separate tap anywhere else on screen fires that way (see fire-zone).
+    const radius = 30;
+    const setKnob = (dx: number, dy: number) => {
+      const d = Math.hypot(dx, dy);
+      const scale = d > radius ? radius / d : 1;
+      knob.style.transform = `translate(${dx * scale}px, ${dy * scale}px)`;
+    };
     const onMove = (clientX: number, clientY: number) => {
       const rect = el.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
@@ -187,12 +223,22 @@ export class InputCapture {
       const l = Math.hypot(dx, dy) || 1;
       this.state.aimX = dx / l;
       this.state.aimY = dy / l;
+      this.aimDialTouched = true;
+      setKnob(dx, dy);
     };
     el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
       e.stopPropagation();
+      el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
       onMove(e.clientX, e.clientY);
     });
-    el.addEventListener("pointermove", (e) => onMove(e.clientX, e.clientY));
+    el.addEventListener("pointermove", (e) => {
+      e.preventDefault();
+      onMove(e.clientX, e.clientY);
+    });
+    const release = () => el.classList.remove("engaged");
+    el.addEventListener("pointerup", release);
+    el.addEventListener("pointercancel", release);
   }
 }

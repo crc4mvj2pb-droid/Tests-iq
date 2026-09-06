@@ -1,40 +1,63 @@
 import type { InputState } from "../../net/protocol";
 import { emptyInput } from "../../net/protocol";
+import type { CircuitDef } from "./circuits";
+
+interface Hazard {
+  start: number;
+  end: number;
+  kind: "gap" | "wall";
+}
+
+function computeHazards(circuit: CircuitDef): Hazard[] {
+  const hazards: Hazard[] = [];
+  const segs = [...circuit.ground].sort((a, b) => Math.min(a.x0, a.x1) - Math.min(b.x0, b.x1));
+  for (let i = 0; i < segs.length - 1; i++) {
+    const endOfThis = Math.max(segs[i].x0, segs[i].x1);
+    const startOfNext = Math.min(segs[i + 1].x0, segs[i + 1].x1);
+    if (startOfNext - endOfThis > 4) {
+      hazards.push({ start: endOfThis, end: startOfNext, kind: "gap" });
+    }
+  }
+  for (const w of circuit.walls) {
+    hazards.push({ start: w.x - w.w / 2, end: w.x + w.w / 2, kind: "wall" });
+  }
+  hazards.sort((a, b) => a.start - b.start);
+  return hazards;
+}
 
 interface BotState {
-  skill: number; // 0.7 - 1.0, affects how consistently it accelerates
-  flipUrge: number; // ticks until next playful flip attempt
-  flipHoldLeft: number; // ticks remaining in the current flip attempt
+  hazards: Hazard[];
+  jitter: number;
 }
 
 export class CourseBotController {
   private states = new Map<string, BotState>();
+  private circuit: CircuitDef;
 
-  register(id: string) {
-    this.states.set(id, { skill: 0.82 + Math.random() * 0.18, flipUrge: 60 + Math.random() * 120, flipHoldLeft: 0 });
+  constructor(circuit: CircuitDef) {
+    this.circuit = circuit;
   }
 
-  computeInput(id: string, onGround: boolean): InputState {
-    const st = this.states.get(id);
-    if (!st) return emptyInput();
-    const input = emptyInput();
+  register(id: string) {
+    this.states.set(id, { hazards: computeHazards(this.circuit), jitter: Math.random() * 12 - 6 });
+  }
 
-    if (onGround) {
-      input.up = Math.random() < st.skill;
-      st.flipHoldLeft = 0;
-    } else {
-      // Mostly coast safely (no rotation input) while airborne; occasionally
-      // attempt a short, stylish flip — holding "up" both accelerates on the
-      // ground and rotates in the air, so this must stay brief to land safely.
-      st.flipUrge -= 1;
-      if (st.flipUrge <= 0 && st.flipHoldLeft <= 0) {
-        st.flipHoldLeft = 14;
-        st.flipUrge = 90 + Math.random() * 150;
-      }
-      if (st.flipHoldLeft > 0) {
-        input.up = true;
-        st.flipHoldLeft -= 1;
-      }
+  computeInput(id: string, botX: number): InputState {
+    const st = this.states.get(id);
+    const input = emptyInput();
+    if (!st) return input;
+
+    // Deliberately not gated on "grounded": a bot can still be airborne from
+    // clearing the previous obstacle (e.g. landing off a bump) exactly when
+    // the next one enters its window, and the sim safely ignores a jump
+    // attempt once its jump charges are spent.
+    const upcoming = st.hazards.find((h) => h.end > botX);
+    if (!upcoming) return input;
+
+    const lead = upcoming.start - botX;
+    const [minLead, maxLead] = upcoming.kind === "gap" ? [0, 18] : [30, 130];
+    if (lead >= minLead - 5 && lead <= maxLead + st.jitter) {
+      input.up = true;
     }
     return input;
   }

@@ -60,6 +60,9 @@ export class GameController {
     else this.map = getMap(info.levelId);
 
     this.input = new InputCapture(info.mode, canvas, touchRoot);
+    if (info.mode === "shooter") {
+      this.input.setNearestEnemyProvider(() => this.findNearestEnemyOffset());
+    }
   }
 
   start() {
@@ -71,7 +74,7 @@ export class GameController {
     if (this.isHost) {
       if (this.info.mode === "course" && this.circuit) {
         this.courseSim = new CourseSimulation(this.circuit, this.info.players);
-        this.courseBots = new CourseBotController();
+        this.courseBots = new CourseBotController(this.circuit);
         for (const p of this.info.players) if (p.isBot) this.courseBots.register(p.id);
       } else if (this.map) {
         this.shooterSim = new ShooterSimulation(this.map, this.info.seed, this.info.players);
@@ -111,14 +114,35 @@ export class GameController {
     this.canvas.height = this.canvas.clientHeight;
   };
 
+  private findNearestEnemyOffset(): { x: number; y: number } | null {
+    const snap = this.isHost ? this.shooterSim?.snapshot() : this.lastShooterSnap;
+    if (!snap) return null;
+    const me = snap.entities.find((e) => e.id === this.localId);
+    if (!me) return null;
+    let best: { x: number; y: number } | null = null;
+    let bestDist = Infinity;
+    for (const e of snap.entities) {
+      if (e.id === this.localId || !e.alive) continue;
+      const d = Math.hypot(e.x - me.x, e.y - me.y);
+      if (d < bestDist) {
+        bestDist = d;
+        best = { x: e.x - me.x, y: e.y - me.y };
+      }
+    }
+    return best;
+  }
+
   private stepHostSimulation() {
     if (this.info.mode === "course" && this.courseSim && this.courseBots) {
       const snapNow = this.courseSim.snapshot();
-      const grounded = new Map(snapNow.entities.map((e) => [e.id, e.onGround]));
+      const positions = new Map(snapNow.entities.map((e) => [e.id, e.x]));
       const inputs = new Map<string, InputState>(this.remoteInputs);
       inputs.set(this.localId, this.input.getInput());
       for (const p of this.info.players) {
-        if (p.isBot) inputs.set(p.id, this.courseBots.computeInput(p.id, grounded.get(p.id) ?? true));
+        if (p.isBot) {
+          const botX = positions.get(p.id) ?? this.circuit!.startX;
+          inputs.set(p.id, this.courseBots.computeInput(p.id, botX));
+        }
       }
       this.courseSim.step(FIXED_DT, inputs);
     } else if (this.shooterSim && this.shooterBots && this.map) {
