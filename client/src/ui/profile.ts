@@ -23,11 +23,10 @@ export const renderProfile: ScreenFn = (root, nav) => {
     <div style="height:16px"></div>
     <div class="stat-line"><span>Meilleur score Classic</span><b>${d.classicBest.score}</b></div>
     <div class="stat-line"><span>Meilleure distance Classic</span><b>${d.classicBest.distanceM} m</b></div>
+    <div class="stat-line"><span>Meilleur combo Classic</span><b>x${d.classicBest.bestCombo}</b></div>
     <div class="stat-line"><span>Victoires Private</span><b>${d.totals.privateWins}</b></div>
-    <div class="stat-line"><span>Victoires Public</span><b>${d.totals.publicWins}</b></div>
     <div class="stat-line"><span>Flips réalisés</span><b>${d.totals.flips}</b></div>
     <div class="stat-line"><span>Courses jouées</span><b>${d.totals.races}</b></div>
-    <div class="stat-line"><span>Étoiles obtenues</span><b>${SaveManager.totalStars()} / ${20 * 3}</b></div>
     <div class="stat-line"><span>Voitures débloquées</span><b>${d.unlockedCars.length} / 10</b></div>
   `;
   screen.appendChild(panel);

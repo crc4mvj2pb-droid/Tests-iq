@@ -9,14 +9,13 @@ export interface CarStars {
 
 export type UnlockCondition =
   | { type: 'default' }
-  | { type: 'levelsCompleted'; count: number }
-  | { type: 'starsTotal'; count: number }
   | { type: 'privateWin' }
-  | { type: 'publicWin' }
+  | { type: 'privateWins'; count: number }
   | { type: 'flipsTotal'; count: number }
   | { type: 'distanceTotal'; meters: number }
-  | { type: 'noDeathLevel' }
-  | { type: 'perfectStars'; count: number };
+  | { type: 'classicBestDistance'; meters: number }
+  | { type: 'classicScore'; score: number }
+  | { type: 'comboAchieved'; count: number };
 
 export interface CarProfile {
   id: string;
@@ -69,7 +68,7 @@ export const CARS: CarProfile[] = [
     colorSecondary: '#3a0d16',
     glow: '#ff8fa3',
     stars: { speed: 5, accel: 5, stability: 2, rotation: 2, grip: 3, air: 2 },
-    unlock: { type: 'levelsCompleted', count: 5 },
+    unlock: { type: 'distanceTotal', meters: 2000 },
     chassisWidth: 96, chassisHeight: 26, wheelRadius: 17, wheelOffset: 36,
     density: 0.0014, maxWheelSpeed: 1.35, wheelAccelRate: 0.16, airControlTorque: 0.0220, groundStability: 0.18,
     suspensionStiffness: 0.4, suspensionDamping: 0.18, wheelFriction: 0.95, chassisFriction: 0.35, restitution: 0.08,
@@ -82,7 +81,7 @@ export const CARS: CarProfile[] = [
     colorSecondary: '#213a0d',
     glow: '#cfff8f',
     stars: { speed: 3, accel: 4, stability: 2, rotation: 5, grip: 3, air: 5 },
-    unlock: { type: 'starsTotal', count: 10 },
+    unlock: { type: 'flipsTotal', count: 20 },
     chassisWidth: 78, chassisHeight: 26, wheelRadius: 17, wheelOffset: 28,
     density: 0.0013, maxWheelSpeed: 1.0, wheelAccelRate: 0.17, airControlTorque: 0.0495, groundStability: 0.18,
     suspensionStiffness: 0.5, suspensionDamping: 0.22, wheelFriction: 0.96, chassisFriction: 0.35, restitution: 0.06,
@@ -95,7 +94,7 @@ export const CARS: CarProfile[] = [
     colorSecondary: '#3a2a0d',
     glow: '#ffd88f',
     stars: { speed: 2, accel: 2, stability: 5, rotation: 2, grip: 4, air: 2 },
-    unlock: { type: 'starsTotal', count: 30 },
+    unlock: { type: 'distanceTotal', meters: 5000 },
     chassisWidth: 104, chassisHeight: 38, wheelRadius: 23, wheelOffset: 38,
     density: 0.0026, maxWheelSpeed: 0.7, wheelAccelRate: 0.09, airControlTorque: 0.0165, groundStability: 0.30,
     suspensionStiffness: 0.7, suspensionDamping: 0.4, wheelFriction: 1.0, chassisFriction: 0.5, restitution: 0.02,
@@ -121,7 +120,7 @@ export const CARS: CarProfile[] = [
     colorSecondary: '#0d3a33',
     glow: '#8fffea',
     stars: { speed: 4, accel: 4, stability: 4, rotation: 3, grip: 4, air: 3 },
-    unlock: { type: 'publicWin' },
+    unlock: { type: 'classicScore', score: 5000 },
     chassisWidth: 90, chassisHeight: 30, wheelRadius: 19, wheelOffset: 34,
     density: 0.0019, maxWheelSpeed: 1.15, wheelAccelRate: 0.14, airControlTorque: 0.0330, groundStability: 0.26,
     suspensionStiffness: 0.55, suspensionDamping: 0.28, wheelFriction: 1.0, chassisFriction: 0.4, restitution: 0.05,
@@ -160,7 +159,7 @@ export const CARS: CarProfile[] = [
     colorSecondary: '#161a3a',
     glow: '#b3bcff',
     stars: { speed: 3, accel: 2, stability: 5, rotation: 2, grip: 5, air: 2 },
-    unlock: { type: 'noDeathLevel' },
+    unlock: { type: 'classicBestDistance', meters: 1500 },
     chassisWidth: 98, chassisHeight: 34, wheelRadius: 21, wheelOffset: 36,
     density: 0.0023, maxWheelSpeed: 0.85, wheelAccelRate: 0.1, airControlTorque: 0.0220, groundStability: 0.30,
     suspensionStiffness: 0.65, suspensionDamping: 0.36, wheelFriction: 1.05, chassisFriction: 0.48, restitution: 0.03,
@@ -173,7 +172,7 @@ export const CARS: CarProfile[] = [
     colorSecondary: '#3a0d30',
     glow: '#ff8fe8',
     stars: { speed: 4, accel: 4, stability: 3, rotation: 4, grip: 4, air: 4 },
-    unlock: { type: 'perfectStars', count: 15 },
+    unlock: { type: 'comboAchieved', count: 8 },
     chassisWidth: 84, chassisHeight: 27, wheelRadius: 18, wheelOffset: 31,
     density: 0.0016, maxWheelSpeed: 1.2, wheelAccelRate: 0.15, airControlTorque: 0.0385, groundStability: 0.22,
     suspensionStiffness: 0.56, suspensionDamping: 0.27, wheelFriction: 1.0, chassisFriction: 0.4, restitution: 0.05,

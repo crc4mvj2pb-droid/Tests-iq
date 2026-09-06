@@ -1,9 +1,5 @@
-// Shared WebSocket protocol between client and server for Private and Public
+// Shared WebSocket protocol between client and server for Private
 // multiplayer. Every message is a JSON object with a `type` discriminator.
-
-export type CarStats = {
-  id: string;
-};
 
 export interface PlayerInfo {
   id: string;
@@ -11,8 +7,6 @@ export interface PlayerInfo {
   carId: string;
   ready: boolean;
   isHost: boolean;
-  isBot?: boolean;
-  botTier?: 'easy' | 'normal' | 'hard' | 'expert';
 }
 
 export interface RoundResult {
@@ -32,9 +26,6 @@ export type ClientMessage =
   | { type: 'private:start' }
   | { type: 'race:state'; x: number; y: number; angle: number; speed: number }
   | { type: 'race:finish' }
-  | { type: 'race:crashedOut' }
-  | { type: 'public:queue'; name: string; carId: string }
-  | { type: 'public:leaveQueue' }
   | { type: 'ping' };
 
 // ---------- Server -> Client ----------
@@ -55,29 +46,4 @@ export type ServerMessage =
   | { type: 'race:ghost'; playerId: string; x: number; y: number; angle: number; speed: number }
   | { type: 'race:roundResult'; round: number; results: RoundResult[]; standings: RoundResult[] }
   | { type: 'race:matchOver'; standings: RoundResult[] }
-  | { type: 'public:queued'; position: number; queueSize: number }
-  | {
-      type: 'public:matchFound';
-      matchId: string;
-      you: string;
-      totalPlayers: number;
-      players: PlayerInfo[];
-    }
-  | {
-      type: 'public:heatStart';
-      heat: number;
-      totalHeats: number;
-      qualifying: number;
-      trackSeed: number;
-      environment: string;
-      serverStartAt: number;
-    }
-  | {
-      type: 'public:heatResult';
-      heat: number;
-      results: RoundResult[];
-      qualifiedIds: string[];
-      eliminatedIds: string[];
-    }
-  | { type: 'public:matchOver'; winnerId: string; winnerName: string; standings: RoundResult[] }
   | { type: 'pong' };

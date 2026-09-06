@@ -1,9 +1,7 @@
 import Matter from 'matter-js';
 import type { CarProfile } from '../../data/cars';
-import type { LevelDefinition } from '@shared/trackTypes';
 import { createCarRig, applyCarControl, resetCarRig, carSpeed, type CarRig } from '../physics/car';
 import { ActiveTrack, buildStartPad } from '../track/trackBuilder';
-import { loadLevel } from '../track/levelLoader';
 import { ClassicTrackGenerator } from '../track/classicGenerator';
 import { buildMultiplayerRound } from '../track/multiplayerRound';
 import { CrashSystem } from './CrashSystem';
@@ -16,10 +14,9 @@ import { sound } from '../audio/Sound';
 
 export const METER_PX = 22;
 
-export type RaceMode = 'solo' | 'classic' | 'multiplayer';
+export type RaceMode = 'classic' | 'multiplayer';
 
 export type RaceConfig =
-  | { mode: 'solo'; level: LevelDefinition }
   | { mode: 'classic'; seed: number }
   | { mode: 'multiplayer'; seed: number; targetDistanceM: number; environment: string };
 
@@ -37,7 +34,7 @@ export interface RaceCallbacks {
   onCountdown?: (stage: string | null) => void;
   onCheckpoint?: (index: number, total: number) => void;
   onCrash?: () => void;
-  onFinish?: (stats: RaceStats, stars: 0 | 1 | 2 | 3) => void;
+  onFinish?: (stats: RaceStats) => void;
   onGameOver?: (stats: RaceStats, isNewRecord: boolean) => void;
   /** Multiplayer only: fired ~10x/s so the caller can broadcast this client's
    * position to the server for ghost-car rendering on other screens. */
@@ -71,7 +68,6 @@ export class RaceSession {
 
   private environmentId!: string;
   private classicGen: ClassicTrackGenerator | null = null;
-  private levelDef: LevelDefinition | null = null;
   private finishBody: Matter.Body | null = null;
 
   private elapsedMs = 0;
@@ -105,15 +101,7 @@ export class RaceSession {
     this.ctx = ctx;
     this.input = new Input((canvas.parentElement as HTMLElement) ?? canvas);
 
-    if (config.mode === 'solo') {
-      this.levelDef = config.level;
-      this.environmentId = this.levelDef.environment;
-      const loaded = loadLevel(this.world, this.levelDef);
-      this.track = loaded.track;
-      this.finishBody = loaded.finishBody;
-      this.startX = loaded.start.x;
-      this.respawnPoint = { x: loaded.start.x, y: loaded.start.y - 60, angle: 0 };
-    } else if (config.mode === 'multiplayer') {
+    if (config.mode === 'multiplayer') {
       this.environmentId = config.environment;
       const built = buildMultiplayerRound(this.world, config.seed, config.targetDistanceM);
       this.track = built.track;
@@ -228,14 +216,7 @@ export class RaceSession {
   private handleFinish() {
     this.controlEnabled = false;
     sound.victory();
-    const stats = this.currentStats();
-    let stars: 0 | 1 | 2 | 3 = 0;
-    if (this.levelDef) {
-      if (stats.timeMs <= this.levelDef.goldMs) stars = 3;
-      else if (stats.timeMs <= this.levelDef.silverMs) stars = 2;
-      else if (stats.timeMs <= this.levelDef.bronzeMs) stars = 1;
-    }
-    this.callbacks.onFinish?.(stats, stars);
+    this.callbacks.onFinish?.(this.currentStats());
   }
 
   private finishClassicRun() {

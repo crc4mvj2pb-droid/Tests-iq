@@ -1,11 +1,8 @@
 import { el, type ScreenFn } from './router';
-import { renderSoloLevelSelect } from './solo';
 import { renderClassicIntro } from './classic';
 import { renderGarage } from './garage';
-import { renderChallenges } from './challenges';
 import { renderProfile } from './profile';
 import { renderPrivateHome } from './private';
-import { renderPublicHome } from './public';
 
 export const renderMenu: ScreenFn = (root, nav) => {
   const screen = el('div', 'screen');
@@ -16,10 +13,8 @@ export const renderMenu: ScreenFn = (root, nav) => {
 
   const grid = el('div', 'menu-grid');
   const modes: [string, string, ScreenFn][] = [
-    ['🏁 SOLO', 'primary', renderSoloLevelSelect],
-    ['♾️ CLASSIC', 'accent2', renderClassicIntro],
-    ['🔒 PRIVATE', '', renderPrivateHome],
-    ['🌍 PUBLIC', '', renderPublicHome],
+    ['▶ JOUER', 'primary', renderClassicIntro],
+    ['🔒 PRIVATE', 'accent2', renderPrivateHome],
   ];
   for (const [label, cls, target] of modes) {
     const btn = el('button', `btn ${cls}`.trim(), label);
@@ -31,7 +26,6 @@ export const renderMenu: ScreenFn = (root, nav) => {
   const secondary = el('div', 'menu-secondary');
   const links: [string, ScreenFn][] = [
     ['🚗 Garage', renderGarage],
-    ['🎯 Challenges', renderChallenges],
     ['👤 Profil', renderProfile],
   ];
   for (const [label, target] of links) {

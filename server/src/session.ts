@@ -7,7 +7,6 @@ export interface ClientSession {
   name: string;
   carId: string;
   roomCode: string | null;
-  publicMatchId: string | null;
 }
 
 export function send(session: ClientSession, msg: ServerMessage) {

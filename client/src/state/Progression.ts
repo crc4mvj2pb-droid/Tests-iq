@@ -13,14 +13,7 @@ export function levelFromXp(xp: number): { level: number; xpIntoLevel: number; x
 }
 
 export const XP_REWARDS = {
-  levelComplete: 60,
-  starBonus: 25,
-  challengeSmall: 80,
-  challengeMedium: 150,
-  challengeLarge: 300,
   privateRoundWin: 100,
   privateMatchWin: 250,
-  publicHeatQualify: 60,
-  publicMatchWin: 500,
   classicPer1000m: 40,
 };

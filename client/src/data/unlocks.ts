@@ -6,22 +6,20 @@ function isMet(cond: UnlockCondition): boolean {
   switch (cond.type) {
     case 'default':
       return true;
-    case 'levelsCompleted':
-      return SaveManager.levelsCompleted() >= cond.count;
-    case 'starsTotal':
-      return SaveManager.totalStars() >= cond.count;
     case 'privateWin':
       return d.totals.privateWins >= 1;
-    case 'publicWin':
-      return d.totals.publicWins >= 1;
+    case 'privateWins':
+      return d.totals.privateWins >= cond.count;
     case 'flipsTotal':
       return d.totals.flips >= cond.count;
     case 'distanceTotal':
       return d.totals.distanceM >= cond.meters;
-    case 'noDeathLevel':
-      return Object.values(d.levelNoDeath).some(Boolean);
-    case 'perfectStars':
-      return SaveManager.perfectLevels() * 3 >= cond.count;
+    case 'classicBestDistance':
+      return d.classicBest.distanceM >= cond.meters;
+    case 'classicScore':
+      return d.classicBest.score >= cond.score;
+    case 'comboAchieved':
+      return d.classicBest.bestCombo >= cond.count;
     default:
       return false;
   }
@@ -30,14 +28,13 @@ function isMet(cond: UnlockCondition): boolean {
 export function describeUnlock(cond: UnlockCondition): string {
   switch (cond.type) {
     case 'default': return 'Débloquée par défaut';
-    case 'levelsCompleted': return `Terminer ${cond.count} niveaux`;
-    case 'starsTotal': return `Obtenir ${cond.count} étoiles au total`;
     case 'privateWin': return 'Gagner une partie Private';
-    case 'publicWin': return 'Gagner une partie Public';
+    case 'privateWins': return `Gagner ${cond.count} parties Private`;
     case 'flipsTotal': return `Faire ${cond.count} flips au total`;
     case 'distanceTotal': return `Parcourir ${cond.meters.toLocaleString('fr-FR')} m au total`;
-    case 'noDeathLevel': return 'Terminer un niveau sans crash';
-    case 'perfectStars': return `Obtenir ${cond.count} étoiles parfaites`;
+    case 'classicBestDistance': return `Atteindre ${cond.meters.toLocaleString('fr-FR')} m en une course`;
+    case 'classicScore': return `Obtenir un score de ${cond.score.toLocaleString('fr-FR')}`;
+    case 'comboAchieved': return `Réaliser un combo x${cond.count}`;
     default: return '';
   }
 }
