@@ -5,9 +5,12 @@ export const CAR_LENGTH = 34;
 export const CAR_WIDTH = 20;
 
 const MAX_SPEED = 6.6;
-const OFFTRACK_SPEED_FACTOR = 0.45;
+const WALL_SPEED_BLEED = 0.9;
 const ACCEL = 0.16;
-const TURN_RATE = 0.045;
+// Tuned so holding the wheel at full lock for about a second turns the car
+// roughly 90 degrees — a wheel you can grip and hold through a corner
+// (unlike quick taps) needs a much gentler rate or it spins out of control.
+const TURN_RATE = 0.026;
 const WAYPOINT_RADIUS = 150;
 export const LAPS_TOTAL = 3;
 export const KART_TIME_LIMIT_MS = 5 * 60 * 1000;
@@ -26,27 +29,31 @@ interface PlayerRuntime {
   finishTimeMs: number | null;
 }
 
-function distToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const lenSq = dx * dx + dy * dy;
-  let t = lenSq > 0 ? ((px - ax) * dx + (py - ay) * dy) / lenSq : 0;
-  t = Math.max(0, Math.min(1, t));
-  const cx = ax + t * dx;
-  const cy = ay + t * dy;
-  return Math.hypot(px - cx, py - cy);
-}
-
-function distToTrack(track: KartTrack, x: number, y: number): number {
+// Closest point on the track's centerline path, plus the distance to it —
+// used to hard-clamp cars to the road so they can never drive off it.
+function closestOnTrack(track: KartTrack, x: number, y: number): { dist: number; px: number; py: number } {
   let min = Infinity;
+  let bestPx = x;
+  let bestPy = y;
   const wp = track.waypoints;
   for (let i = 0; i < wp.length; i++) {
     const a = wp[i];
     const b = wp[(i + 1) % wp.length];
-    const d = distToSegment(x, y, a.x, a.y, b.x, b.y);
-    if (d < min) min = d;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    let t = lenSq > 0 ? ((x - a.x) * dx + (y - a.y) * dy) / lenSq : 0;
+    t = Math.max(0, Math.min(1, t));
+    const px = a.x + t * dx;
+    const py = a.y + t * dy;
+    const d = Math.hypot(x - px, y - py);
+    if (d < min) {
+      min = d;
+      bestPx = px;
+      bestPy = py;
+    }
   }
-  return min;
+  return { dist: min, px: bestPx, py: bestPy };
 }
 
 function moveToward(current: number, target: number, maxDelta: number): number {
@@ -105,12 +112,23 @@ export class KartSimulation {
       const steer = input?.steer ?? ((input?.right ? 1 : 0) - (input?.left ? 1 : 0));
       pr.heading += TURN_RATE * steer;
 
-      pr.offTrack = distToTrack(this.track, pr.x, pr.y) > this.track.roadWidth / 2;
-      const maxSpeed = pr.offTrack ? MAX_SPEED * OFFTRACK_SPEED_FACTOR : MAX_SPEED;
-      pr.speed = moveToward(pr.speed, maxSpeed, ACCEL);
+      pr.speed = moveToward(pr.speed, MAX_SPEED, ACCEL);
 
       pr.x += Math.cos(pr.heading) * pr.speed;
       pr.y += Math.sin(pr.heading) * pr.speed;
+
+      // Hard track boundary: clamp back onto the road edge instead of just
+      // slowing down, so a car can never actually leave the circuit.
+      const closest = closestOnTrack(this.track, pr.x, pr.y);
+      const halfWidth = this.track.roadWidth / 2;
+      pr.offTrack = closest.dist > halfWidth;
+      if (pr.offTrack) {
+        const nx = (pr.x - closest.px) / (closest.dist || 1);
+        const ny = (pr.y - closest.py) / (closest.dist || 1);
+        pr.x = closest.px + nx * halfWidth;
+        pr.y = closest.py + ny * halfWidth;
+        pr.speed *= WALL_SPEED_BLEED;
+      }
 
       const target = this.track.waypoints[pr.nextWaypoint];
       if (Math.hypot(pr.x - target.x, pr.y - target.y) < WAYPOINT_RADIUS) {

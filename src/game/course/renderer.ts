@@ -8,7 +8,7 @@ const GROUND_DEPTH = 1400;
 // regardless of viewport size — a fixed pixel offset (the old approach)
 // looked fine in a tall test window but pushed the ground clean off the
 // bottom of a real phone's short landscape viewport.
-const GROUND_SCREEN_FRAC = 0.58;
+const GROUND_SCREEN_FRAC = 0.78;
 
 export class CourseRenderer {
   private camX = 0;
