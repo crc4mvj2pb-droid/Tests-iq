@@ -280,6 +280,8 @@ button.small {
   width: 100%;
   height: 100%;
   display: block;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hud {

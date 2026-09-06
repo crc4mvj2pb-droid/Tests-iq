@@ -1,5 +1,5 @@
-import type { CircuitDef } from "./circuits";
-import { groundYAt } from "./circuits";
+import type { CircuitDef, Zipline } from "./circuits";
+import { groundYAt, isWaterSegAt } from "./circuits";
 import type { InputState, PlayerMeta, CourseSnapshot, ResultEntry } from "../../net/protocol";
 
 export const PLAYER_W = 22;
@@ -11,6 +11,9 @@ const JUMP_VELOCITY = -14.5;
 const DOUBLE_JUMP_VELOCITY = -12;
 const MAX_JUMPS = 2;
 const RESPAWN_LIFT = 40;
+const ZIPLINE_SPEED = 7.6;
+const ZIPLINE_GRAB_TOLERANCE = 45;
+const WATER_SPEED_FACTOR = 0.35;
 export const RACE_TIME_LIMIT_MS = 3 * 60 * 1000;
 export const COUNTDOWN_SECONDS = 3;
 
@@ -21,6 +24,8 @@ interface PlayerRuntime {
   vx: number;
   vy: number;
   onGround: boolean;
+  onZipline: boolean;
+  zip: Zipline | null;
   jumpsLeft: number;
   prevPressed: boolean;
   distance: number;
@@ -47,6 +52,8 @@ export class CourseSimulation {
         vx: RUN_SPEED,
         vy: 0,
         onGround: true,
+        onZipline: false,
+        zip: null,
         jumpsLeft: MAX_JUMPS,
         prevPressed: false,
         distance: 0,
@@ -64,6 +71,8 @@ export class CourseSimulation {
     pr.vx = RUN_SPEED;
     pr.vy = 0;
     pr.onGround = false;
+    pr.onZipline = false;
+    pr.zip = null;
     pr.jumpsLeft = MAX_JUMPS;
     pr.crashFlash = 20;
   }
@@ -97,24 +106,51 @@ export class CourseSimulation {
       const justPressed = pressed && !pr.prevPressed;
       pr.prevPressed = pressed;
 
-      if (justPressed && pr.jumpsLeft > 0) {
-        pr.vy = pr.jumpsLeft === MAX_JUMPS ? JUMP_VELOCITY : DOUBLE_JUMP_VELOCITY;
-        pr.jumpsLeft--;
-        pr.onGround = false;
-      }
-
-      pr.x += RUN_SPEED;
-      pr.vy += GRAVITY;
-      pr.y += pr.vy;
-
-      const groundY = groundYAt(this.circuit.ground, pr.x);
-      if (groundY !== null && pr.vy >= 0 && pr.y >= groundY) {
-        pr.y = groundY;
+      if (pr.onZipline && pr.zip) {
+        pr.x += ZIPLINE_SPEED;
+        pr.y = pr.zip.y;
         pr.vy = 0;
-        pr.onGround = true;
-        pr.jumpsLeft = MAX_JUMPS;
+        if (pr.x >= pr.zip.x1) {
+          pr.onZipline = false;
+          pr.zip = null;
+        }
       } else {
-        pr.onGround = false;
+        let grabbed = false;
+        if (justPressed && !pr.onGround) {
+          for (const z of this.circuit.ziplines) {
+            if (pr.x >= z.x0 && pr.x <= z.x1 && Math.abs(pr.y - z.y) < ZIPLINE_GRAB_TOLERANCE) {
+              pr.onZipline = true;
+              pr.zip = z;
+              pr.y = z.y;
+              pr.vy = 0;
+              grabbed = true;
+              break;
+            }
+          }
+        }
+
+        if (!grabbed) {
+          if (justPressed && pr.jumpsLeft > 0) {
+            pr.vy = pr.jumpsLeft === MAX_JUMPS ? JUMP_VELOCITY : DOUBLE_JUMP_VELOCITY;
+            pr.jumpsLeft--;
+            pr.onGround = false;
+          }
+
+          const inWater = pr.onGround && isWaterSegAt(this.circuit.ground, pr.x);
+          pr.x += inWater ? RUN_SPEED * WATER_SPEED_FACTOR : RUN_SPEED;
+          pr.vy += GRAVITY;
+          pr.y += pr.vy;
+
+          const groundY = groundYAt(this.circuit.ground, pr.x);
+          if (groundY !== null && pr.vy >= 0 && pr.y >= groundY) {
+            pr.y = groundY;
+            pr.vy = 0;
+            pr.onGround = true;
+            pr.jumpsLeft = MAX_JUMPS;
+          } else {
+            pr.onGround = false;
+          }
+        }
       }
 
       if (pr.y > this.circuit.worldBottom || this.hitsWall(pr)) {
@@ -159,6 +195,7 @@ export class CourseSimulation {
         vx: p.vx,
         vy: p.vy,
         onGround: p.onGround,
+        onZipline: p.onZipline,
         facing: 1 as const,
         finished: p.finished,
         finishTimeMs: p.finishTimeMs,

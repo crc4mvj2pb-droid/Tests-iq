@@ -1,4 +1,5 @@
 import type { CircuitDef } from "./circuits";
+import { groundYAt, isWaterSegAt } from "./circuits";
 import type { CourseSnapshot, PlayerMeta } from "../../net/protocol";
 import { PLAYER_H } from "./sim";
 
@@ -7,6 +8,7 @@ const GROUND_DEPTH = 1400;
 export class CourseRenderer {
   private camX = 0;
   private camY = 0;
+  private camGroundY: number | null = null;
   private camInit = false;
 
   draw(
@@ -20,14 +22,19 @@ export class CourseRenderer {
   ) {
     const local = snapshot.entities.find((e) => e.id === localId) ?? snapshot.entities[0];
     const targetX = local ? local.x : circuit.startX;
-    const targetY = local ? local.y : circuit.startY;
+    // Track the ground height under the player, not the player's own Y —
+    // otherwise jumping (or swinging on a zipline) scrolls the ground out
+    // of view instead of just showing the character rising above it.
+    const groundHere = groundYAt(circuit.ground, targetX);
+    const targetGroundY = groundHere ?? this.camGroundY ?? circuit.startY;
+    this.camGroundY = targetGroundY;
     if (!this.camInit) {
       this.camX = targetX;
-      this.camY = targetY;
+      this.camY = targetGroundY;
       this.camInit = true;
     } else {
       this.camX += (targetX - this.camX) * 0.15;
-      this.camY += (targetY - 90 - this.camY) * 0.08;
+      this.camY += (targetGroundY - 90 - this.camY) * 0.05;
     }
 
     // sky
@@ -50,8 +57,8 @@ export class CourseRenderer {
     }
 
     // ground
-    ctx.fillStyle = circuit.theme.ground;
     for (const seg of circuit.ground) {
+      ctx.fillStyle = seg.water ? "#2a6f8f" : circuit.theme.ground;
       ctx.beginPath();
       ctx.moveTo(seg.x0, seg.y0);
       ctx.lineTo(seg.x1, seg.y1);
@@ -60,12 +67,41 @@ export class CourseRenderer {
       ctx.closePath();
       ctx.fill();
     }
-    ctx.strokeStyle = "rgba(255,255,255,0.25)";
     ctx.lineWidth = 4;
     for (const seg of circuit.ground) {
+      ctx.strokeStyle = seg.water ? "rgba(180,230,255,0.6)" : "rgba(255,255,255,0.25)";
       ctx.beginPath();
       ctx.moveTo(seg.x0, seg.y0);
       ctx.lineTo(seg.x1, seg.y1);
+      ctx.stroke();
+      if (seg.water) {
+        // gentle wave ripples on the surface
+        ctx.strokeStyle = "rgba(255,255,255,0.35)";
+        ctx.lineWidth = 2;
+        for (let wx = seg.x0 + 20; wx < seg.x1 - 10; wx += 40) {
+          ctx.beginPath();
+          ctx.arc(wx, seg.y0 + 10, 10, Math.PI, 0);
+          ctx.stroke();
+        }
+        ctx.lineWidth = 4;
+      }
+    }
+
+    // ziplines (grab mid-air to cross a pool quickly)
+    for (const z of circuit.ziplines) {
+      ctx.strokeStyle = "#5a4632";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(z.x0, z.y - 60);
+      ctx.lineTo(z.x0, z.y);
+      ctx.moveTo(z.x1, z.y - 60);
+      ctx.lineTo(z.x1, z.y);
+      ctx.stroke();
+      ctx.strokeStyle = "#caa46a";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(z.x0, z.y);
+      ctx.lineTo(z.x1, z.y);
       ctx.stroke();
     }
 
@@ -104,7 +140,8 @@ export class CourseRenderer {
       const meta = metas.get(e.id);
       const color = meta?.color ?? "#ffffff";
       const flashHidden = e.crashFlash > 0 && e.crashFlash % 6 < 3;
-      drawStickFigure(ctx, e.x, e.y, color, e.onGround, flashHidden, e.finished);
+      const inWater = e.onGround && isWaterSegAt(circuit.ground, e.x);
+      drawStickFigure(ctx, e.x, e.y, color, e.onGround, e.onZipline, flashHidden, e.finished, inWater);
 
       ctx.save();
       ctx.translate(e.x, e.y - PLAYER_H - 14);
@@ -134,8 +171,10 @@ function drawStickFigure(
   y: number,
   color: string,
   onGround: boolean,
+  onZipline: boolean,
   hidden: boolean,
-  finished: boolean
+  finished: boolean,
+  inWater: boolean
 ) {
   ctx.save();
   ctx.translate(x, y);
@@ -159,7 +198,12 @@ function drawStickFigure(
 
   // legs
   ctx.beginPath();
-  if (onGround) {
+  if (onZipline) {
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(6, hipY + 14);
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(-6, hipY + 14);
+  } else if (onGround) {
     ctx.moveTo(0, hipY);
     ctx.lineTo(6 + swing * 8, 0);
     ctx.moveTo(0, hipY);
@@ -181,7 +225,13 @@ function drawStickFigure(
 
   // arms
   ctx.beginPath();
-  if (onGround) {
+  if (onZipline) {
+    // both arms reach straight up to the rope
+    ctx.moveTo(0, shoulderY + 4);
+    ctx.lineTo(6, shoulderY - 18);
+    ctx.moveTo(0, shoulderY + 4);
+    ctx.lineTo(-6, shoulderY - 18);
+  } else if (onGround) {
     ctx.moveTo(0, shoulderY + 4);
     ctx.lineTo(9 - swing * 10, shoulderY + 16);
     ctx.moveTo(0, shoulderY + 4);
@@ -202,6 +252,13 @@ function drawStickFigure(
   ctx.strokeStyle = "rgba(255,255,255,0.7)";
   ctx.lineWidth = 2;
   ctx.stroke();
+
+  if (inWater) {
+    ctx.fillStyle = "rgba(120,210,255,0.55)";
+    ctx.beginPath();
+    ctx.ellipse(0, -4, 15, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   ctx.restore();
 }

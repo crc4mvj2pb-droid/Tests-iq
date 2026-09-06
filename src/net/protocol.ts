@@ -46,6 +46,7 @@ export interface CourseEntitySnapshot {
   vx: number;
   vy: number;
   onGround: boolean;
+  onZipline: boolean;
   facing: 1 | -1;
   finished: boolean;
   finishTimeMs: number | null;

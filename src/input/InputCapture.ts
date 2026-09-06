@@ -7,6 +7,8 @@ export class InputCapture {
   private canvas: HTMLCanvasElement;
   private touchRoot: HTMLElement;
   private aimDialTouched = false;
+  private fireZoneHeld = false;
+  private aimDialHeld = false;
   private nearestEnemyProvider: () => { x: number; y: number } | null = () => null;
   private keydownHandler = (e: KeyboardEvent) => this.onKey(e, true);
   private keyupHandler = (e: KeyboardEvent) => this.onKey(e, false);
@@ -125,13 +127,18 @@ export class InputCapture {
     fireZone.className = "fire-zone";
     fireZone.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      this.state.shoot = true;
+      this.fireZoneHeld = true;
+      this.updateShoot();
     });
     fireZone.addEventListener("pointerup", (e) => {
       e.preventDefault();
-      this.state.shoot = false;
+      this.fireZoneHeld = false;
+      this.updateShoot();
     });
-    fireZone.addEventListener("pointercancel", () => (this.state.shoot = false));
+    fireZone.addEventListener("pointercancel", () => {
+      this.fireZoneHeld = false;
+      this.updateShoot();
+    });
 
     const wrap = document.createElement("div");
     wrap.className = "touch-controls";
@@ -205,9 +212,14 @@ export class InputCapture {
     el.addEventListener("pointercancel", reset);
   }
 
+  private updateShoot() {
+    this.state.shoot = this.fireZoneHeld || this.aimDialHeld;
+  }
+
   private attachAimDial(el: HTMLElement, knob: HTMLElement) {
-    // Drag to set a firing direction; it's kept even after release, so a
-    // separate tap anywhere else on screen fires that way (see fire-zone).
+    // Drag to set a firing direction — kept even after release, so a tap
+    // anywhere else fires that way (fire-zone). Holding the dial itself
+    // also fires directly, like a classic twin-stick aim-and-shoot stick.
     const radius = 30;
     const setKnob = (dx: number, dy: number) => {
       const d = Math.hypot(dx, dy);
@@ -231,13 +243,19 @@ export class InputCapture {
       e.stopPropagation();
       el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
+      this.aimDialHeld = true;
+      this.updateShoot();
       onMove(e.clientX, e.clientY);
     });
     el.addEventListener("pointermove", (e) => {
       e.preventDefault();
       onMove(e.clientX, e.clientY);
     });
-    const release = () => el.classList.remove("engaged");
+    const release = () => {
+      el.classList.remove("engaged");
+      this.aimDialHeld = false;
+      this.updateShoot();
+    };
     el.addEventListener("pointerup", release);
     el.addEventListener("pointercancel", release);
   }

@@ -5,7 +5,7 @@ import type { CircuitDef } from "./circuits";
 interface Hazard {
   start: number;
   end: number;
-  kind: "gap" | "wall";
+  kind: "gap" | "wall" | "zipline";
 }
 
 function computeHazards(circuit: CircuitDef): Hazard[] {
@@ -20,6 +20,9 @@ function computeHazards(circuit: CircuitDef): Hazard[] {
   }
   for (const w of circuit.walls) {
     hazards.push({ start: w.x - w.w / 2, end: w.x + w.w / 2, kind: "wall" });
+  }
+  for (const z of circuit.ziplines) {
+    hazards.push({ start: z.x0, end: z.x1, kind: "zipline" });
   }
   hazards.sort((a, b) => a.start - b.start);
   return hazards;
@@ -55,7 +58,7 @@ export class CourseBotController {
     if (!upcoming) return input;
 
     const lead = upcoming.start - botX;
-    const [minLead, maxLead] = upcoming.kind === "gap" ? [0, 18] : [30, 130];
+    const [minLead, maxLead] = upcoming.kind === "wall" ? [30, 130] : [0, 18];
     if (lead >= minLead - 5 && lead <= maxLead + st.jitter) {
       input.up = true;
     }
