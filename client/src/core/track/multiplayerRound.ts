@@ -1,7 +1,7 @@
 import Matter from 'matter-js';
 import type { GenContext, Vec2 } from '@shared/trackTypes';
 import { mulberry32 } from '@shared/rng';
-import { createWaveField, rollingHill } from './builders';
+import { arc, createWaveField, rollingHill } from './builders';
 import { generateChunk } from './segments';
 import { ActiveTrack, buildStartPad } from './trackBuilder';
 import { CAT } from '../physics/categories';
@@ -10,7 +10,7 @@ import { METER_PX } from '../game/GameEngine';
 const { Bodies, Composite } = Matter;
 
 const EASY_FEATURES = ['ramp_small', 'gap_combo_small', 'small_bump', 'roller'];
-const MEDIUM_FEATURES = ['ramp_medium', 'gap_combo_medium', 'demi_loop', 'tunnel'];
+const MEDIUM_FEATURES = ['ramp_medium', 'gap_combo_medium', 'roller', 'tunnel'];
 const HARD_FEATURES = ['gap_combo_large', 'loop', 'flip_gap_single', 'tunnel_narrow'];
 
 /** Builds a short, smoothly rolling race track shared by every client in a
@@ -41,6 +41,18 @@ export function buildMultiplayerRound(world: Matter.World, seed: number, targetD
     const difficulty = 0.6 + progress * 0.9;
 
     if (distSinceFeature >= nextFeatureAt) {
+      // Level out to near-flat before the feature: features are calibrated
+      // for a flat entry, and their own angleDelta stacking on top of
+      // whatever the rolling terrain was doing can otherwise compound into
+      // a slope too steep to climb (an effective wall).
+      if (Math.abs(angle) >= 0.08) {
+        const level = arc(cursor, angle, 120, -angle, 10);
+        track.addChunk({ strips: [level.points], endPoint: level.end, endAngle: level.endAngle, tag: 'level_out' });
+        cursor = level.end;
+        angle = level.endAngle;
+        wave.globalDist += 120;
+      }
+
       const pool = progress < 0.35 ? EASY_FEATURES : progress < 0.7 ? MEDIUM_FEATURES : HARD_FEATURES;
       const id = pool[Math.floor(rng() * pool.length)];
       const ctx: GenContext = { start: cursor, angle, rng, difficulty: progress };
@@ -49,7 +61,6 @@ export function buildMultiplayerRound(world: Matter.World, seed: number, targetD
       track.addChunk({ ...chunk, checkpoint: featureCount % 2 === 0 });
       cursor = chunk.endPoint;
       angle = chunk.endAngle;
-      if (Math.abs(angle) > 0.8) angle *= 0.4;
 
       const recovery = rollingHill(cursor, angle, wave, 130 + rng() * 90, difficulty * 0.5);
       track.addChunk({ strips: [recovery.points], endPoint: recovery.end, endAngle: recovery.endAngle, tag: 'rolling_hill' });

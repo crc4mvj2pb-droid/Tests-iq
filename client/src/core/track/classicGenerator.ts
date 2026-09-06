@@ -1,6 +1,6 @@
 import type { GenContext, Vec2 } from '@shared/trackTypes';
 import { mulberry32 } from '@shared/rng';
-import { createWaveField, rollingHill, type WaveField } from './builders';
+import { arc, createWaveField, rollingHill, type WaveField } from './builders';
 import { generateChunk } from './segments';
 import type { ActiveTrack } from './trackBuilder';
 
@@ -16,7 +16,7 @@ interface FeatureBand {
 // reference game, rather than wall-to-wall obstacles.
 const BANDS: FeatureBand[] = [
   { maxDistance: 600, difficulty: 0.6, features: ['ramp_small', 'gap_combo_small', 'small_bump'] },
-  { maxDistance: 1400, difficulty: 0.85, features: ['ramp_medium', 'gap_combo_medium', 'demi_loop', 'roller'] },
+  { maxDistance: 1400, difficulty: 0.85, features: ['ramp_medium', 'gap_combo_medium', 'roller', 'tunnel'] },
   { maxDistance: 2400, difficulty: 1.1, features: ['ramp_large', 'gap_combo_large', 'loop', 'tunnel', 'flip_gap_single'] },
   { maxDistance: 3600, difficulty: 1.35, features: ['gap_combo_huge', 'loop', 'flip_gap_single', 'tunnel_narrow', 'gros_tremplin'] },
   { maxDistance: Infinity, difficulty: 1.6, features: ['flip_gap_double', 'loop_series', 'gap_combo_huge', 'tunnel_narrow'] },
@@ -66,15 +66,33 @@ export class ClassicTrackGenerator {
     this.frontierX = Math.max(this.frontierX, this.cursor.x);
   }
 
+  /** Every hand-built feature (ramp, gap-combo, loop...) is calibrated
+   * assuming it starts from roughly flat ground. But the rolling terrain's
+   * angle right before a feature is picked can be anything within its
+   * range, and a feature's own angleDelta then stacks *on top* of that —
+   * e.g. a launch ramp landing mid-climb of a rolling hill can compound
+   * into a physically absurd, near-vertical slope the car simply cannot
+   * climb. Leveling out to near-flat first means every feature always
+   * gets the gentle entry angle it was designed for. */
+  private emitLevelOut() {
+    if (Math.abs(this.angle) < 0.08) return;
+    const length = 120;
+    const res = arc(this.cursor, this.angle, length, -this.angle, 10);
+    this.track.addChunk({ strips: [res.points], endPoint: res.end, endAngle: res.endAngle, tag: 'level_out' });
+    this.cursor = res.end;
+    this.angle = res.endAngle;
+    this.frontierX = Math.max(this.frontierX, this.cursor.x);
+    this.wave.globalDist += length;
+  }
+
   private emitFeature(id: string) {
+    this.emitLevelOut();
     const ctx: GenContext = { start: this.cursor, angle: this.angle, rng: this.rng, difficulty: 0 };
     const chunk = generateChunk(id, ctx);
     this.track.addChunk(chunk);
     this.cursor = chunk.endPoint;
     this.angle = chunk.endAngle;
     this.frontierX = Math.max(this.frontierX, this.cursor.x);
-    // Keep the car flyable: never let accumulated pitch wander too far from level.
-    if (Math.abs(this.angle) > 0.8) this.angle *= 0.4;
   }
 
   /** Generates smooth rolling terrain, sprinkled with distinct features,
