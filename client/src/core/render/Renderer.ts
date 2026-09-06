@@ -4,6 +4,7 @@ import type { CarProfile } from '../../data/cars';
 import type { EnvironmentTheme } from '../../data/environments';
 import type { Camera } from '../game/Camera';
 import type { ParticleSystem } from './Particles';
+import type { ActiveTrack, RenderStrip } from '../track/trackBuilder';
 
 export interface GhostCar {
   x: number; y: number; angle: number; color: string; name: string;
@@ -49,17 +50,57 @@ export class Renderer {
   drawWorld(
     ctx: CanvasRenderingContext2D,
     world: Matter.World,
+    track: ActiveTrack,
     env: EnvironmentTheme,
   ) {
+    // Ground/ceiling render as one continuous smooth landscape (from the
+    // original pre-thickened polylines) rather than a strip of individually
+    // outlined physics quads — no visible seams, reads as real terrain.
+    this.drawTerrainStrips(ctx, track.renderStrips, env, 1);
+    this.drawTerrainStrips(ctx, track.renderCeilings, env, -1);
+
     const bodies = Matter.Composite.allBodies(world);
     for (const b of bodies) {
-      if (b.label === 'ground' || b.label === 'ceiling') {
+      if (b.label === 'loop') {
         drawBodyPoly(ctx, b, env.ground, env.groundEdge);
       } else if (b.label === 'platform') {
         drawBodyPoly(ctx, b, env.accent, '#ffffff55');
       } else if (b.label === 'hazard') {
         drawBodyPoly(ctx, b, '#ff3b3b', '#ffb3b3');
       }
+    }
+  }
+
+  private drawTerrainStrips(ctx: CanvasRenderingContext2D, strips: RenderStrip[], env: EnvironmentTheme, side: 1 | -1) {
+    const depth = 700 * side;
+    for (const strip of strips) {
+      const points = strip.points;
+      if (points.length < 2) continue;
+      const first = points[0];
+      const last = points[points.length - 1];
+
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+      ctx.lineTo(last.x, last.y + depth);
+      ctx.lineTo(first.x, first.y + depth);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, first.y, 0, first.y + depth);
+      grad.addColorStop(0, env.ground);
+      grad.addColorStop(1, env.fog);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+      ctx.strokeStyle = env.groundEdge;
+      ctx.lineWidth = 4;
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = env.groundEdge;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
     }
   }
 

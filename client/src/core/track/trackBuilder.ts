@@ -39,6 +39,12 @@ interface LivePlatform {
   triggered: boolean;
 }
 
+export interface RenderStrip {
+  points: Vec2[];
+  minX: number;
+  maxX: number;
+}
+
 function leftPerp(dx: number, dy: number): Vec2 {
   const len = Math.hypot(dx, dy) || 1;
   return { x: -dy / len, y: dx / len };
@@ -80,6 +86,12 @@ export class ActiveTrack {
   private groundBodies: Matter.Body[] = [];
   private segments: GroundSegment[] = [];
   private platforms: LivePlatform[] = [];
+  /** Raw (pre-thickened) top-surface polylines, kept separately so the
+   * renderer can draw one smooth continuous landscape instead of a strip of
+   * individually-outlined physics quads. */
+  renderStrips: RenderStrip[] = [];
+  renderCeilings: RenderStrip[] = [];
+  loopBodies: Matter.Body[] = [];
   checkpoints: CheckpointZone[] = [];
   startPoint: Vec2 = { x: 0, y: 0 };
   startAngle = 0;
@@ -97,11 +109,16 @@ export class ActiveTrack {
     }
     for (const strip of chunk.strips) {
       if (strip.length < 2) continue;
+      let minX = Infinity;
+      let maxX = -Infinity;
       for (let i = 0; i < strip.length - 1; i++) {
         const a = strip[i];
         const b = strip[i + 1];
         this.segments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, angle: Math.atan2(b.y - a.y, b.x - a.x) });
+        minX = Math.min(minX, a.x, b.x);
+        maxX = Math.max(maxX, a.x, b.x);
       }
+      this.renderStrips.push({ points: strip, minX, maxX });
       const quads = thickenStrip(strip, GROUND_THICKNESS, 1);
       for (const q of quads) {
         const b = bodyFromQuad(q, CAT.GROUND, CAT.CHASSIS | CAT.WHEEL, 'ground');
@@ -110,6 +127,14 @@ export class ActiveTrack {
       }
     }
     for (const ceil of chunk.ceilings ?? []) {
+      if (ceil.length < 2) continue;
+      let minX = Infinity;
+      let maxX = -Infinity;
+      for (const p of ceil) {
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+      }
+      this.renderCeilings.push({ points: ceil, minX, maxX });
       const quads = thickenStrip(ceil, GROUND_THICKNESS, -1);
       for (const q of quads) {
         const b = bodyFromQuad(q, CAT.GROUND, CAT.CHASSIS | CAT.WHEEL, 'ceiling');
@@ -118,8 +143,16 @@ export class ActiveTrack {
       }
     }
     for (const poly of chunk.explicitPolys ?? []) {
-      const b = bodyFromQuad(poly, CAT.GROUND, CAT.CHASSIS | CAT.WHEEL, 'ground');
+      // Each loop-ring quad's inner edge (poly[0] -> poly[1]) is the actual
+      // ground surface at that point, so it also feeds the angle lookup
+      // used for landing/crash checks and ground-stability while inside a
+      // loop — without this the car would compare itself against whatever
+      // flat segment happened to be physically nearest, which is wrong.
+      const [innerA, innerB] = poly;
+      this.segments.push({ x1: innerA.x, y1: innerA.y, x2: innerB.x, y2: innerB.y, angle: Math.atan2(innerB.y - innerA.y, innerB.x - innerA.x) });
+      const b = bodyFromQuad(poly, CAT.GROUND, CAT.CHASSIS | CAT.WHEEL, 'loop');
       this.groundBodies.push(b);
+      this.loopBodies.push(b);
       Composite.add(this.world, b);
     }
     for (const hz of chunk.hazards ?? []) {
@@ -167,7 +200,10 @@ export class ActiveTrack {
       }
       return true;
     });
+    this.loopBodies = this.loopBodies.filter((b) => b.bounds.max.x >= minX);
     this.segments = this.segments.filter((s) => Math.max(s.x1, s.x2) >= minX);
+    this.renderStrips = this.renderStrips.filter((s) => s.maxX >= minX);
+    this.renderCeilings = this.renderCeilings.filter((s) => s.maxX >= minX);
     for (const p of this.platforms.slice()) {
       if (p.body.position.x < minX - 400) {
         Composite.remove(this.world, p.body);

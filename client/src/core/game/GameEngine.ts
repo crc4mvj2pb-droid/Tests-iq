@@ -307,7 +307,7 @@ export class RaceSession {
     this.renderer.drawBackground(ctx, width, height, this.camera.x, env);
     ctx.save();
     this.camera.applyTransform(ctx, width, height);
-    this.renderer.drawWorld(ctx, this.world, env);
+    this.renderer.drawWorld(ctx, this.world, this.track, env);
     if (this.mode !== 'classic') {
       this.renderer.drawCheckpoints(
         ctx,

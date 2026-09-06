@@ -2,8 +2,8 @@ import Matter from 'matter-js';
 import type { CarRig } from '../physics/car';
 import type { ActiveTrack } from '../track/trackBuilder';
 
-const GROUND_LABELS = new Set(['ground', 'ceiling']);
-const SOLID_LABELS = new Set(['ground', 'ceiling', 'platform', 'hazard']);
+const GROUND_LABELS = new Set(['ground', 'ceiling', 'loop']);
+const SOLID_LABELS = new Set(['ground', 'ceiling', 'loop', 'platform', 'hazard']);
 
 function normalizeAngleDiff(a: number, b: number): number {
   let d = (a - b) % (Math.PI * 2);
