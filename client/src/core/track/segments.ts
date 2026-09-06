@@ -289,6 +289,15 @@ export const CATALOG: CatalogItem[] = [
   { id: 'flip_gap_single', label: 'Saut nécessitant un flip', category: 'technical', minDifficulty: 0.4, maxDifficulty: 1, gen: flipGapGen(150, -0.62, 220, true) },
   { id: 'flip_gap_double', label: 'Saut nécessitant un double flip', category: 'technical', minDifficulty: 0.65, maxDifficulty: 1, gen: flipGapGen(190, -0.78, 300, true) },
 
+  // Self-contained ramp+gap+landing bundles: unlike a bare `gap_*`, these
+  // always launch the car at a reliable angle regardless of whatever the
+  // surrounding rolling terrain was doing, so the gap is always physically
+  // clearable instead of depending on incidental approach speed/angle.
+  { id: 'gap_combo_small', label: 'Rampe + petit gap', category: 'gap', minDifficulty: 0, maxDifficulty: 1, gen: flipGapGen(90, -0.4, 100, false) },
+  { id: 'gap_combo_medium', label: 'Rampe + gap moyen', category: 'gap', minDifficulty: 0.15, maxDifficulty: 1, gen: flipGapGen(120, -0.5, 150, false) },
+  { id: 'gap_combo_large', label: 'Rampe + grand gap', category: 'gap', minDifficulty: 0.3, maxDifficulty: 1, gen: flipGapGen(150, -0.6, 210, false) },
+  { id: 'gap_combo_huge', label: 'Rampe + énorme gap', category: 'gap', minDifficulty: 0.5, maxDifficulty: 1, gen: flipGapGen(185, -0.72, 270, false) },
+
   { id: 'obstacle_chaos', label: 'Obstacle chaotique', category: 'technical', minDifficulty: 0.4, maxDifficulty: 1, gen: (ctx) => flatChunk(ctx, jitter(ctx, 150, 40), 'chaos') },
 ];
 

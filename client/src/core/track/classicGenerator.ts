@@ -15,11 +15,11 @@ interface FeatureBand {
 // track reads as flowing terrain with occasional highlights, like the
 // reference game, rather than wall-to-wall obstacles.
 const BANDS: FeatureBand[] = [
-  { maxDistance: 600, difficulty: 0.6, features: ['ramp_small', 'gap_small', 'small_bump'] },
-  { maxDistance: 1400, difficulty: 0.85, features: ['ramp_medium', 'gap_medium', 'demi_loop', 'roller'] },
-  { maxDistance: 2400, difficulty: 1.1, features: ['ramp_large', 'gap_large', 'loop', 'tunnel', 'flip_gap_single'] },
-  { maxDistance: 3600, difficulty: 1.35, features: ['gap_huge', 'loop', 'flip_gap_single', 'wall_vertical', 'platform_moving_h'] },
-  { maxDistance: Infinity, difficulty: 1.6, features: ['flip_gap_double', 'loop_series', 'gap_huge', 'wall_inclined', 'tunnel_narrow'] },
+  { maxDistance: 600, difficulty: 0.6, features: ['ramp_small', 'gap_combo_small', 'small_bump'] },
+  { maxDistance: 1400, difficulty: 0.85, features: ['ramp_medium', 'gap_combo_medium', 'demi_loop', 'roller'] },
+  { maxDistance: 2400, difficulty: 1.1, features: ['ramp_large', 'gap_combo_large', 'loop', 'tunnel', 'flip_gap_single'] },
+  { maxDistance: 3600, difficulty: 1.35, features: ['gap_combo_huge', 'loop', 'flip_gap_single', 'tunnel_narrow', 'gros_tremplin'] },
+  { maxDistance: Infinity, difficulty: 1.6, features: ['flip_gap_double', 'loop_series', 'gap_combo_huge', 'tunnel_narrow'] },
 ];
 
 function pickBand(distance: number): FeatureBand {

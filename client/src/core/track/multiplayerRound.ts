@@ -9,9 +9,9 @@ import { METER_PX } from '../game/GameEngine';
 
 const { Bodies, Composite } = Matter;
 
-const EASY_FEATURES = ['ramp_small', 'gap_small', 'small_bump', 'roller'];
-const MEDIUM_FEATURES = ['ramp_medium', 'gap_medium', 'demi_loop', 'tunnel'];
-const HARD_FEATURES = ['gap_large', 'loop', 'flip_gap_single', 'wall_vertical'];
+const EASY_FEATURES = ['ramp_small', 'gap_combo_small', 'small_bump', 'roller'];
+const MEDIUM_FEATURES = ['ramp_medium', 'gap_combo_medium', 'demi_loop', 'tunnel'];
+const HARD_FEATURES = ['gap_combo_large', 'loop', 'flip_gap_single', 'tunnel_narrow'];
 
 /** Builds a short, smoothly rolling race track shared by every client in a
  * Private or Public round via a common numeric seed — flowing hills with a
