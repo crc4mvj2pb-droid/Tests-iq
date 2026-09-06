@@ -71,6 +71,7 @@ export interface ShooterEntitySnapshot {
   aimX: number;
   aimY: number;
   hp: number;
+  shield: number;
   alive: boolean;
   kills: number;
   deaths: number;
@@ -86,11 +87,22 @@ export interface BulletSnapshot {
   ownerId: string;
 }
 
+export type PickupKind = "shield" | "health";
+
+export interface PickupSnapshot {
+  id: number;
+  kind: PickupKind;
+  x: number;
+  y: number;
+  active: boolean;
+}
+
 export interface ShooterSnapshot {
   tick: number;
   elapsedMs: number;
   entities: ShooterEntitySnapshot[];
   bullets: BulletSnapshot[];
+  pickups: PickupSnapshot[];
 }
 
 // ---- Messages: client -> host ----

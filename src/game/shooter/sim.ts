@@ -1,5 +1,5 @@
 import type { ShooterMap, Obstacle } from "./maps";
-import type { InputState, PlayerMeta, ShooterSnapshot, ResultEntry } from "../../net/protocol";
+import type { InputState, PlayerMeta, ShooterSnapshot, ResultEntry, PickupKind } from "../../net/protocol";
 import { mulberry32 } from "../../utils/rng";
 
 export const PLAYER_R = 18;
@@ -18,6 +18,13 @@ export const KILL_LIMIT = 15;
 export const MATCH_TIME_LIMIT_MS = 3 * 60 * 1000;
 export const COUNTDOWN_SECONDS = 3;
 
+const PICKUP_R = 16;
+const SHIELD_MAX = 100;
+const SHIELD_PER_PICKUP = 50; // two pickups fully fill the shield bar
+const HEAL_AMOUNT = 45;
+const PICKUP_RESPAWN_MS = 16000;
+const SHIELD_PICKUP_CHANCE = 0.6;
+
 interface PlayerRuntime {
   meta: PlayerMeta;
   x: number;
@@ -27,12 +34,22 @@ interface PlayerRuntime {
   aimX: number;
   aimY: number;
   hp: number;
+  shield: number;
   alive: boolean;
   kills: number;
   deaths: number;
   invulnTicks: number;
   respawnTicks: number;
   fireCooldown: number;
+}
+
+interface Pickup {
+  id: number;
+  kind: PickupKind;
+  x: number;
+  y: number;
+  active: boolean;
+  respawnAt: number;
 }
 
 interface Bullet {
@@ -49,6 +66,7 @@ export class ShooterSimulation {
   map: ShooterMap;
   private players = new Map<string, PlayerRuntime>();
   private bullets: Bullet[] = [];
+  private pickups: Pickup[] = [];
   private nextBulletId = 1;
   private tick = 0;
   private elapsedMs = 0;
@@ -69,6 +87,7 @@ export class ShooterSimulation {
         aimX: 1,
         aimY: 0,
         hp: MAX_HP,
+        shield: 0,
         alive: true,
         kills: 0,
         deaths: 0,
@@ -77,11 +96,32 @@ export class ShooterSimulation {
         fireCooldown: 0,
       });
     });
+    this.pickups = map.pickupSpots.map((spot, i) => ({
+      id: i,
+      kind: this.rollPickupKind(),
+      x: spot.x,
+      y: spot.y,
+      active: true,
+      respawnAt: 0,
+    }));
+  }
+
+  private rollPickupKind(): PickupKind {
+    return this.rand() < SHIELD_PICKUP_CHANCE ? "shield" : "health";
   }
 
   private randomSpawn(): { x: number; y: number } {
     const sp = this.map.spawnPoints;
     return sp[Math.floor(this.rand() * sp.length)];
+  }
+
+  private applyDamage(pr: PlayerRuntime, amount: number) {
+    if (pr.shield > 0) {
+      const absorbed = Math.min(pr.shield, amount);
+      pr.shield -= absorbed;
+      amount -= absorbed;
+    }
+    pr.hp -= amount;
   }
 
   private resolveObstacleCollision(x: number, y: number, r: number): { x: number; y: number } {
@@ -125,6 +165,7 @@ export class ShooterSimulation {
           pr.vx = 0;
           pr.vy = 0;
           pr.hp = MAX_HP;
+          pr.shield = 0;
           pr.alive = true;
           pr.invulnTicks = INVULN_TICKS;
         }
@@ -161,6 +202,16 @@ export class ShooterSimulation {
       const resolved = this.resolveObstacleCollision(nx, ny, PLAYER_R);
       pr.x = resolved.x;
       pr.y = resolved.y;
+
+      for (const pickup of this.pickups) {
+        if (!pickup.active) continue;
+        if (Math.hypot(pr.x - pickup.x, pr.y - pickup.y) < PLAYER_R + PICKUP_R) {
+          if (pickup.kind === "shield") pr.shield = Math.min(SHIELD_MAX, pr.shield + SHIELD_PER_PICKUP);
+          else pr.hp = Math.min(MAX_HP, pr.hp + HEAL_AMOUNT);
+          pickup.active = false;
+          pickup.respawnAt = this.elapsedMs + PICKUP_RESPAWN_MS;
+        }
+      }
 
       if (input && (input.aimX !== 0 || input.aimY !== 0)) {
         const l = Math.hypot(input.aimX, input.aimY) || 1;
@@ -203,7 +254,7 @@ export class ShooterSimulation {
         const d = Math.hypot(pr.x - b.x, pr.y - b.y);
         if (d < PLAYER_R + BULLET_R) {
           hit = true;
-          pr.hp -= DAMAGE;
+          this.applyDamage(pr, DAMAGE);
           if (pr.hp <= 0) {
             pr.alive = false;
             pr.deaths++;
@@ -217,6 +268,13 @@ export class ShooterSimulation {
       if (!hit) survivors.push(b);
     }
     this.bullets = survivors;
+
+    for (const pickup of this.pickups) {
+      if (!pickup.active && this.elapsedMs >= pickup.respawnAt) {
+        pickup.active = true;
+        pickup.kind = this.rollPickupKind();
+      }
+    }
   }
 
   isMatchOver(): boolean {
@@ -242,12 +300,14 @@ export class ShooterSimulation {
         aimX: p.aimX,
         aimY: p.aimY,
         hp: p.hp,
+        shield: p.shield,
         alive: p.alive,
         kills: p.kills,
         deaths: p.deaths,
         invuln: p.invulnTicks > 0,
       })),
       bullets: this.bullets.map((b) => ({ id: b.id, x: b.x, y: b.y, vx: b.vx, vy: b.vy, ownerId: b.ownerId })),
+      pickups: this.pickups.map((p) => ({ id: p.id, kind: p.kind, x: p.x, y: p.y, active: p.active })),
     };
   }
 

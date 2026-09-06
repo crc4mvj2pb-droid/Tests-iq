@@ -384,6 +384,48 @@ button.small {
   outline: 2px solid var(--accent-2);
 }
 
+.fire-zone {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rotate-hint {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+  #game-screen .rotate-hint {
+    display: flex;
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: var(--bg);
+    color: var(--text);
+  }
+}
+
+.course-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* Touch controls */
 .touch-controls {
   position: absolute;

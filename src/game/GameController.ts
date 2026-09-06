@@ -60,15 +60,13 @@ export class GameController {
     else this.map = getMap(info.levelId);
 
     this.input = new InputCapture(info.mode, canvas, touchRoot);
-    if (info.mode === "shooter") {
-      this.input.setNearestEnemyProvider(() => this.findNearestEnemyOffset());
-    }
   }
 
   start() {
     this.resizeCanvas();
     window.addEventListener("resize", this.resizeCanvas);
     this.input.attach();
+    (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> })?.lock?.("landscape").catch(() => {});
 
     if (this.isHost) {
       if (this.info.mode === "course" && this.circuit) {
@@ -112,24 +110,6 @@ export class GameController {
     this.canvas.width = this.canvas.clientWidth;
     this.canvas.height = this.canvas.clientHeight;
   };
-
-  private findNearestEnemyOffset(): { x: number; y: number } | null {
-    const snap = this.isHost ? this.shooterSim?.snapshot() : this.lastShooterSnap;
-    if (!snap) return null;
-    const me = snap.entities.find((e) => e.id === this.localId);
-    if (!me) return null;
-    let best: { x: number; y: number } | null = null;
-    let bestDist = Infinity;
-    for (const e of snap.entities) {
-      if (e.id === this.localId || !e.alive) continue;
-      const d = Math.hypot(e.x - me.x, e.y - me.y);
-      if (d < bestDist) {
-        bestDist = d;
-        best = { x: e.x - me.x, y: e.y - me.y };
-      }
-    }
-    return best;
-  }
 
   private stepHostSimulation() {
     if (this.info.mode === "course" && this.courseSim && this.courseBots) {

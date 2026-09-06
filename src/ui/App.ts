@@ -464,7 +464,7 @@ export class App {
     this.players = players;
     this.lastResults = null;
     this.screen = "game";
-    this.renderGameShell();
+    this.renderGameShell(mode);
 
     const canvas = this.root.querySelector<HTMLCanvasElement>("#game-canvas")!;
     const touchRoot = this.root.querySelector<HTMLElement>("#touch-root")!;
@@ -487,7 +487,7 @@ export class App {
     this.hudTimer = window.setInterval(() => this.updateHud(), 300);
   }
 
-  private renderGameShell() {
+  private renderGameShell(mode: GameMode) {
     this.root.innerHTML = `
       <div class="screen" id="game-screen">
         <canvas id="game-canvas"></canvas>
@@ -500,6 +500,8 @@ export class App {
         </div>
         <div class="countdown" id="countdown" hidden>3</div>
         <div id="touch-root"></div>
+        ${mode === "course" ? '<div class="course-hint">Maintiens l\'écran pour avancer — maintiens en l\'air pour flipper</div>' : ""}
+        <div class="rotate-hint">🔄 Tourne ton téléphone en paysage pour jouer</div>
         <div class="results-overlay" id="results-overlay" hidden></div>
       </div>
     `;

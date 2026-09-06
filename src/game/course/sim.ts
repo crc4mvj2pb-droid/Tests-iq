@@ -203,9 +203,9 @@ export class CourseSimulation {
         Body.setAngularVelocity(pr.body, 0);
       } else {
         pr.wasAirborne = true;
+        const holding = !!input?.up || !!input?.jump;
         let av = pr.body.angularVelocity;
-        if (input?.left) av = -FLIP_RATE;
-        else if (input?.right) av = FLIP_RATE;
+        if (holding) av = FLIP_RATE;
         else av *= FLIP_DAMPING;
         Body.setAngularVelocity(pr.body, av);
         pr.airborneAccum += av;

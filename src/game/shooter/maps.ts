@@ -13,6 +13,7 @@ export interface ShooterMap {
   height: number;
   obstacles: Obstacle[];
   spawnPoints: { x: number; y: number }[];
+  pickupSpots: { x: number; y: number }[];
 }
 
 export const SHOOTER_MAPS: ShooterMap[] = [
@@ -42,6 +43,13 @@ export const SHOOTER_MAPS: ShooterMap[] = [
       { x: 1500, y: 500 },
       { x: 450, y: 480 },
       { x: 1150, y: 480 },
+    ],
+    pickupSpots: [
+      { x: 780, y: 220 },
+      { x: 780, y: 740 },
+      { x: 450, y: 220 },
+      { x: 1150, y: 740 },
+      { x: 100, y: 500 },
     ],
   },
   {
@@ -75,6 +83,13 @@ export const SHOOTER_MAPS: ShooterMap[] = [
       { x: 500, y: 350 },
       { x: 1200, y: 750 },
     ],
+    pickupSpots: [
+      { x: 850, y: 350 },
+      { x: 850, y: 750 },
+      { x: 450, y: 550 },
+      { x: 1250, y: 550 },
+      { x: 850, y: 550 },
+    ],
   },
   {
     id: "entrepot",
@@ -100,6 +115,12 @@ export const SHOOTER_MAPS: ShooterMap[] = [
       { x: 1420, y: 475 },
       { x: 750, y: 250 },
       { x: 750, y: 700 },
+    ],
+    pickupSpots: [
+      { x: 750, y: 475 - 130 },
+      { x: 750, y: 475 + 130 },
+      { x: 400, y: 475 },
+      { x: 1100, y: 475 },
     ],
   },
 ];

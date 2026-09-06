@@ -58,6 +58,43 @@ export class ShooterRenderer {
       ctx.strokeRect(o.x - o.w / 2, o.y - o.h / 2, o.w, o.h);
     }
 
+    // pickups
+    for (const p of snapshot.pickups) {
+      if (!p.active) continue;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath();
+      ctx.ellipse(0, 10, 14, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (p.kind === "shield") {
+        ctx.fillStyle = "#4dd6ff";
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = "#0b1a22";
+        ctx.font = "900 14px Segoe UI, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("🛡", 0, 5);
+      } else {
+        ctx.fillStyle = "#4ade80";
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = "#0b220f";
+        ctx.font = "900 14px Segoe UI, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("✚", 0, 5);
+      }
+      ctx.restore();
+    }
+
     // bullets
     ctx.fillStyle = "#fff8c9";
     for (const b of snapshot.bullets) {
@@ -94,6 +131,13 @@ export class ShooterRenderer {
       ctx.strokeStyle = "rgba(255,255,255,0.6)";
       ctx.lineWidth = 2;
       ctx.stroke();
+      if (e.shield > 0) {
+        ctx.strokeStyle = "#4dd6ff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_R + 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
 
       // hp bar + name
@@ -112,6 +156,12 @@ export class ShooterRenderer {
       ctx.fillRect(-barW / 2, 2, barW, 5);
       ctx.fillStyle = e.hp > 40 ? "#4ade80" : "#ff5d73";
       ctx.fillRect(-barW / 2, 2, barW * Math.max(0, e.hp / 100), 5);
+      if (e.shield > 0) {
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(-barW / 2, 9, barW, 4);
+        ctx.fillStyle = "#4dd6ff";
+        ctx.fillRect(-barW / 2, 9, barW * Math.min(1, e.shield / 100), 4);
+      }
       ctx.restore();
     }
 
