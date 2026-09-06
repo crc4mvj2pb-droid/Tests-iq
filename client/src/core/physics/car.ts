@@ -88,10 +88,20 @@ export function createCarRig(profile: CarProfile, x: number, y: number): CarRig 
   };
 }
 
-/** Call once per physics step, before Engine.update. */
-export function applyCarControl(rig: CarRig, throttle: boolean, dt: number) {
+function normalizeAngle(a: number): number {
+  let d = a % (Math.PI * 2);
+  if (d > Math.PI) d -= Math.PI * 2;
+  if (d < -Math.PI) d += Math.PI * 2;
+  return d;
+}
+
+/** Call once per physics step, before Engine.update. `groundAngle` is the
+ * local terrain slope under the car right now (only used while both wheels
+ * are grounded). */
+export function applyCarControl(rig: CarRig, throttle: boolean, dt: number, groundAngle = 0) {
   const p = rig.profile;
   rig.throttleHeld = throttle;
+  const bothWheelsDown = rig.groundedWheels >= 2;
 
   if (throttle) {
     const target = p.maxWheelSpeed;
@@ -106,6 +116,14 @@ export function applyCarControl(rig: CarRig, throttle: boolean, dt: number) {
 
   if (!rig.grounded) {
     rig.airborneRotation += rig.chassis.angularVelocity;
+  } else if (bothWheelsDown) {
+    // Glue the chassis to the local slope while both wheels are down, like
+    // the reference game: driving on the ground stays flat and stable, all
+    // rotation control happens in the air. Without this, the soft wheel
+    // suspension lets the chassis tip onto one wheel on its own.
+    const diff = normalizeAngle(groundAngle - rig.chassis.angle);
+    Body.setAngle(rig.chassis, rig.chassis.angle + diff * p.groundStability);
+    Body.setAngularVelocity(rig.chassis, rig.chassis.angularVelocity * 0.5);
   }
 }
 

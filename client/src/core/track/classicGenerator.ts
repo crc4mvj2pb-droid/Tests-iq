@@ -43,8 +43,12 @@ export class ClassicTrackGenerator {
   constructor(track: ActiveTrack, seed: number, start: Vec2) {
     this.rng = mulberry32(seed);
     this.cursor = start;
+    this.angle = 0;
     this.track = track;
     this.frontierX = start.x;
+    // Guaranteed flat runway right after spawn, so the player is never
+    // dropped in front of a gap/loop with zero reaction time.
+    this.emit('flat_recovery');
   }
 
   private emit(id: string) {

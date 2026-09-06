@@ -25,6 +25,8 @@ const PERFECT_ANGLE_THRESHOLD = 0.16;
 
 export class CrashSystem {
   private wheelContacts = 0;
+  private backContacts = 0;
+  private frontContacts = 0;
   private lastCheckpoint = -1;
   private finished = false;
   private crashed = false;
@@ -47,9 +49,12 @@ export class CrashSystem {
 
   reset() {
     this.wheelContacts = 0;
+    this.backContacts = 0;
+    this.frontContacts = 0;
     this.crashed = false;
     this.stuckFrames = 0;
     this.rig.grounded = false;
+    this.rig.groundedWheels = 0;
     this.rig.crashed = false;
   }
 
@@ -91,7 +96,10 @@ export class CrashSystem {
       if (labels.includes('wheel') && labels.some((l) => SOLID_LABELS.has(l) && l !== 'hazard')) {
         const wasAirborne = this.wheelContacts === 0;
         this.wheelContacts++;
+        if (bodyA === this.rig.wheelBack || bodyB === this.rig.wheelBack) this.backContacts++;
+        if (bodyA === this.rig.wheelFront || bodyB === this.rig.wheelFront) this.frontContacts++;
         this.rig.grounded = true;
+        this.rig.groundedWheels = (this.backContacts > 0 ? 1 : 0) + (this.frontContacts > 0 ? 1 : 0);
         if (wasAirborne) this.handleLanding();
         continue;
       }
@@ -127,6 +135,9 @@ export class CrashSystem {
       const labels = [bodyA.label, bodyB.label];
       if (labels.includes('wheel') && labels.some((l) => SOLID_LABELS.has(l) && l !== 'hazard')) {
         this.wheelContacts = Math.max(0, this.wheelContacts - 1);
+        if (bodyA === this.rig.wheelBack || bodyB === this.rig.wheelBack) this.backContacts = Math.max(0, this.backContacts - 1);
+        if (bodyA === this.rig.wheelFront || bodyB === this.rig.wheelFront) this.frontContacts = Math.max(0, this.frontContacts - 1);
+        this.rig.groundedWheels = (this.backContacts > 0 ? 1 : 0) + (this.frontContacts > 0 ? 1 : 0);
         if (this.wheelContacts === 0) {
           this.rig.grounded = false;
         }

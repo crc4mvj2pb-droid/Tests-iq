@@ -265,7 +265,10 @@ export class RaceSession {
     this.accumulator += dt;
 
     while (this.accumulator >= this.fixedDt) {
-      applyCarControl(this.rig, this.controlEnabled && this.input.held, this.fixedDt);
+      const groundAngle = this.rig.groundedWheels >= 2
+        ? this.track.getGroundAngleNear(this.rig.chassis.position.x, this.rig.chassis.position.y)
+        : 0;
+      applyCarControl(this.rig, this.controlEnabled && this.input.held, this.fixedDt, groundAngle);
       Matter.Engine.update(this.engine, this.fixedDt * 1000);
       this.crashSystem.tick();
       this.accumulator -= this.fixedDt;

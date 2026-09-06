@@ -22,6 +22,14 @@ export function loadLevel(world: Matter.World, level: LevelDefinition): LoadedLe
   let cursor: Vec2 = { x: 0, y: 0 };
   let angle = 0;
 
+  // Guaranteed flat runway before the level's own pattern: no level should
+  // ever drop the player right in front of a gap, loop or falling platform
+  // with zero reaction time.
+  const runway = generateChunk('flat_recovery', { start: cursor, angle, rng, difficulty: 0 });
+  track.addChunk(runway);
+  cursor = runway.endPoint;
+  angle = runway.endAngle;
+
   level.pattern.forEach((id, i) => {
     const ctx: GenContext = { start: cursor, angle, rng, difficulty: i / level.pattern.length };
     const chunk = generateChunk(id, ctx);

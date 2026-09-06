@@ -23,6 +23,12 @@ export function buildMultiplayerRound(world: Matter.World, seed: number, targetD
   const targetX = targetDistanceM * METER_PX;
   let obstacleIndex = 0;
 
+  // Guaranteed flat runway right after spawn (see levelLoader/classicGenerator).
+  const runway = generateChunk('flat_recovery', { start: cursor, angle, rng, difficulty: 0 });
+  track.addChunk(runway);
+  cursor = runway.endPoint;
+  angle = runway.endAngle;
+
   while (cursor.x < targetX) {
     const progress = cursor.x / targetX;
     const pool = progress < 0.35 ? EASY : progress < 0.7 ? MEDIUM : HARD;
