@@ -423,9 +423,11 @@ export class App {
                 <div class="hint" style="margin-top:8px;">En attente que l'hôte démarre la partie...</div>
               </div>`
         }
+        <button class="ghost small" id="leave-lobby-btn" style="width:auto;margin-top:4px;">Quitter la partie</button>
       </div>
     `;
 
+    this.root.querySelector("#leave-lobby-btn")?.addEventListener("click", () => this.leaveToHome());
     this.root.querySelector("#copy-link")?.addEventListener("click", () => {
       navigator.clipboard?.writeText(shareUrl).catch(() => {});
       const btn = this.root.querySelector("#copy-link")!;
@@ -549,7 +551,7 @@ export class App {
         <div class="results-overlay" id="results-overlay" hidden></div>
       </div>
     `;
-    this.root.querySelector("#quit-btn")!.addEventListener("click", () => this.leaveToHome());
+    this.root.querySelector("#quit-btn")!.addEventListener("click", () => this.returnToLobby());
   }
 
   private updateHud() {

@@ -14,8 +14,8 @@ const DAMAGE = 22;
 const MAX_HP = 100;
 const RESPAWN_TICKS = 110;
 const INVULN_TICKS = 70;
-export const KILL_LIMIT = 15;
-export const MATCH_TIME_LIMIT_MS = 3 * 60 * 1000;
+export const KILL_LIMIT = 5;
+export const MATCH_TIME_LIMIT_MS = 2 * 60 * 1000;
 export const COUNTDOWN_SECONDS = 3;
 
 const PICKUP_R = 16;

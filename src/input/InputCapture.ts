@@ -188,6 +188,12 @@ export class InputCapture {
     const spoke = document.createElement("div");
     spoke.className = "spoke-v";
     el.appendChild(spoke);
+    // A distinct arrow at the top, rotating with the wheel, makes the
+    // current steering direction obvious at a glance — the plain cross of
+    // spokes alone looks nearly the same at several different angles.
+    const arrow = document.createElement("div");
+    arrow.className = "wheel-arrow";
+    el.appendChild(arrow);
     return el;
   }
 

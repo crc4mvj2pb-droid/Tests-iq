@@ -15,7 +15,12 @@ const DOUBLE_JUMP_VELOCITY = -12;
 const MAX_JUMPS = 2;
 const RESPAWN_LIFT = 40;
 const ZIPLINE_SPEED = 7.6;
-const ZIPLINE_GRAB_TOLERANCE = 45;
+// Grabbing used to require a precisely-timed second jump press while
+// passing within a narrow height band of the rope — easy to miss and hard
+// to tell whether it had even registered. It's now automatic: simply being
+// airborne within the rope's span and at or below its height (with generous
+// slack) catches it, no extra input needed.
+const ZIPLINE_GRAB_SLACK = 70;
 const WATER_SPEED_FACTOR = 0.35;
 export const RACE_TIME_LIMIT_MS = 3 * 60 * 1000;
 export const COUNTDOWN_SECONDS = 3;
@@ -119,9 +124,9 @@ export class CourseSimulation {
         }
       } else {
         let grabbed = false;
-        if (justPressed && !pr.onGround) {
+        if (!pr.onGround) {
           for (const z of this.circuit.ziplines) {
-            if (pr.x >= z.x0 && pr.x <= z.x1 && Math.abs(pr.y - z.y) < ZIPLINE_GRAB_TOLERANCE) {
+            if (pr.x >= z.x0 && pr.x <= z.x1 && pr.y <= z.y + ZIPLINE_GRAB_SLACK) {
               pr.onZipline = true;
               pr.zip = z;
               pr.y = z.y;
