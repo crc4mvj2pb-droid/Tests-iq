@@ -1,10 +1,14 @@
 import type { CircuitDef } from "./circuits";
-import { isWaterSegAt } from "./circuits";
+import { isWaterSegAt, GROUND_Y0 } from "./circuits";
 import type { CourseSnapshot, PlayerMeta } from "../../net/protocol";
 import { PLAYER_H } from "./sim";
 
 const GROUND_DEPTH = 1400;
-const CAM_Y_OFFSET = 90;
+// The ground line always lands at this fraction of the canvas height,
+// regardless of viewport size — a fixed pixel offset (the old approach)
+// looked fine in a tall test window but pushed the ground clean off the
+// bottom of a real phone's short landscape viewport.
+const GROUND_SCREEN_FRAC = 0.58;
 
 export class CourseRenderer {
   private camX = 0;
@@ -21,10 +25,6 @@ export class CourseRenderer {
   ) {
     const local = snapshot.entities.find((e) => e.id === localId) ?? snapshot.entities[0];
     const targetX = local ? local.x : circuit.startX;
-    // The vertical camera position is completely fixed to the circuit's
-    // baseline — it never tracks the player, so jumps, ramps and the
-    // zipline never scroll the view. Only horizontal scroll follows.
-    const camY = circuit.startY - CAM_Y_OFFSET;
     if (!this.camInit) {
       this.camX = targetX;
       this.camInit = true;
@@ -39,8 +39,14 @@ export class CourseRenderer {
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, h);
 
+    // The vertical camera position is completely fixed to the circuit's
+    // ground baseline — it never tracks the player, so jumps, ramps and the
+    // zipline never scroll the view. Only horizontal scroll follows. The
+    // ground line is anchored to a fraction of the canvas height (not a
+    // fixed pixel offset) so it stays on-screen on any viewport size.
+    const vOffset = h * GROUND_SCREEN_FRAC - GROUND_Y0;
     ctx.save();
-    ctx.translate(w / 2 - this.camX, h / 2 - camY + 60);
+    ctx.translate(w / 2 - this.camX, vOffset);
 
     // parallax hills
     ctx.fillStyle = "rgba(0,0,0,0.08)";

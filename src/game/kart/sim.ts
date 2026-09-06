@@ -102,8 +102,8 @@ export class KartSimulation {
     for (const pr of this.players.values()) {
       if (pr.finished) continue;
       const input = inputs.get(pr.meta.id);
-      if (input?.left) pr.heading -= TURN_RATE;
-      if (input?.right) pr.heading += TURN_RATE;
+      const steer = input?.steer ?? ((input?.right ? 1 : 0) - (input?.left ? 1 : 0));
+      pr.heading += TURN_RATE * steer;
 
       pr.offTrack = distToTrack(this.track, pr.x, pr.y) > this.track.roadWidth / 2;
       const maxSpeed = pr.offTrack ? MAX_SPEED * OFFTRACK_SPEED_FACTOR : MAX_SPEED;

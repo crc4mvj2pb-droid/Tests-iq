@@ -128,9 +128,9 @@ export class InputCapture {
     if (this.mode === "kart") {
       const wrap = document.createElement("div");
       wrap.className = "touch-controls kart-controls";
-      const stick = this.makeStick();
-      wrap.append(stick.el);
-      this.attachSteeringJoystick(stick.el, stick.knob);
+      const wheel = this.makeWheel();
+      wrap.append(wheel);
+      this.attachSteeringWheel(wheel);
       this.touchRoot.append(wrap);
       this.touchNodes.push(wrap);
       return;
@@ -182,6 +182,15 @@ export class InputCapture {
     return { el, knob };
   }
 
+  private makeWheel(): HTMLElement {
+    const el = document.createElement("div");
+    el.className = "wheel";
+    const spoke = document.createElement("div");
+    spoke.className = "spoke-v";
+    el.appendChild(spoke);
+    return el;
+  }
+
   private attachMoveJoystick(el: HTMLElement, knob: HTMLElement) {
     let active = false;
     const radius = 30;
@@ -225,40 +234,40 @@ export class InputCapture {
     el.addEventListener("pointercancel", reset);
   }
 
-  private attachSteeringJoystick(el: HTMLElement, knob: HTMLElement) {
+  private attachSteeringWheel(el: HTMLElement) {
+    // A small rotating steering wheel: dragging left/right of center turns
+    // it (and visually spins it) proportionally, feeding an analog steer
+    // value — the kart always drives forward on its own regardless of
+    // steering, only the heading is affected.
     let active = false;
-    const radius = 30;
-    const setKnob = (dx: number, dy: number) => {
-      const d = Math.hypot(dx, dy);
-      const scale = d > radius ? radius / d : 1;
-      knob.style.transform = `translate(${dx * scale}px, ${Math.min(Math.max(dy * scale, -8), 8)}px)`;
+    const radius = 46;
+    const maxDeg = 65;
+    const setAngle = (dx: number) => {
+      const ratio = Math.max(-1, Math.min(1, dx / radius));
+      this.state.steer = ratio;
+      el.style.transform = `rotate(${ratio * maxDeg}deg)`;
     };
     const reset = () => {
       active = false;
-      this.state.left = this.state.right = false;
+      this.state.steer = 0;
       el.classList.remove("engaged");
-      knob.style.transform = "translate(0px, 0px)";
+      el.style.transform = "rotate(0deg)";
     };
-    const onMove = (clientX: number, clientY: number) => {
+    const onMove = (clientX: number) => {
       const rect = el.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = clientX - cx;
-      const r = rect.width / 2;
-      this.state.left = dx < -r * 0.2;
-      this.state.right = dx > r * 0.2;
-      setKnob(dx, clientY - cy);
+      setAngle(clientX - cx);
     };
     el.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       active = true;
       el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
-      onMove(e.clientX, e.clientY);
+      onMove(e.clientX);
     });
     el.addEventListener("pointermove", (e) => {
       e.preventDefault();
-      if (active) onMove(e.clientX, e.clientY);
+      if (active) onMove(e.clientX);
     });
     el.addEventListener("pointerup", reset);
     el.addEventListener("pointercancel", reset);
@@ -269,10 +278,14 @@ export class InputCapture {
   }
 
   private attachAimDial(el: HTMLElement, knob: HTMLElement) {
-    // Drag to set a firing direction — kept even after release, so a tap
-    // anywhere else fires that way (fire-zone). Holding the dial itself
-    // also fires directly, like a classic twin-stick aim-and-shoot stick.
+    // Dragging the dial only re-aims the cannon — it does not fire, so you
+    // can sweep it around freely without spraying shots. It fires once you
+    // press and hold it still (a short grace period after the last actual
+    // movement); moving it again immediately stops the fire and goes back
+    // to pure aiming.
     const radius = 30;
+    const STILL_DELAY_MS = 130;
+    let stillTimer: ReturnType<typeof setTimeout> | null = null;
     const setKnob = (dx: number, dy: number) => {
       const d = Math.hypot(dx, dy);
       const scale = d > radius ? radius / d : 1;
@@ -290,20 +303,38 @@ export class InputCapture {
       this.aimDialTouched = true;
       setKnob(dx, dy);
     };
+    const clearStillTimer = () => {
+      if (stillTimer !== null) {
+        clearTimeout(stillTimer);
+        stillTimer = null;
+      }
+    };
+    const armStillTimer = () => {
+      clearStillTimer();
+      stillTimer = setTimeout(() => {
+        this.aimDialHeld = true;
+        this.updateShoot();
+      }, STILL_DELAY_MS);
+    };
     el.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       e.stopPropagation();
       el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
-      this.aimDialHeld = true;
+      this.aimDialHeld = false;
       this.updateShoot();
       onMove(e.clientX, e.clientY);
+      armStillTimer();
     });
     el.addEventListener("pointermove", (e) => {
       e.preventDefault();
+      this.aimDialHeld = false;
+      this.updateShoot();
       onMove(e.clientX, e.clientY);
+      armStillTimer();
     });
     const release = () => {
+      clearStillTimer();
       el.classList.remove("engaged");
       this.aimDialHeld = false;
       this.updateShoot();

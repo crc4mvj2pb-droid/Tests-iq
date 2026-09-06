@@ -508,7 +508,7 @@ export class App {
         <div class="countdown" id="countdown" hidden>3</div>
         <div id="touch-root"></div>
         ${mode === "course" ? '<div class="course-hint">Ton personnage avance tout seul — appuie n\'importe où pour sauter</div>' : ""}
-        ${mode === "kart" ? '<div class="course-hint">Ta voiture avance toute seule — dirige avec les flèches ou le joystick</div>' : ""}
+        ${mode === "kart" ? '<div class="course-hint">Ta voiture avance toute seule — dirige avec les flèches ou le volant</div>' : ""}
         <div class="rotate-hint">🔄 Tourne ton téléphone en paysage pour jouer</div>
         <div class="results-overlay" id="results-overlay" hidden></div>
       </div>

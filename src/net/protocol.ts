@@ -17,6 +17,9 @@ export interface InputState {
   // Aim direction in world space, used by shooter mode.
   aimX: number;
   aimY: number;
+  // Kart mode only: analog steering in [-1, 1] from the touch wheel. Falls
+  // back to left/right (digital, from keyboard or bots) when unset.
+  steer?: number;
 }
 
 export function emptyInput(): InputState {

@@ -446,11 +446,65 @@ button.small {
 }
 
 .touch-controls.kart-controls {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
-.touch-controls.kart-controls .joystick {
+.wheel {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 9px solid rgba(255, 255, 255, 0.75);
+  position: relative;
   pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.1s ease;
+}
+
+.wheel::before {
+  /* horizontal spoke */
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  height: 7px;
+  margin-top: -3.5px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 4px;
+}
+
+.wheel::after {
+  /* hub */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.wheel .spoke-v {
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  width: 7px;
+  height: calc(50% - 9px);
+  margin-left: -3.5px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 4px;
+}
+
+.wheel.engaged {
+  border-color: var(--accent-2);
+}
+
+.wheel.engaged::after {
+  background: var(--accent-2);
 }
 
 .touch-controls .pad,
