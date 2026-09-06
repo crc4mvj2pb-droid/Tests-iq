@@ -1,4 +1,5 @@
 export type GameMode = "course" | "shooter" | "kart";
+export type BotDifficulty = "easy" | "normal" | "hard";
 
 export interface PlayerMeta {
   id: string;
@@ -138,7 +139,7 @@ export type ClientToHostMessage =
 // ---- Messages: host -> client (also dispatched locally on host) ----
 export type HostToClientMessage =
   | { t: "lobby"; players: PlayerMeta[]; hostId: string; mode: GameMode | null; levelId: string | null }
-  | { t: "gameStart"; mode: GameMode; levelId: string; seed: number; players: PlayerMeta[]; startAt: number }
+  | { t: "gameStart"; mode: GameMode; levelId: string; seed: number; players: PlayerMeta[]; startAt: number; botDifficulty: BotDifficulty }
   | { t: "courseState"; snapshot: CourseSnapshot }
   | { t: "shooterState"; snapshot: ShooterSnapshot }
   | { t: "kartState"; snapshot: KartSnapshot }

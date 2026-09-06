@@ -1,8 +1,15 @@
-import type { InputState } from "../../net/protocol";
+import type { InputState, BotDifficulty } from "../../net/protocol";
 import { emptyInput } from "../../net/protocol";
 import type { CircuitDef } from "./circuits";
 import { groundYAt } from "./circuits";
 import { RUN_SPEED, GRAVITY, JUMP_VELOCITY } from "./sim";
+
+// Chance per tick that a bot delays a jump it could safely take right now —
+// only rolled while comfortably inside the jump window (never near its
+// edges), so a "less skilled" bot still always clears the obstacle, just a
+// little slower on average from the accumulated hesitation.
+const HESITATION_CHANCE: Record<BotDifficulty, number> = { easy: 0.4, normal: 0.15, hard: 0 };
+const HESITATION_SAFETY_MARGIN = 30;
 
 interface Hazard {
   start: number;
@@ -80,9 +87,11 @@ interface BotState {
 export class CourseBotController {
   private states = new Map<string, BotState>();
   private circuit: CircuitDef;
+  private difficulty: BotDifficulty;
 
-  constructor(circuit: CircuitDef) {
+  constructor(circuit: CircuitDef, difficulty: BotDifficulty = "normal") {
     this.circuit = circuit;
+    this.difficulty = difficulty;
   }
 
   register(id: string) {
@@ -114,7 +123,9 @@ export class CourseBotController {
       [minLead, maxLead] = wallJumpWindow(effectiveHeight, upcoming.width);
     }
     if (lead >= minLead - 5 && lead <= maxLead + st.jitter) {
-      input.up = true;
+      const safelyInsideWindow = lead <= maxLead - HESITATION_SAFETY_MARGIN;
+      const hesitate = safelyInsideWindow && Math.random() < HESITATION_CHANCE[this.difficulty];
+      if (!hesitate) input.up = true;
     }
     return input;
   }

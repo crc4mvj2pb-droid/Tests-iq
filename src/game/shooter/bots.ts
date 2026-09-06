@@ -1,21 +1,34 @@
-import type { InputState } from "../../net/protocol";
+import type { InputState, BotDifficulty } from "../../net/protocol";
 import { emptyInput } from "../../net/protocol";
 import type { ShooterMap } from "./maps";
+
+const ACCURACY_RANGE: Record<BotDifficulty, [number, number]> = {
+  easy: [0.2, 0.4],
+  normal: [0.55, 0.9],
+  hard: [0.85, 1.0],
+};
+const ENGAGE_RANGE: Record<BotDifficulty, number> = { easy: 480, normal: 620, hard: 760 };
+const SHOOT_CHANCE: Record<BotDifficulty, number> = { easy: 0.5, normal: 0.85, hard: 1.0 };
 
 interface BotState {
   accuracy: number;
   strafeDir: number;
   strafeTimer: number;
+  engageRange: number;
+  shootChance: number;
 }
 
 export class ShooterBotController {
   private states = new Map<string, BotState>();
 
-  register(id: string) {
+  register(id: string, difficulty: BotDifficulty = "normal") {
+    const [lo, hi] = ACCURACY_RANGE[difficulty];
     this.states.set(id, {
-      accuracy: 0.55 + Math.random() * 0.35,
+      accuracy: lo + Math.random() * (hi - lo),
       strafeDir: Math.random() < 0.5 ? 1 : -1,
       strafeTimer: 30 + Math.random() * 60,
+      engageRange: ENGAGE_RANGE[difficulty],
+      shootChance: SHOOT_CHANCE[difficulty],
     });
   }
 
@@ -84,7 +97,7 @@ export class ShooterBotController {
     const angle = Math.atan2(dirY, dirX) + (Math.random() * 2 - 1) * spread;
     input.aimX = Math.cos(angle);
     input.aimY = Math.sin(angle);
-    input.shoot = dist < 620;
+    input.shoot = dist < st.engageRange && Math.random() < st.shootChance;
 
     return input;
   }

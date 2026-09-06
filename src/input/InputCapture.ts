@@ -283,14 +283,10 @@ export class InputCapture {
   }
 
   private attachAimDial(el: HTMLElement, knob: HTMLElement) {
-    // Dragging the dial only re-aims the cannon — it does not fire, so you
-    // can sweep it around freely without spraying shots. It fires once you
-    // press and hold it still (a short grace period after the last actual
-    // movement); moving it again immediately stops the fire and goes back
-    // to pure aiming.
+    // Touching the dial aims the cannon that way and fires immediately —
+    // dragging keeps re-aiming and keeps firing continuously the whole time
+    // it's held, like a classic twin-stick aim-and-shoot control.
     const radius = 30;
-    const STILL_DELAY_MS = 130;
-    let stillTimer: ReturnType<typeof setTimeout> | null = null;
     const setKnob = (dx: number, dy: number) => {
       const d = Math.hypot(dx, dy);
       const scale = d > radius ? radius / d : 1;
@@ -308,38 +304,20 @@ export class InputCapture {
       this.aimDialTouched = true;
       setKnob(dx, dy);
     };
-    const clearStillTimer = () => {
-      if (stillTimer !== null) {
-        clearTimeout(stillTimer);
-        stillTimer = null;
-      }
-    };
-    const armStillTimer = () => {
-      clearStillTimer();
-      stillTimer = setTimeout(() => {
-        this.aimDialHeld = true;
-        this.updateShoot();
-      }, STILL_DELAY_MS);
-    };
     el.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       e.stopPropagation();
       el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
-      this.aimDialHeld = false;
+      this.aimDialHeld = true;
       this.updateShoot();
       onMove(e.clientX, e.clientY);
-      armStillTimer();
     });
     el.addEventListener("pointermove", (e) => {
       e.preventDefault();
-      this.aimDialHeld = false;
-      this.updateShoot();
       onMove(e.clientX, e.clientY);
-      armStillTimer();
     });
     const release = () => {
-      clearStillTimer();
       el.classList.remove("engaged");
       this.aimDialHeld = false;
       this.updateShoot();

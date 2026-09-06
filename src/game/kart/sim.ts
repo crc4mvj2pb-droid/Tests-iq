@@ -10,8 +10,11 @@ const ACCEL = 0.16;
 // Fast enough to fully make the tracks' tightest corners at top speed
 // without scraping the wall the whole way through, but gentle enough that
 // holding full lock for a normal corner (roughly a second) doesn't spin the
-// car in circles.
-const TURN_RATE = 0.034;
+// car in circles. Cars turn tighter at low speed and calm down at top speed,
+// like a real car, so fast straights don't feel twitchy.
+const TURN_RATE = 0.040;
+const TURN_RATE_HIGH_SPEED_FACTOR = 0.6; // multiplier applied at MAX_SPEED
+const STEER_SMOOTHING = 0.25; // how quickly the wheel's effect ramps in/out
 const WAYPOINT_RADIUS = 150;
 export const LAPS_TOTAL = 3;
 export const KART_TIME_LIMIT_MS = 5 * 60 * 1000;
@@ -23,6 +26,7 @@ interface PlayerRuntime {
   y: number;
   heading: number;
   speed: number;
+  steerSmoothed: number;
   nextWaypoint: number;
   lap: number;
   offTrack: boolean;
@@ -93,6 +97,7 @@ export class KartSimulation {
         y,
         heading,
         speed: 0,
+        steerSmoothed: 0,
         nextWaypoint: (track.startIndex + 1) % track.waypoints.length,
         lap: 0,
         offTrack: false,
@@ -110,10 +115,13 @@ export class KartSimulation {
     for (const pr of this.players.values()) {
       if (pr.finished) continue;
       const input = inputs.get(pr.meta.id);
-      const steer = input?.steer ?? ((input?.right ? 1 : 0) - (input?.left ? 1 : 0));
-      pr.heading += TURN_RATE * steer;
+      const targetSteer = input?.steer ?? ((input?.right ? 1 : 0) - (input?.left ? 1 : 0));
+      pr.steerSmoothed += (targetSteer - pr.steerSmoothed) * STEER_SMOOTHING;
 
       pr.speed = moveToward(pr.speed, MAX_SPEED, ACCEL);
+
+      const speedFactor = 1 - (pr.speed / MAX_SPEED) * (1 - TURN_RATE_HIGH_SPEED_FACTOR);
+      pr.heading += TURN_RATE * speedFactor * pr.steerSmoothed;
 
       pr.x += Math.cos(pr.heading) * pr.speed;
       pr.y += Math.sin(pr.heading) * pr.speed;

@@ -1,5 +1,5 @@
 import { HostNetwork, ClientNetwork } from "../net/PeerNetwork";
-import type { GameMode, PlayerMeta, ResultEntry, HostToClientMessage } from "../net/protocol";
+import type { GameMode, PlayerMeta, ResultEntry, HostToClientMessage, BotDifficulty } from "../net/protocol";
 import { generateRoomCode, randomColor } from "../utils/id";
 import { GameController } from "../game/GameController";
 import { CIRCUITS } from "../game/course/circuits";
@@ -34,6 +34,7 @@ export class App {
   private players: PlayerMeta[] = [];
   private mode: GameMode | null = null;
   private levelId: string | null = null;
+  private botDifficulty: BotDifficulty = "normal";
 
   private gameController: GameController | null = null;
   private hudTimer = 0;
@@ -268,7 +269,7 @@ export class App {
         if (this.screen === "lobby") this.renderLobby();
         break;
       case "gameStart":
-        this.beginGame(msg.mode, msg.levelId, msg.seed, msg.players, msg.startAt);
+        this.beginGame(msg.mode, msg.levelId, msg.seed, msg.players, msg.startAt, msg.botDifficulty);
         break;
       case "courseState":
       case "shooterState":
@@ -343,6 +344,21 @@ export class App {
       )
       .join("");
 
+    const botDifficultyMeta: Record<BotDifficulty, { emoji: string; name: string }> = {
+      easy: { emoji: "🙂", name: "Facile" },
+      normal: { emoji: "😐", name: "Normal" },
+      hard: { emoji: "😈", name: "Difficile" },
+    };
+    const botDifficultyCards = (["easy", "normal", "hard"] as BotDifficulty[])
+      .map(
+        (d) => `
+        <div class="mode-card ${this.botDifficulty === d ? "selected" : ""}" data-bot-difficulty="${d}">
+          <span class="emoji">${botDifficultyMeta[d].emoji}</span>
+          <span class="name">${botDifficultyMeta[d].name}</span>
+        </div>`
+      )
+      .join("");
+
     const levels = this.mode === "shooter" ? SHOOTER_MAPS : this.mode === "course" ? CIRCUITS : this.mode === "kart" ? KART_TRACKS : [];
     const levelCards = levels
       .map(
@@ -386,6 +402,12 @@ export class App {
           <h2>Joueurs (${this.players.length}/${MAX_PLAYERS})</h2>
           <div class="player-list">${playerRows}</div>
           ${this.isHost ? `<button class="ghost" id="add-bot" ${this.players.length >= MAX_PLAYERS ? "disabled" : ""}>+ Ajouter un bot</button>` : ""}
+          ${
+            this.isHost && this.players.some((p) => p.isBot)
+              ? `<div class="hint" style="margin-top:12px;">Difficulté des bots</div>
+                 <div class="mode-select" style="margin-bottom:0;">${botDifficultyCards}</div>`
+              : ""
+          }
         </div>
         ${
           this.isHost
@@ -432,6 +454,12 @@ export class App {
           this.renderLobby();
         });
       });
+      this.root.querySelectorAll<HTMLElement>("[data-bot-difficulty]").forEach((el) => {
+        el.addEventListener("click", () => {
+          this.botDifficulty = el.dataset.botDifficulty as BotDifficulty;
+          this.renderLobby();
+        });
+      });
       this.root.querySelectorAll<HTMLElement>("[data-mode]").forEach((el) => {
         el.addEventListener("click", () => {
           this.mode = el.dataset.mode as GameMode;
@@ -461,11 +489,19 @@ export class App {
     const seed = Math.floor(Math.random() * 1_000_000_000);
     const startAt = Date.now() + 3000;
     const players = [...this.players];
-    this.hostNetwork?.broadcast({ t: "gameStart", mode, levelId, seed, players, startAt });
-    this.beginGame(mode, levelId, seed, players, startAt);
+    const botDifficulty = this.botDifficulty;
+    this.hostNetwork?.broadcast({ t: "gameStart", mode, levelId, seed, players, startAt, botDifficulty });
+    this.beginGame(mode, levelId, seed, players, startAt, botDifficulty);
   }
 
-  private beginGame(mode: GameMode, levelId: string, seed: number, players: PlayerMeta[], startAt: number) {
+  private beginGame(
+    mode: GameMode,
+    levelId: string,
+    seed: number,
+    players: PlayerMeta[],
+    startAt: number,
+    botDifficulty: BotDifficulty
+  ) {
     this.mode = mode;
     this.levelId = levelId;
     this.players = players;
@@ -480,7 +516,7 @@ export class App {
     this.gameController = new GameController(
       this.isHost,
       this.localId,
-      { mode, levelId, seed, players, startAt },
+      { mode, levelId, seed, players, startAt, botDifficulty },
       canvas,
       touchRoot,
       countdownEl,

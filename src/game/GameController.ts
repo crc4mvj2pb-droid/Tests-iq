@@ -7,6 +7,7 @@ import type {
   CourseSnapshot,
   ShooterSnapshot,
   KartSnapshot,
+  BotDifficulty,
 } from "../net/protocol";
 import type { HostNetwork, ClientNetwork } from "../net/PeerNetwork";
 import { CourseSimulation } from "./course/sim";
@@ -29,6 +30,7 @@ export interface GameStartInfo {
   seed: number;
   players: PlayerMeta[];
   startAt: number;
+  botDifficulty: BotDifficulty;
 }
 
 const FIXED_DT = 1000 / 60;
@@ -91,17 +93,18 @@ export class GameController {
     (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> })?.lock?.("landscape").catch(() => {});
 
     if (this.isHost) {
+      const difficulty = this.info.botDifficulty;
       if (this.info.mode === "course" && this.circuit) {
         this.courseSim = new CourseSimulation(this.circuit, this.info.players);
-        this.courseBots = new CourseBotController(this.circuit);
+        this.courseBots = new CourseBotController(this.circuit, difficulty);
         for (const p of this.info.players) if (p.isBot) this.courseBots.register(p.id);
       } else if (this.info.mode === "shooter" && this.map) {
         this.shooterSim = new ShooterSimulation(this.map, this.info.seed, this.info.players);
         this.shooterBots = new ShooterBotController();
-        for (const p of this.info.players) if (p.isBot) this.shooterBots.register(p.id);
+        for (const p of this.info.players) if (p.isBot) this.shooterBots.register(p.id, difficulty);
       } else if (this.track) {
         this.kartSim = new KartSimulation(this.track, this.info.players);
-        this.kartBots = new KartBotController(this.track);
+        this.kartBots = new KartBotController(this.track, difficulty);
         for (const p of this.info.players) if (p.isBot) this.kartBots.register(p.id);
       }
     }
