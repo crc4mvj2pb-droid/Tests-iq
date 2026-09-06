@@ -7,10 +7,11 @@ export const CAR_WIDTH = 20;
 const MAX_SPEED = 6.6;
 const WALL_SPEED_BLEED = 0.9;
 const ACCEL = 0.16;
-// Tuned so holding the wheel at full lock for about a second turns the car
-// roughly 90 degrees — a wheel you can grip and hold through a corner
-// (unlike quick taps) needs a much gentler rate or it spins out of control.
-const TURN_RATE = 0.026;
+// Fast enough to fully make the tracks' tightest corners at top speed
+// without scraping the wall the whole way through, but gentle enough that
+// holding full lock for a normal corner (roughly a second) doesn't spin the
+// car in circles.
+const TURN_RATE = 0.034;
 const WAYPOINT_RADIUS = 150;
 export const LAPS_TOTAL = 3;
 export const KART_TIME_LIMIT_MS = 5 * 60 * 1000;

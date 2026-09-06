@@ -235,31 +235,24 @@ export class InputCapture {
   }
 
   private attachSteeringWheel(el: HTMLElement) {
-    // A real rotating steering wheel: grab it anywhere and the wheel turns
-    // by the same arc your finger sweeps through (not just how far left or
-    // right you drag), exactly like turning a physical wheel. It spins up
-    // to a hard lock and springs back to center on release. The kart always
-    // drives forward on its own regardless of steering — only heading is
-    // affected, and the track has hard walls so oversteering can't send it
-    // off the road.
+    // Steering is driven by how far you've dragged horizontally from where
+    // you first touched down — not by your touch's absolute position (which
+    // would snap the wheel to an angle the instant you tap it, wherever that
+    // happened to land) and not by tracking the exact angle around the
+    // wheel's center (which gets wildly oversensitive if you touch anywhere
+    // near the middle rather than right on the rim). A plain horizontal
+    // delta is predictable no matter where on the wheel you grab it. The
+    // wheel graphic still rotates for visual feedback and springs back to
+    // center on release. The kart always drives forward on its own
+    // regardless of steering, and the track has hard walls so oversteering
+    // can't send it off the road.
     const MAX_ROTATION_DEG = 120;
+    const DRAG_RANGE_PX = 85; // horizontal drag distance for full lock
     let active = false;
-    let grabAngleDeg = 0;
+    let grabX = 0;
     let grabRotationDeg = 0;
     let currentRotationDeg = 0;
 
-    const angleAt = (clientX: number, clientY: number) => {
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      return (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI;
-    };
-    const normalizeDelta = (deg: number) => {
-      let d = deg % 360;
-      if (d > 180) d -= 360;
-      if (d < -180) d += 360;
-      return d;
-    };
     const apply = (rotationDeg: number) => {
       currentRotationDeg = Math.max(-MAX_ROTATION_DEG, Math.min(MAX_ROTATION_DEG, rotationDeg));
       this.state.steer = currentRotationDeg / MAX_ROTATION_DEG;
@@ -277,14 +270,14 @@ export class InputCapture {
       active = true;
       el.classList.add("engaged");
       el.setPointerCapture(e.pointerId);
-      grabAngleDeg = angleAt(e.clientX, e.clientY);
+      grabX = e.clientX;
       grabRotationDeg = currentRotationDeg;
     });
     el.addEventListener("pointermove", (e) => {
       e.preventDefault();
       if (!active) return;
-      const delta = normalizeDelta(angleAt(e.clientX, e.clientY) - grabAngleDeg);
-      apply(grabRotationDeg + delta);
+      const dx = e.clientX - grabX;
+      apply(grabRotationDeg + (dx / DRAG_RANGE_PX) * MAX_ROTATION_DEG);
     });
     el.addEventListener("pointerup", reset);
     el.addEventListener("pointercancel", reset);

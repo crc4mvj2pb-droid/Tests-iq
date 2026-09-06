@@ -1,5 +1,5 @@
 import type { CircuitDef, Zipline } from "./circuits";
-import { groundYAt, isWaterSegAt } from "./circuits";
+import { groundYAt, isWaterSegAt, isSpringSegAt } from "./circuits";
 import type { InputState, PlayerMeta, CourseSnapshot, ResultEntry } from "../../net/protocol";
 
 export const PLAYER_W = 22;
@@ -8,6 +8,9 @@ export const PLAYER_H = 46;
 export const RUN_SPEED = 5.2;
 export const GRAVITY = 0.62;
 export const JUMP_VELOCITY = -14.5;
+// A springboard launches far higher/further than any manual jump can reach —
+// used to clear obstacles otherwise impossible to cross.
+export const SPRING_VELOCITY = -19.5;
 const DOUBLE_JUMP_VELOCITY = -12;
 const MAX_JUMPS = 2;
 const RESPAWN_LIFT = 40;
@@ -130,7 +133,14 @@ export class CourseSimulation {
         }
 
         if (!grabbed) {
-          if (justPressed && pr.jumpsLeft > 0) {
+          const onSpring = pr.onGround && isSpringSegAt(this.circuit.springs, pr.x);
+          if (onSpring) {
+            // Automatic launch — no button needed, and it overrides a manual
+            // jump attempted on the same tick since it's terrain, not choice.
+            pr.vy = SPRING_VELOCITY;
+            pr.onGround = false;
+            pr.jumpsLeft = MAX_JUMPS;
+          } else if (justPressed && pr.jumpsLeft > 0) {
             pr.vy = pr.jumpsLeft === MAX_JUMPS ? JUMP_VELOCITY : DOUBLE_JUMP_VELOCITY;
             pr.jumpsLeft--;
             pr.onGround = false;

@@ -1,5 +1,5 @@
 import type { CircuitDef } from "./circuits";
-import { isWaterSegAt, GROUND_Y0 } from "./circuits";
+import { isWaterSegAt, groundYAt, GROUND_Y0 } from "./circuits";
 import type { CourseSnapshot, PlayerMeta } from "../../net/protocol";
 import { PLAYER_H } from "./sim";
 
@@ -104,6 +104,33 @@ export class CourseRenderer {
       ctx.moveTo(z.x0, z.y);
       ctx.lineTo(z.x1, z.y);
       ctx.stroke();
+    }
+
+    // springboards (auto-launch much higher/further than any manual jump)
+    for (const s of circuit.springs) {
+      const midX = (s.x0 + s.x1) / 2;
+      const y = groundYAt(circuit.ground, midX) ?? circuit.startY;
+      ctx.fillStyle = "#2ee6a6";
+      ctx.fillRect(s.x0, y - 10, s.x1 - s.x0, 10);
+      ctx.strokeStyle = "rgba(0,0,0,0.4)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(s.x0, y - 10, s.x1 - s.x0, 10);
+      ctx.strokeStyle = "#1fae7c";
+      ctx.lineWidth = 3;
+      for (let sx = s.x0 + 6; sx < s.x1 - 4; sx += 10) {
+        ctx.beginPath();
+        ctx.moveTo(sx, y - 10);
+        ctx.lineTo(sx + 5, y - 20);
+        ctx.lineTo(sx + 10, y - 10);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#2ee6a6";
+      ctx.beginPath();
+      ctx.moveTo(midX, y - 46);
+      ctx.lineTo(midX - 10, y - 30);
+      ctx.lineTo(midX + 10, y - 30);
+      ctx.closePath();
+      ctx.fill();
     }
 
     // walls (hurdles to jump over)

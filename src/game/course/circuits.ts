@@ -20,6 +20,11 @@ export interface Zipline {
   y: number;
 }
 
+export interface Spring {
+  x0: number;
+  x1: number;
+}
+
 export interface CircuitDef {
   id: string;
   name: string;
@@ -27,6 +32,7 @@ export interface CircuitDef {
   ground: GroundSeg[];
   walls: WallObstacle[];
   ziplines: Zipline[];
+  springs: Spring[];
   startX: number;
   startY: number;
   finishX: number;
@@ -41,17 +47,19 @@ type Piece =
   | { k: "gap"; len: number }
   | { k: "wall"; w: number; h: number }
   | { k: "bump"; len: number; height: number }
-  | { k: "pool"; len: number; ropeHeight?: number };
+  | { k: "pool"; len: number; ropeHeight?: number }
+  | { k: "spring"; len: number };
 
 export const GROUND_Y0 = 520;
 const DEFAULT_ROPE_HEIGHT = 95;
 
-function build(pieces: Piece[]): { ground: GroundSeg[]; walls: WallObstacle[]; ziplines: Zipline[]; endX: number } {
+function build(pieces: Piece[]): { ground: GroundSeg[]; walls: WallObstacle[]; ziplines: Zipline[]; springs: Spring[]; endX: number } {
   let x = 0;
   let y = GROUND_Y0;
   const ground: GroundSeg[] = [];
   const walls: WallObstacle[] = [];
   const ziplines: Zipline[] = [];
+  const springs: Spring[] = [];
 
   for (const p of pieces) {
     if (p.k === "flat") {
@@ -89,9 +97,17 @@ function build(pieces: Piece[]): { ground: GroundSeg[]; walls: WallObstacle[]; z
       ground.push({ x0: x, y0: y, x1, y1: y, angle: 0, water: true });
       ziplines.push({ x0: x, x1, y: y - (p.ropeHeight ?? DEFAULT_ROPE_HEIGHT) });
       x = x1;
+    } else if (p.k === "spring") {
+      // A springboard pad: touching it while running launches the player
+      // into a much higher, longer arc than any manual jump can reach —
+      // used to clear obstacles a normal jump physically cannot.
+      const x1 = x + p.len;
+      ground.push({ x0: x, y0: y, x1, y1: y, angle: 0 });
+      springs.push({ x0: x, x1 });
+      x = x1;
     }
   }
-  return { ground, walls, ziplines, endX: x };
+  return { ground, walls, ziplines, springs, endX: x };
 }
 
 function makeCircuit(
@@ -101,7 +117,7 @@ function makeCircuit(
   pieces: Piece[],
   checkpointEvery = 900
 ): CircuitDef {
-  const { ground, walls, ziplines, endX } = build([{ k: "flat", len: 500 }, ...pieces, { k: "flat", len: 400 }]);
+  const { ground, walls, ziplines, springs, endX } = build([{ k: "flat", len: 500 }, ...pieces, { k: "flat", len: 400 }]);
   const checkpoints: number[] = [];
   for (let cx = checkpointEvery; cx < endX - 300; cx += checkpointEvery) {
     if (groundYAt(ground, cx) !== null && !isWaterSegAt(ground, cx)) checkpoints.push(cx);
@@ -113,6 +129,7 @@ function makeCircuit(
     ground,
     walls,
     ziplines,
+    springs,
     startX: 120,
     startY: GROUND_Y0 - 60,
     finishX: endX - 250,
@@ -162,7 +179,10 @@ export const CIRCUITS: CircuitDef[] = [
       { k: "wall", w: 34, h: 58 },
       { k: "flat", len: 90 },
       { k: "bump", len: 340, height: 130 },
-      { k: "flat", len: 140 },
+      { k: "flat", len: 60 },
+      { k: "spring", len: 50 },
+      { k: "gap", len: 280 },
+      { k: "flat", len: 90 },
       { k: "wall", w: 34, h: 62 },
       { k: "flat", len: 18 },
       { k: "wall", w: 34, h: 58 },
@@ -207,7 +227,10 @@ export const CIRCUITS: CircuitDef[] = [
       { k: "ramp", len: 260, deg: 30 },
       { k: "flat", len: 190 },
       { k: "bump", len: 360, height: 160 },
-      { k: "flat", len: 140 },
+      { k: "flat", len: 60 },
+      { k: "spring", len: 50 },
+      { k: "gap", len: 280 },
+      { k: "flat", len: 90 },
       { k: "wall", w: 34, h: 62 },
       { k: "flat", len: 18 },
       { k: "wall", w: 34, h: 58 },
@@ -251,7 +274,10 @@ export const CIRCUITS: CircuitDef[] = [
       { k: "gap", len: 238 },
       { k: "flat", len: 160 },
       { k: "bump", len: 400, height: 200 },
-      { k: "flat", len: 140 },
+      { k: "flat", len: 60 },
+      { k: "spring", len: 50 },
+      { k: "gap", len: 280 },
+      { k: "flat", len: 90 },
       { k: "wall", w: 34, h: 58 },
       { k: "flat", len: 18 },
       { k: "wall", w: 34, h: 54 },
@@ -308,7 +334,10 @@ export const CIRCUITS: CircuitDef[] = [
       { k: "wall", w: 40, h: 70 },
       { k: "flat", len: 18 },
       { k: "wall", w: 40, h: 64 },
-      { k: "flat", len: 140 },
+      { k: "flat", len: 60 },
+      { k: "spring", len: 50 },
+      { k: "gap", len: 280 },
+      { k: "flat", len: 90 },
       { k: "bump", len: 360, height: 180 },
       { k: "flat", len: 110 },
       { k: "pool", len: 520 },
@@ -344,6 +373,13 @@ export function isWaterSegAt(ground: GroundSeg[], x: number): boolean {
     const lo = Math.min(seg.x0, seg.x1);
     const hi = Math.max(seg.x0, seg.x1);
     if (x >= lo && x <= hi) return !!seg.water;
+  }
+  return false;
+}
+
+export function isSpringSegAt(springs: Spring[], x: number): boolean {
+  for (const s of springs) {
+    if (x >= s.x0 && x <= s.x1) return true;
   }
   return false;
 }
