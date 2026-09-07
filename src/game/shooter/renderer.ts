@@ -120,8 +120,15 @@ export class ShooterRenderer {
       const aimAngle = Math.atan2(e.aimY, e.aimX);
       ctx.save();
       ctx.rotate(aimAngle);
-      ctx.fillStyle = "#333";
+      // The cannon used to be a fixed dark grey, which could disappear
+      // against dark map themes — using the player's own color (with a
+      // dark outline for definition against lighter backgrounds too) keeps
+      // it visible everywhere.
+      ctx.fillStyle = color;
+      ctx.strokeStyle = "rgba(0,0,0,0.55)";
+      ctx.lineWidth = 2;
       ctx.fillRect(PLAYER_R - 4, -4, 20, 8);
+      ctx.strokeRect(PLAYER_R - 4, -4, 20, 8);
       ctx.restore();
 
       ctx.fillStyle = color;

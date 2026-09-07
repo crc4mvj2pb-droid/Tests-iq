@@ -273,6 +273,7 @@ export class App {
         break;
       case "courseState":
       case "shooterState":
+      case "kartState":
         this.gameController?.handleSnapshotMessage(msg);
         break;
       case "gameOver":
