@@ -243,6 +243,8 @@ export class GameController {
         const snap = this.kartSim.snapshot();
         this.hostNetwork?.broadcast({ t: "kartState", snapshot: snap });
         this.kartRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.track, snap, this.localId, this.metas);
+        const localEntity = snap.entities.find((e) => e.id === this.localId);
+        if (localEntity) this.input.setKartHeading(localEntity.heading);
         if (remaining <= 0 && !this.gameOverFired && this.kartSim.isRaceOver()) {
           this.gameOverFired = true;
           const results = this.kartSim.results();
@@ -258,6 +260,8 @@ export class GameController {
         this.shooterRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.map, this.lastShooterSnap, this.localId, this.metas);
       } else if (this.info.mode === "kart" && this.lastKartSnap && this.track) {
         this.kartRenderer.draw(this.ctx, this.canvas.width, this.canvas.height, this.track, this.lastKartSnap, this.localId, this.metas);
+        const localEntity = this.lastKartSnap.entities.find((e) => e.id === this.localId);
+        if (localEntity) this.input.setKartHeading(localEntity.heading);
       }
     }
   };

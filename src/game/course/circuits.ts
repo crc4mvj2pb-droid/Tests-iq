@@ -118,9 +118,15 @@ function makeCircuit(
   checkpointEvery = 900
 ): CircuitDef {
   const { ground, walls, ziplines, springs, endX } = build([{ k: "flat", len: 500 }, ...pieces, { k: "flat", len: 400 }]);
+  // A checkpoint must never land inside (or right next to) a wall's span —
+  // respawning there means standing inside the wall's hitbox, which
+  // instantly re-triggers a crash and respawns again on the very next
+  // frame, forever: the run looks permanently "stuck in the wall".
+  const WALL_CHECKPOINT_MARGIN = 60;
+  const insideOrNearWall = (cx: number) => walls.some((w) => cx >= w.x - w.w / 2 - WALL_CHECKPOINT_MARGIN && cx <= w.x + w.w / 2 + WALL_CHECKPOINT_MARGIN);
   const checkpoints: number[] = [];
   for (let cx = checkpointEvery; cx < endX - 300; cx += checkpointEvery) {
-    if (groundYAt(ground, cx) !== null && !isWaterSegAt(ground, cx)) checkpoints.push(cx);
+    if (groundYAt(ground, cx) !== null && !isWaterSegAt(ground, cx) && !insideOrNearWall(cx)) checkpoints.push(cx);
   }
   return {
     id,

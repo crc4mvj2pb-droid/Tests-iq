@@ -9,6 +9,8 @@ export class InputCapture {
   private aimDialTouched = false;
   private fireZoneHeld = false;
   private aimDialHeld = false;
+  private wheelEl: HTMLElement | null = null;
+  private kartInitialHeading: number | null = null;
   private nearestEnemyProvider: () => { x: number; y: number } | null = () => null;
   private keydownHandler = (e: KeyboardEvent) => this.onKey(e, true);
   private keyupHandler = (e: KeyboardEvent) => this.onKey(e, false);
@@ -40,6 +42,19 @@ export class InputCapture {
    * dragged the aim dial yet, so tapping to shoot is useful immediately. */
   setNearestEnemyProvider(fn: () => { x: number; y: number } | null) {
     this.nearestEnemyProvider = fn;
+  }
+
+  /** Kart only: called every frame with the local car's current heading so
+   * the wheel's arrow shows where the car is actually pointed — turning the
+   * wheel still steers (via the drag handlers below), but the arrow tracks
+   * the real, live result of that steering rather than just how hard the
+   * wheel is currently being held. */
+  setKartHeading(headingRad: number) {
+    if (!this.wheelEl) return;
+    if (this.kartInitialHeading === null) this.kartInitialHeading = headingRad;
+    let deltaDeg = ((headingRad - this.kartInitialHeading) * 180) / Math.PI;
+    deltaDeg = ((deltaDeg + 180) % 360 + 360) % 360 - 180;
+    this.wheelEl.style.transform = `rotate(${deltaDeg}deg)`;
   }
 
   attach() {
@@ -130,6 +145,7 @@ export class InputCapture {
       wrap.className = "touch-controls kart-controls";
       const wheel = this.makeWheel();
       wrap.append(wheel);
+      this.wheelEl = wheel;
       this.attachSteeringWheel(wheel);
       this.touchRoot.append(wrap);
       this.touchNodes.push(wrap);
@@ -245,18 +261,15 @@ export class InputCapture {
     // finger currently is, left or right of the wheel's center, is exactly
     // how much you're steering — no gesture to learn, no dragging a precise
     // amount, no tracking where you first touched. Move your finger and the
-    // wheel (and the car's turn) follows it immediately; let go and it
-    // snaps straight back to center. The kart always drives forward on its
-    // own regardless of steering, and the track has hard walls so
-    // oversteering can't send it off the road.
-    const MAX_ROTATION_DEG = 45;
+    // car's turn follows it immediately; let go and steering returns to
+    // zero. The wheel graphic itself doesn't chase your finger — it's
+    // driven by setKartHeading() below to show where the car is actually
+    // pointed, which is what turning it is for in the first place.
     const FULL_LOCK_PX = 55; // horizontal distance from center for full lock
     let active = false;
 
     const apply = (ratio: number) => {
-      const clamped = Math.max(-1, Math.min(1, ratio));
-      this.state.steer = clamped;
-      el.style.transform = `rotate(${clamped * MAX_ROTATION_DEG}deg)`;
+      this.state.steer = Math.max(-1, Math.min(1, ratio));
     };
     const reset = () => {
       active = false;
