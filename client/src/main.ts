@@ -1,8 +1,7 @@
-import { Router } from './ui/router';
-import { renderMenu } from './ui/menu';
+import './style.css';
+import { Game } from './game/Game';
 
-const root = document.getElementById('app');
-if (!root) throw new Error('#app root element missing');
+const canvas = document.getElementById('scene') as HTMLCanvasElement;
+const uiRoot = document.getElementById('ui-root') as HTMLElement;
 
-const router = new Router(root);
-router.navigate(renderMenu);
+new Game(canvas, uiRoot);

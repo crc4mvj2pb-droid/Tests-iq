@@ -1,86 +1,49 @@
-# FlipRush
+# SOMMET
 
-Jeu de course arcade 2D à physique — inspiré de la philosophie de *Rider* (accélération/rotation en vol, flips, atterrissages précis, terrain qui roule en continu) mais avec son propre univers, ses propres voitures et son propre système de progression. Aucun asset, niveau, logo ou contenu de Rider n'a été copié : identité visuelle, noms et environnements sont originaux.
+Un jeu d'escalade coopératif jouable dans le navigateur — sur téléphone, tablette (iPad) et ordinateur — **inspiré de la philosophie de *PEAK*** (gestion d'endurance, chutes qui font mal, objets à ramasser, ascension collective) mais avec son propre univers : des animaux explorateurs stylisés (Marmotte, Corbeau, Renard, Chèvre, Ourson, Lynx), sa propre montagne générée proceduralement, et son propre système d'objets. Aucun asset, personnage, logo ou contenu de *PEAK* n'a été copié.
 
-Le jeu est volontairement recentré sur l'essentiel : **une course infinie type Rider**, **des voitures aux physiques réellement différentes**, et **une partie privée pour jouer avec ses amis**.
+Le but : grimper depuis le camp de base jusqu'au sommet, seul ou avec ta famille connectée via un code de partie à 4 chiffres.
 
-## Ce qui est réellement fonctionnel aujourd'hui
+## Ce qui est réellement fonctionnel
 
-- **Moteur physique réel** (Matter.js) : voiture à châssis + 2 roues motrices sur suspensions, gravité, inertie, friction, collisions. Tenir le bouton accélère ; en l'air, tenir le bouton fait tourner le nez pour les flips. Au sol, la voiture reste plaquée à la pente du terrain (elle ne bascule pas toute seule) — la rotation libre n'existe qu'en vol, comme dans le jeu de référence.
-- **Terrain procédural fluide** : collines qui roulent en continu (deux ondes sinusoïdales superposées, jamais deux fois le même terrain), avec des obstacles distincts insérés de temps en temps (rampes, gaps, loops, tunnels, murs, plateformes mobiles) plutôt qu'un enchaînement ininterrompu d'obstacles. La difficulté augmente progressivement avec la distance. Un tronçon plat garanti est toujours placé juste après le départ, pour ne jamais démarrer devant un trou.
-- **Course infinie** (écran « JOUER ») : pas de ligne d'arrivée, score en temps réel (distance, flips, doubles/triples flips, combo multiplicateur, atterrissages parfaits), un crash termine la course, écran Game Over avec détection de nouveau record, record persistant en local.
-- **Garage** : 10 voitures aux caractéristiques physiques réellement différentes (vitesse, accélération, poids, stabilité, rotation, adhérence, contrôle aérien) — pas de simples skins — chacune avec sa propre condition de déblocage (distance parcourue, flips, score, combo, victoires Private).
-- **Private multiplayer** : vrai serveur WebSocket. Créer une partie → code à 4 chiffres → lobby temps réel (statuts prêt/hôte) → 3 ou 5 manches sur des circuits générés procéduralement (seed partagée, donc identiques pour tous les joueurs d'une manche) → chronométrage **autoritaire côté serveur** (le temps est mesuré par le serveur à la réception du message d'arrivée, pas déclaré par le client — impossible à tricher en modifiant le JS du navigateur) → classement par manche puis classement général. Testé avec deux navigateurs simultanés.
-- **Game feel** : particules (poussière, étincelles, atterrissage), écran qui tremble à l'impact, sons synthétisés en temps réel (moteur, flip, crash, atterrissage parfait, victoire — aucun fichier audio externe), 6 environnements avec palette et ambiance propres (Neon City, Desert, Industrial, Sky, Volcano, Arctic).
-- **Multiplateforme** : contrôle unique (maintenir), au clic/tactile ou à la touche Espace/↑, interface responsive PC/mobile/tablette.
+- **Montagne procédurale complète** (Three.js) : un profil radial (prairie → falaise → corniche → falaise → névé → sommet) déformé par du bruit de Perlin seedé, avec deux ravins sombres générés aléatoirement. Couleurs par altitude/pente calculées par sommet (pas de texture externe), ombres portées, ciel en dégradé, mer de nuages, flocons de neige près du sommet.
+- **Contrôleur de personnage sur mesure** (pas de moteur physique tiers) : marche/course avec gestion d'endurance, saut, **escalade** des pentes raides (maintenir la prise près d'une falaise fait grimper le personnage le long de la normale au terrain, en consommant de l'endurance — plus la pente est raide, plus ça coûte cher), chute et dégâts si l'atterrissage est trop violent, réapparition au dernier point d'ancrage posé.
+- **6 personnages animaux** en low-poly, chacun avec sa silhouette propre (oreilles, cornes, queue, couleurs), animation procédurale des membres (marche, course, escalade, saut, chute, tonneau en cas de chute violente).
+- **7 objets différents** à ramasser sur la montagne, avec de vrais effets : gourde (endurance), champignon (effet aléatoire — soin ou étourdissement), corde (pose un point d'ancrage/réapparition), torche (éclaire les ravins sombres 60s), grappin (propulsion automatique vers la corniche la plus proche dans ton champ de vision), fusée éclairante (signale ta position à toute l'équipe), sac renforcé (augmente ton endurance max, permanent).
+- **Multijoueur réel sans serveur dédié** : tout tourne sur Netlify (Functions + Blobs, aucun processus Node à héberger ailleurs). Crée une partie → code à 4 chiffres → tes proches le rejoignent depuis leur téléphone/tablette/PC → salle d'attente avec statut prêt/hôte → ascension lancée ensemble sur la même montagne (seed partagée) → tu vois les autres joueurs bouger en temps quasi réel (synchronisation ~2x/seconde), leurs objets ramassés sont retirés pour tout le monde, un toast prévient quand quelqu'un atteint le sommet.
+- **Contrôles adaptés à chaque appareil** : détection tactile automatique — joystick virtuel + boutons Saut/Prise sur téléphone et tablette, clavier ZQSD/WASD + glisser-déposer souris sur ordinateur. Interface responsive avec zones de sécurité (encoche, barre de gestes iOS).
+- **Ambiance sonore synthétisée en temps réel** (Web Audio API, aucun fichier audio à télécharger) : sauts, atterrissages, ramassage d'objets, chutes, fanfare de victoire.
 
 ## Ce qui est volontairement simplifié
 
-- La sauvegarde de progression (voitures débloquées, XP, records) est en `localStorage` (par appareil/navigateur). L'architecture est prête pour brancher une vraie base de données plus tard.
-- 6 environnements ont une palette/ambiance propre ; les décors d'arrière-plan restent simples (formes géométriques en parallaxe) plutôt que des illustrations détaillées.
+- La montagne est une carte de hauteur (pas de vrais surplombs/grottes) : les "ravins sombres" simulent l'ambiance d'un passage obscur nécessitant la torche, sans être de vraies cavités.
+- La synchronisation multijoueur se fait par sondage HTTP (~2 fois par seconde) plutôt que par WebSocket : suffisant pour une ascension coopérative, mais pas fait pour un jeu d'action nerveux.
+- Pas de compte persistant : le nom et le personnage choisi sont mémorisés localement sur l'appareil (`localStorage`), les parties multijoueur ne gardent pas d'historique.
+- Le grappin vise automatiquement la meilleure corniche devant toi plutôt qu'un point précis choisi à la souris.
 
-Rien de tout ça n'est un bouton qui ne fait rien : tout est branché et jouable, juste perfectible.
+Rien de tout ça n'est un bouton qui ne fait rien : tout est branché et jouable.
 
 ## Architecture
 
-Monorepo npm workspaces :
-
 ```
-shared/    types + constantes + RNG déterministe partagés client/serveur
-client/    jeu (Vite + TypeScript + Matter.js + Canvas 2D, DOM pour l'UI)
-server/    serveur temps réel (Node + ws) pour les salons Private uniquement
+shared/            types + RNG seedée partagés client/fonctions
+client/             jeu (Vite + TypeScript + Three.js), Canvas + DOM pour l'UI
+netlify/functions/   fonctions Netlify (TypeScript) + Netlify Blobs pour l'état des salons multijoueur
 ```
 
-Le jeu tourne entièrement dans le navigateur (canvas + physique locale). Le serveur ne sert que pour Private : il orchestre le salon/les manches, diffuse les positions adverses (« fantômes ») et fait autorité sur les temps de course — aucune logique de jeu sensible ne dépend du client.
+Un seul site Netlify héberge tout : les fichiers statiques du jeu **et** les fonctions serverless qui font office de "serveur" multijoueur (création de salon, va-et-vient des positions, objets ramassés). Aucun service tiers à payer ou à maintenir séparément.
 
 ## Lancer le projet en local
 
 Prérequis : Node.js 20+.
 
 ```bash
-# à la racine du repo
 npm install
-
-# terminal 1 — serveur multijoueur (WebSocket, port 8787)
-npm run dev:server
-
-# terminal 2 — client (Vite, port 5173)
 npm run dev:client
 ```
 
-Ouvre `http://localhost:5173`. Le client se connecte automatiquement à `ws://localhost:8787` pour Private (le mode infini n'a pas besoin du serveur). Pour tester le multijoueur, ouvre l'URL dans deux onglets/navigateurs différents.
+Ouvre `http://localhost:5173`. Le mode solo fonctionne directement. Pour tester le multijoueur en local avec les fonctions Netlify, installe la CLI Netlify (`npm i -g netlify-cli`) puis lance `netlify dev` à la racine à la place de `npm run dev:client`.
 
-## Déployer une vraie URL publique
+## Déployer
 
-Il faut déployer **deux services séparés** : le client (fichiers statiques) et le serveur (process Node qui doit rester allumé pour les WebSockets — donc pas d'hébergement purement statique/serverless pour lui).
-
-### 1. Déployer le serveur (WebSocket)
-
-Options gratuites qui supportent un process Node persistant : **Render**, **Railway**, **Fly.io**.
-
-Avec Render (un fichier `render.yaml` est déjà fourni à la racine) :
-1. Pousse ce repo sur GitHub.
-2. Sur [render.com](https://render.com) → New → Blueprint → sélectionne le repo (Render détecte `render.yaml`), ou via le bouton direct : `https://render.com/deploy?repo=<url du repo>`.
-3. Ou manuellement : New → Web Service → Root Directory `server` → Build Command `npm install` → Start Command `npm run start`.
-4. Récupère l'URL générée, par ex. `https://fliprush-server.onrender.com`.
-
-### 2. Déployer le client (statique)
-
-Avec **Netlify** (ou Vercel/Cloudflare Pages, même principe) :
-1. New site from Git → sélectionne le repo (Netlify détecte `netlify.toml` : base `client`, build `npm install && npm run build`, publish `dist`).
-2. Ajoute la variable d'environnement `VITE_SERVER_URL` = `wss://fliprush-server.onrender.com` (remplace par le domaine réel du serveur, toujours en `wss://` en production).
-3. Déploie → tu obtiens une URL partageable immédiatement.
-
-### 3. Domaine personnalisé (optionnel)
-
-Ajoute un domaine dans les réglages du projet Netlify/Vercel, en suivant les instructions DNS qu'ils fournissent.
-
-### 4. Base de données (plus tard)
-
-Aucune base de données n'est requise pour l'état actuel (progression en `localStorage`, parties Private en mémoire côté serveur). Pour des comptes/leaderboards persistants entre appareils, le point d'entrée naturel est `server/src/index.ts` : remplacer les `Map` en mémoire par des appels à une base (Postgres via [Neon](https://neon.tech) ou [Supabase](https://supabase.com), tiers gratuits compatibles avec Render/Railway).
-
-## Prochaines étapes suggérées
-
-- Brancher un compte joueur + base de données pour synchroniser la progression entre appareils.
-- Enrichir les décors d'arrière-plan par environnement (actuellement des formes simples en parallaxe).
-- Ajouter d'autres modes si besoin plus tard (l'ancien code Solo/Public/Challenges a été retiré pour se concentrer sur l'essentiel, mais le catalogue de 59 obstacles dans `client/src/core/track/segments.ts` reste disponible pour en reconstruire).
+Le fichier `netlify.toml` est déjà configuré (base = racine du repo, build du client, dossier `netlify/functions` pour les fonctions). Sur [Netlify](https://app.netlify.com) : *Add new site → Import an existing project* → sélectionne ce repo → Netlify détecte automatiquement la configuration → Déployer. Tu obtiens une URL publique unique à partager avec ta famille.
