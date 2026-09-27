@@ -1,342 +1,323 @@
-import Matter from 'matter-js';
-import type { CarProfile } from '../../data/cars';
-import { createCarRig, applyCarControl, resetCarRig, carSpeed, type CarRig } from '../physics/car';
-import { ActiveTrack, buildStartPad } from '../track/trackBuilder';
-import { ClassicTrackGenerator } from '../track/classicGenerator';
-import { buildMultiplayerRound } from '../track/multiplayerRound';
-import { CrashSystem } from './CrashSystem';
-import { Camera } from './Camera';
-import { Input } from './Input';
-import { Renderer, type GhostCar } from '../render/Renderer';
-import { ParticleSystem } from '../render/Particles';
-import { getEnvironment } from '../../data/environments';
-import { sound } from '../audio/Sound';
+import * as THREE from 'three';
+import { MountainGenerator, type Checkpoint, type PlacedItem, type ItemType } from '../terrain/MountainGenerator';
+import { buildTerrainMesh } from '../terrain/TerrainMesh';
+import { buildSky, applyFog } from '../render/Sky';
+import { Weather } from '../render/Weather';
+import { WorldMarkers } from '../render/Markers';
+import { PlayerController, type PlayerAnimState } from '../player/PlayerController';
+import { PlayerAvatar } from '../player/PlayerAvatar';
+import { InputManager } from './InputManager';
+import { OrbitFollowCamera } from './OrbitFollowCamera';
+import type { HudState, RemoteHudInfo } from './HudState';
+import type { NetClient } from '../../net/NetClient';
+import type { PlayerInfo, PlayerStateSnapshot } from '../../../../shared/types';
+import { REVIVE_RADIUS } from '../../../../shared/constants';
 
-export const METER_PX = 22;
-
-export type RaceMode = 'classic' | 'multiplayer';
-
-export type RaceConfig =
-  | { mode: 'classic'; seed: number }
-  | { mode: 'multiplayer'; seed: number; targetDistanceM: number; environment: string };
-
-export interface RaceStats {
-  timeMs: number;
-  distanceM: number;
-  flips: number;
-  bestCombo: number;
-  score: number;
-  crashes: number;
+export interface GameEngineOptions {
+  container: HTMLElement;
+  seed: number;
+  localId: string;
+  localName: string;
+  localColor: string;
+  initialRoster: PlayerInfo[];
+  net: NetClient | null;
+  onHud: (hud: HudState) => void;
+  onToast: (message: string) => void;
+  onSummit: (timeMs: number) => void;
 }
 
-export interface RaceCallbacks {
-  onTick?: (stats: RaceStats & { speedKmh: number; comboNow: number }) => void;
-  onCountdown?: (stage: string | null) => void;
-  onCheckpoint?: (index: number, total: number) => void;
-  onCrash?: () => void;
-  onFinish?: (stats: RaceStats) => void;
-  onGameOver?: (stats: RaceStats, isNewRecord: boolean) => void;
-  /** Multiplayer only: fired ~10x/s so the caller can broadcast this client's
-   * position to the server for ghost-car rendering on other screens. */
-  onStateUpdate?: (x: number, y: number, angle: number, speed: number) => void;
+interface RemotePlayerEntry {
+  info: PlayerInfo;
+  avatar: PlayerAvatar;
+  pos: THREE.Vector3;
+  targetPos: THREE.Vector3;
+  yaw: number;
+  targetYaw: number;
+  anim: PlayerAnimState;
+  health: number;
 }
 
-export interface GhostFeed {
-  id: string;
-  name: string;
-  color: string;
-  get: () => { x: number; y: number; angle: number } | null;
+const PICKUP_LABELS: Record<ItemType, string> = {
+  berry: 'Baie récoltée (+faim)',
+  chalk: 'Craie de préhension (+escalade)',
+  cloak: 'Manteau chaud équipé',
+  anchor: "Corde d'ancrage récupérée",
+};
+
+function lerpAngle(a: number, b: number, t: number): number {
+  let diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+  if (diff < -Math.PI) diff += Math.PI * 2;
+  return a + diff * t;
 }
 
-export class RaceSession {
-  private engine: Matter.Engine;
-  private world: Matter.World;
-  private rig: CarRig;
-  private track!: ActiveTrack;
-  private crashSystem: CrashSystem;
-  private camera = new Camera();
-  private input: Input;
-  private renderer = new Renderer();
-  private particles = new ParticleSystem();
-  private ctx: CanvasRenderingContext2D;
-  private raf = 0;
-  private lastTime = 0;
-  private accumulator = 0;
-  private readonly fixedDt = 1 / 60;
-  private controlEnabled = false;
-  private running = false;
+export class GameEngine {
+  private scene = new THREE.Scene();
+  private renderer: THREE.WebGLRenderer;
+  private camera: OrbitFollowCamera;
+  private mountain: MountainGenerator;
+  private checkpoints: Checkpoint[];
+  private items: PlacedItem[];
+  private terrainMesh: THREE.Mesh;
+  private markers: WorldMarkers;
+  private weather = new Weather();
+  private input: InputManager;
+  private player: PlayerController;
+  private localAvatar: PlayerAvatar;
+  private remote = new Map<string, RemotePlayerEntry>();
+  private clock = new THREE.Clock();
+  private rafId = 0;
+  private disposed = false;
+  private startTime = performance.now();
+  private finished = false;
+  private netSendTimer = 0;
+  private checkpointsCollectedCount = 0;
+  private reviveTargetId: string | null = null;
+  private resizeHandler = () => this.handleResize();
 
-  private environmentId!: string;
-  private classicGen: ClassicTrackGenerator | null = null;
-  private finishBody: Matter.Body | null = null;
+  constructor(private opts: GameEngineOptions) {
+    this.mountain = new MountainGenerator(opts.seed);
+    this.checkpoints = this.mountain.generateCheckpoints();
+    this.items = this.mountain.generateItems();
 
-  private elapsedMs = 0;
-  private distanceM = 0;
-  private flips = 0;
-  private comboCount = 0;
-  private bestCombo = 0;
-  private score = 0;
-  private crashes = 0;
-  private startX = 0;
-  private respawnPoint = { x: 0, y: 0, angle: 0 };
-  private lastCheckpointIdx = -1;
-  private gameOverFired = false;
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    this.renderer.setSize(opts.container.clientWidth, opts.container.clientHeight);
+    opts.container.appendChild(this.renderer.domElement);
 
-  ghosts: GhostFeed[] = [];
+    this.camera = new OrbitFollowCamera(opts.container.clientWidth / Math.max(1, opts.container.clientHeight));
 
-  private mode: RaceMode;
-  private stateBroadcastAccum = 0;
+    this.terrainMesh = buildTerrainMesh(this.mountain);
+    this.scene.add(this.terrainMesh);
+    this.scene.add(buildSky());
+    applyFog(this.scene);
+    this.scene.add(this.weather.group);
 
-  constructor(
-    private canvas: HTMLCanvasElement,
-    private profile: CarProfile,
-    config: RaceConfig,
-    private callbacks: RaceCallbacks,
-  ) {
-    this.mode = config.mode;
-    this.engine = Matter.Engine.create({ gravity: { x: 0, y: 1, scale: 0.0009 } });
-    this.world = this.engine.world;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas 2D context unavailable');
-    this.ctx = ctx;
-    this.input = new Input((canvas.parentElement as HTMLElement) ?? canvas);
+    const hemi = new THREE.HemisphereLight('#cfe3ee', '#3a3226', 0.95);
+    this.scene.add(hemi);
+    const sun = new THREE.DirectionalLight('#fff4de', 1.05);
+    sun.position.set(120, 200, 90);
+    this.scene.add(sun);
 
-    if (config.mode === 'multiplayer') {
-      this.environmentId = config.environment;
-      const built = buildMultiplayerRound(this.world, config.seed, config.targetDistanceM);
-      this.track = built.track;
-      this.finishBody = built.finishBody;
-      this.startX = built.start.x;
-      this.respawnPoint = { x: built.start.x, y: built.start.y - 60, angle: 0 };
-    } else {
-      this.environmentId = pickClassicEnvironment();
-      this.track = new ActiveTrack(this.world);
-      this.track.addChunk(buildStartPad());
-      this.classicGen = new ClassicTrackGenerator(this.track, config.seed, { x: 0, y: 0 });
-      this.classicGen.generateAhead(2400);
-      this.startX = 0;
-      this.respawnPoint = { x: 0, y: -60, angle: 0 };
-    }
+    this.markers = new WorldMarkers(this.checkpoints, this.items, this.mountain.summitPosition());
+    this.scene.add(this.markers.group);
 
-    this.rig = createCarRig(profile, this.respawnPoint.x, this.respawnPoint.y);
-    Matter.Composite.add(this.world, this.rig.composite);
-
-    this.crashSystem = new CrashSystem(this.engine, this.rig, this.track, {
-      onCrash: () => this.handleCrash(),
-      onCheckpoint: (idx) => this.handleCheckpoint(idx),
-      onFinish: () => this.handleFinish(),
-      onFlipLanded: (flips, perfect) => this.handleFlip(flips, perfect),
-      onLanded: () => {
-        this.comboCount = 0;
-        sound.landing();
+    this.player = new PlayerController(this.mountain, this.checkpoints, this.items, {
+      onPickup: (item) => {
+        this.markers.collectItem(item.id);
+        this.opts.onToast(PICKUP_LABELS[item.type]);
       },
+      onCheckpoint: (cp) => {
+        this.markers.collectCheckpoint(cp.index);
+        this.checkpointsCollectedCount++;
+        this.opts.onToast(`Checkpoint ${cp.index}/${this.checkpoints.length} atteint`);
+      },
+      onSummit: () => this.handleSummit(),
+      onDowned: () => {
+        this.opts.net?.sendDowned();
+        this.opts.onToast('À terre ! Un coéquipier peut vous relever.');
+      },
+      onRespawn: () => this.opts.onToast('Respawn au dernier point de passage'),
+      onToast: (m) => this.opts.onToast(m),
     });
-  }
 
-  start() {
-    this.running = true;
-    sound.startEngine();
-    this.runCountdown(() => {
-      this.controlEnabled = true;
-      this.callbacks.onCountdown?.(null);
-    });
-    this.raf = requestAnimationFrame(this.loop);
-  }
+    this.localAvatar = new PlayerAvatar(opts.localColor);
+    this.scene.add(this.localAvatar.group);
 
-  destroy() {
-    this.running = false;
-    cancelAnimationFrame(this.raf);
-    this.crashSystem.destroy();
-    this.input.destroy();
-    sound.stopEngine();
-    Matter.World.clear(this.world, false);
-    Matter.Engine.clear(this.engine);
-  }
+    this.input = new InputManager(opts.container);
+    this.camera.yaw = Math.atan2(-this.player.position.x, -this.player.position.z);
 
-  private runCountdown(done: () => void) {
-    this.controlEnabled = false;
-    const steps = ['3', '2', '1', 'GO !'];
-    let i = 0;
-    const next = () => {
-      if (!this.running) return;
-      this.callbacks.onCountdown?.(steps[i]);
-      sound.countdownBeep(i === steps.length - 1);
-      i++;
-      if (i < steps.length) setTimeout(next, 600);
-      else setTimeout(done, 500);
-    };
-    next();
-  }
-
-  private handleCheckpoint(idx: number) {
-    const cp = this.track.checkpoints[idx];
-    if (cp) this.respawnPoint = { x: cp.x, y: cp.y - 40, angle: cp.angle };
-    this.lastCheckpointIdx = idx;
-    sound.checkpoint();
-    this.callbacks.onCheckpoint?.(idx, this.track.checkpoints.length);
-  }
-
-  private handleFlip(flips: number, perfect: boolean) {
-    this.flips += flips;
-    this.comboCount += 1;
-    this.bestCombo = Math.max(this.bestCombo, this.comboCount);
-    const base = flips >= 3 ? 500 : flips === 2 ? 250 : 100;
-    const multiplier = 1 + Math.floor(this.comboCount / 2) * 0.5;
-    this.score += Math.round(base * multiplier) + (perfect ? 150 : 0);
-    sound.flip();
-    if (perfect) sound.perfectLanding();
-    this.particles.spawnSparks(this.rig.chassis.position.x, this.rig.chassis.position.y, perfect ? '#ffe14f' : '#4fd1ff');
-    this.camera.addShake(0.25);
-  }
-
-  private handleCrash() {
-    this.crashes++;
-    this.controlEnabled = false;
-    this.camera.addShake(0.9);
-    this.particles.spawnSparks(this.rig.chassis.position.x, this.rig.chassis.position.y, '#ff5a5a', 22);
-    sound.crash();
-    this.comboCount = 0;
-    this.callbacks.onCrash?.();
-
-    if (this.mode !== 'classic') {
-      this.callbacks.onCountdown?.('CRASH');
-      setTimeout(() => {
-        resetCarRig(this.rig, this.respawnPoint.x, this.respawnPoint.y, this.respawnPoint.angle);
-        this.crashSystem.reset();
-        this.runCountdown(() => {
-          this.controlEnabled = true;
-          this.callbacks.onCountdown?.(null);
-        });
-      }, 900);
-    } else {
-      this.finishClassicRun();
+    for (const p of opts.initialRoster) {
+      if (p.id !== opts.localId) this.addRemote(p);
     }
+
+    if (opts.net) this.wireNet(opts.net);
+
+    window.addEventListener('resize', this.resizeHandler);
+    this.animate();
   }
 
-  private handleFinish() {
-    this.controlEnabled = false;
-    sound.victory();
-    this.callbacks.onFinish?.(this.currentStats());
+  private wireNet(net: NetClient) {
+    net.callbacks.onPlayerJoined = (p) => this.addRemote(p);
+    net.callbacks.onPlayerLeft = (id) => this.removeRemote(id);
+    net.callbacks.onStateUpdate = (id, s) => this.applyRemoteState(id, s);
+    net.callbacks.onPlayerDowned = (id) => {
+      if (id !== this.opts.localId) {
+        const entry = this.remote.get(id);
+        this.opts.onToast(`${entry?.info.name ?? 'Un coéquipier'} est à terre !`);
+      }
+    };
+    net.callbacks.onPlayerRevived = (id) => {
+      if (id === this.opts.localId) {
+        this.player.reviveInPlace();
+        this.opts.onToast('Relevé par un coéquipier !');
+      } else {
+        this.opts.onToast(`${this.remote.get(id)?.info.name ?? 'Un coéquipier'} a été relevé`);
+      }
+    };
+    net.callbacks.onPlayerSummited = (id, timeMs) => {
+      if (id !== this.opts.localId) {
+        const minutes = Math.floor(timeMs / 60000);
+        const seconds = Math.floor((timeMs % 60000) / 1000);
+        this.opts.onToast(
+          `${this.remote.get(id)?.info.name ?? 'Un coéquipier'} a atteint le sommet ! (${minutes}:${String(seconds).padStart(2, '0')})`,
+        );
+      }
+    };
   }
 
-  private finishClassicRun() {
-    if (this.gameOverFired) return;
-    this.gameOverFired = true;
-    const stats = this.currentStats();
-    this.callbacks.onGameOver?.(stats, false);
+  private addRemote(info: PlayerInfo) {
+    if (this.remote.has(info.id)) return;
+    const avatar = new PlayerAvatar(info.color);
+    this.scene.add(avatar.group);
+    const start = new THREE.Vector3(this.player.position.x, this.player.position.y, this.player.position.z);
+    this.remote.set(info.id, {
+      info,
+      avatar,
+      pos: start.clone(),
+      targetPos: start.clone(),
+      yaw: 0,
+      targetYaw: 0,
+      anim: 'idle',
+      health: 100,
+    });
   }
 
-  private currentStats(): RaceStats {
+  private removeRemote(id: string) {
+    const entry = this.remote.get(id);
+    if (!entry) return;
+    this.scene.remove(entry.avatar.group);
+    entry.avatar.dispose();
+    this.remote.delete(id);
+  }
+
+  private applyRemoteState(id: string, s: PlayerStateSnapshot) {
+    let entry = this.remote.get(id);
+    if (!entry) {
+      this.addRemote({ id, name: 'Coéquipier', color: '#7a9c6b', ready: true, isHost: false });
+      entry = this.remote.get(id)!;
+    }
+    entry.targetPos.set(s.pos[0], s.pos[1], s.pos[2]);
+    entry.targetYaw = s.yaw;
+    entry.anim = s.anim;
+    entry.health = s.health;
+  }
+
+  private findReviveTarget(): string | null {
+    let best: string | null = null;
+    let bestDist = REVIVE_RADIUS;
+    for (const [id, entry] of this.remote) {
+      if (entry.anim !== 'downed') continue;
+      const d = entry.pos.distanceTo(this.player.position);
+      if (d < bestDist) {
+        bestDist = d;
+        best = id;
+      }
+    }
+    return best;
+  }
+
+  private handleSummit() {
+    if (this.finished) return;
+    this.finished = true;
+    const timeMs = performance.now() - this.startTime;
+    this.opts.net?.sendSummit(timeMs);
+    this.opts.onSummit(timeMs);
+  }
+
+  private buildHud(): HudState {
+    const remotePlayers: RemoteHudInfo[] = Array.from(this.remote.values()).map((e) => ({
+      id: e.info.id,
+      name: e.info.name,
+      color: e.info.color,
+      health: e.health,
+      downed: e.anim === 'downed',
+    }));
     return {
-      timeMs: this.elapsedMs,
-      distanceM: Math.round(this.distanceM),
-      flips: this.flips,
-      bestCombo: this.bestCombo,
-      score: Math.round(this.score),
-      crashes: this.crashes,
+      health: this.player.health,
+      stamina: this.player.stamina,
+      hunger: this.player.hunger,
+      cold: this.player.cold,
+      altitudeFrac: this.player.altitudeFraction,
+      inventory: this.player.inventory,
+      anim: this.player.anim,
+      downed: this.player.downed,
+      downedTimer: this.player.downedTimer,
+      elapsedMs: performance.now() - this.startTime,
+      checkpointsCollected: this.checkpointsCollectedCount,
+      checkpointsTotal: this.checkpoints.length,
+      isRaining: this.weather.isRaining,
+      remotePlayers,
+      reviveTargetId: this.reviveTargetId,
     };
   }
 
-  private loop = (time: number) => {
-    if (!this.running) return;
-    if (!this.lastTime) this.lastTime = time;
-    let dt = (time - this.lastTime) / 1000;
-    this.lastTime = time;
-    dt = Math.min(dt, 0.05);
-    this.accumulator += dt;
+  get inputManager(): InputManager {
+    return this.input;
+  }
 
-    while (this.accumulator >= this.fixedDt) {
-      const groundAngle = this.rig.grounded
-        ? this.track.getGroundAngleNear(this.rig.chassis.position.x, this.rig.chassis.position.y)
-        : 0;
-      applyCarControl(this.rig, this.controlEnabled && this.input.held, this.fixedDt, groundAngle);
-      Matter.Engine.update(this.engine, this.fixedDt * 1000);
-      this.crashSystem.tick();
-      this.accumulator -= this.fixedDt;
-      if (this.controlEnabled) this.elapsedMs += this.fixedDt * 1000;
+  private handleResize() {
+    const w = this.opts.container.clientWidth;
+    const h = this.opts.container.clientHeight;
+    this.renderer.setSize(w, h);
+    this.camera.setAspect(w / Math.max(1, h));
+  }
+
+  private animate = () => {
+    if (this.disposed) return;
+    this.rafId = requestAnimationFrame(this.animate);
+    const dt = Math.min(this.clock.getDelta(), 0.05);
+
+    const input = this.input.consumeFrame();
+    this.camera.applyLook(input.lookDeltaX, input.lookDeltaY);
+    this.player.wet = this.weather.isRaining;
+
+    if (!this.finished) {
+      this.player.update(dt, input, this.camera.yaw);
     }
 
-    sound.updateEngine(carSpeed(this.rig), this.controlEnabled && this.input.held);
+    this.camera.update(this.player.position, this.terrainMesh, dt);
+    this.weather.update(dt, this.player.position);
+    this.markers.update(dt);
+    this.localAvatar.update(dt, this.player.position, this.player.yaw, this.player.anim);
 
-    const carX = this.rig.chassis.position.x;
-    const newDistanceM = Math.max(this.distanceM, (carX - this.startX) / METER_PX);
-    if (this.mode === 'classic' && newDistanceM > this.distanceM) {
-      this.score += (newDistanceM - this.distanceM) * 10;
+    this.reviveTargetId = this.findReviveTarget();
+    if (input.interact && this.reviveTargetId && this.opts.net) {
+      this.opts.net.sendRevive(this.reviveTargetId);
     }
-    this.distanceM = newDistanceM;
 
-    this.track.update(dt, carX);
-    if (this.mode === 'classic' && this.classicGen) {
-      this.classicGen.generateAhead(carX + 2200);
-      this.track.pruneBefore(carX - 1400);
+    for (const entry of this.remote.values()) {
+      entry.pos.lerp(entry.targetPos, Math.min(1, dt * 10));
+      entry.yaw = lerpAngle(entry.yaw, entry.targetYaw, Math.min(1, dt * 10));
+      entry.avatar.update(dt, entry.pos, entry.yaw, entry.anim);
     }
-    this.particles.update(dt);
-    this.camera.follow(carX, this.rig.chassis.position.y, this.rig.chassis.velocity.x * 40, dt);
 
-    if (this.mode === 'multiplayer') {
-      this.stateBroadcastAccum += dt;
-      if (this.stateBroadcastAccum > 0.1) {
-        this.stateBroadcastAccum = 0;
-        this.callbacks.onStateUpdate?.(carX, this.rig.chassis.position.y, this.rig.chassis.angle, carSpeed(this.rig));
+    if (this.opts.net && !this.finished) {
+      this.netSendTimer += dt;
+      if (this.netSendTimer > 0.08) {
+        this.netSendTimer = 0;
+        this.opts.net.sendState({
+          pos: [this.player.position.x, this.player.position.y, this.player.position.z],
+          yaw: this.player.yaw,
+          anim: this.player.anim,
+          health: this.player.health,
+          stamina: this.player.stamina,
+          hunger: this.player.hunger,
+        });
       }
     }
 
-    this.render();
-
-    this.callbacks.onTick?.({
-      ...this.currentStats(),
-      distanceM: Math.round(this.distanceM),
-      score: Math.round(this.score),
-      speedKmh: Math.round(carSpeed(this.rig) * 11),
-      comboNow: this.comboCount,
-    });
-
-    if (this.rig.chassis.position.y > 4200 && this.mode === 'classic' && !this.gameOverFired) {
-      this.finishClassicRun();
-    }
-
-    this.raf = requestAnimationFrame(this.loop);
+    this.opts.onHud(this.buildHud());
+    this.renderer.render(this.scene, this.camera.camera);
   };
 
-  private render() {
-    const { width, height } = this.canvas;
-    const ctx = this.ctx;
-    const env = getEnvironment(this.environmentId);
-    ctx.save();
-    ctx.clearRect(0, 0, width, height);
-    this.renderer.drawBackground(ctx, width, height, this.camera.x, env);
-    ctx.save();
-    this.camera.applyTransform(ctx, width, height);
-    this.renderer.drawWorld(ctx, this.world, this.track, env);
-    if (this.mode !== 'classic') {
-      this.renderer.drawCheckpoints(
-        ctx,
-        this.track.checkpoints.map((c) => ({ x: c.x, y: c.y })),
-        this.lastCheckpointIdx,
-        env.accent,
-      );
-      if (this.finishBody) this.renderer.drawFinish(ctx, this.finishBody.position.x, this.finishBody.position.y);
+  dispose() {
+    this.disposed = true;
+    cancelAnimationFrame(this.rafId);
+    window.removeEventListener('resize', this.resizeHandler);
+    this.input.dispose();
+    this.renderer.dispose();
+    if (this.renderer.domElement.parentElement) {
+      this.renderer.domElement.parentElement.removeChild(this.renderer.domElement);
     }
-    for (const g of this.ghosts) {
-      const state = g.get();
-      if (state) this.renderer.drawGhost(ctx, { ...state, color: g.color, name: g.name } as GhostCar);
-    }
-    this.renderer.drawCar(ctx, this.rig, this.profile);
-    this.renderer.drawParticles(ctx, this.particles);
-    ctx.restore();
-    ctx.restore();
   }
-
-  getRig() {
-    return this.rig;
-  }
-
-  isThrottleHeld() {
-    return this.rig.throttleHeld;
-  }
-}
-
-function pickClassicEnvironment(): string {
-  const ids = ['neon_city', 'desert', 'industrial', 'sky', 'volcano', 'arctic'];
-  return ids[Math.floor(Math.random() * ids.length)];
 }

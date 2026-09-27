@@ -1,6 +1,5 @@
-/** Deterministic seeded PRNG (mulberry32). Same seed -> same sequence,
- * which is what lets every client in a multiplayer round render an
- * identical procedurally-generated track from just a shared numeric seed. */
+// RNG déterministe partagé client/serveur (mulberry32) + dérivation de seed depuis un code de salon.
+
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return function () {
@@ -12,6 +11,15 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-export function randSeed(): number {
-  return (Math.random() * 0xffffffff) >>> 0;
+export function seedFromString(input: string): number {
+  let h = 1779033703 ^ input.length;
+  for (let i = 0; i < input.length; i++) {
+    h = Math.imul(h ^ input.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+export function randomSeed(): number {
+  return Math.floor(Math.random() * 0xffffffff) >>> 0;
 }

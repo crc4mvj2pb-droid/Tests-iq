@@ -1,49 +1,27 @@
-// Shared WebSocket protocol between client and server for Private
-// multiplayer. Every message is a JSON object with a `type` discriminator.
+import type { PlayerInfo, PlayerStateSnapshot } from './types';
 
-export interface PlayerInfo {
-  id: string;
-  name: string;
-  carId: string;
-  ready: boolean;
-  isHost: boolean;
-}
-
-export interface RoundResult {
-  playerId: string;
-  name: string;
-  timeMs: number | null; // null = DNF / crashed out permanently
-  points: number;
-}
-
-// ---------- Client -> Server ----------
-
+// Messages client -> serveur
 export type ClientMessage =
-  | { type: 'private:create'; name: string; carId: string; rounds: 3 | 5 }
-  | { type: 'private:join'; code: string; name: string; carId: string }
-  | { type: 'private:setReady'; ready: boolean }
-  | { type: 'private:setCar'; carId: string }
-  | { type: 'private:start' }
-  | { type: 'race:state'; x: number; y: number; angle: number; speed: number }
-  | { type: 'race:finish' }
-  | { type: 'ping' };
+  | { type: 'create_room'; name: string; color: string }
+  | { type: 'join_room'; code: string; name: string; color: string }
+  | { type: 'set_ready'; ready: boolean }
+  | { type: 'start_run' }
+  | { type: 'state'; s: PlayerStateSnapshot }
+  | { type: 'reached_summit'; timeMs: number }
+  | { type: 'downed' }
+  | { type: 'revive_request'; targetId: string }
+  | { type: 'leave' };
 
-// ---------- Server -> Client ----------
-
+// Messages serveur -> client
 export type ServerMessage =
-  | { type: 'private:created'; code: string; roomId: string; you: string }
-  | { type: 'private:joined'; roomId: string; you: string }
-  | { type: 'private:error'; message: string }
-  | { type: 'private:lobby'; code: string; players: PlayerInfo[]; rounds: number }
-  | {
-      type: 'race:start';
-      round: number;
-      totalRounds: number;
-      trackSeed: number;
-      environment: string;
-      serverStartAt: number; // epoch ms, all clients start the countdown from this
-    }
-  | { type: 'race:ghost'; playerId: string; x: number; y: number; angle: number; speed: number }
-  | { type: 'race:roundResult'; round: number; results: RoundResult[]; standings: RoundResult[] }
-  | { type: 'race:matchOver'; standings: RoundResult[] }
-  | { type: 'pong' };
+  | { type: 'room_created'; code: string; playerId: string; players: PlayerInfo[] }
+  | { type: 'room_joined'; code: string; playerId: string; players: PlayerInfo[]; seed: number }
+  | { type: 'player_joined'; player: PlayerInfo }
+  | { type: 'player_left'; playerId: string }
+  | { type: 'ready_update'; playerId: string; ready: boolean }
+  | { type: 'run_started'; seed: number; startAt: number }
+  | { type: 'state_update'; playerId: string; s: PlayerStateSnapshot }
+  | { type: 'player_summited'; playerId: string; timeMs: number }
+  | { type: 'player_downed'; playerId: string }
+  | { type: 'player_revived'; playerId: string }
+  | { type: 'error'; message: string };

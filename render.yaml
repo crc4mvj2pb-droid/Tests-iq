@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: fliprush-server
+    name: talus-server
     runtime: node
     plan: free
     rootDir: server

@@ -1,5 +1,5 @@
 {
-  "name": "fliprush-client",
+  "name": "talus-client",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -9,10 +9,11 @@
     "preview": "vite preview --host"
   },
   "dependencies": {
-    "matter-js": "^0.20.0"
+    "simplex-noise": "^4.0.3",
+    "three": "^0.169.0"
   },
   "devDependencies": {
-    "@types/matter-js": "^0.19.7",
+    "@types/three": "^0.169.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"
   }
