@@ -14,8 +14,9 @@ from constants import GAS_CONSTANT as R_GAS  # J/(mol·K), single source: scient
 # 2.1 (v5.1): declared concentration unit (dimension checked) and derived rate-constant units.
 # 2.2 (v5.2): adaptive methods "dopri5" (non-stiff) and "implicit_euler" (stiff) with tolerances and
 # diagnostics; global error of adaptive runs estimated by re-solving with a 10× tighter tolerance.
+# 2.3 (v5.3): element totals over time and maximum relative drift reported when atom formulas are given.
 ENGINE_ID = "mass_action_rk4"
-ENGINE_VERSION = "2.2"
+ENGINE_VERSION = "2.3"
 METHODS = ("rk4", "dopri5", "implicit_euler")
 # The error estimate repeats the run at dt/2; skipped above this work budget (steps × equations).
 ERROR_ESTIMATE_WORK_LIMIT = 2_000_000
@@ -179,12 +180,23 @@ def simulate_reaction_network(request: dict) -> dict:
     def add_scaled(y, terms, scale):
         return [max(-1e-12, y[i] + scale * terms[i]) for i in range(len(y))]
 
+    def element_conservation(rows):
+        """Element totals Σ atoms·concentration at the first and last rows, and the worst relative drift over all rows."""
+        if not atom_balance_checks:
+            return None
+        elements = sorted(element_names)
+        totals = [{el: sum(atom_vectors[sid].get(el, 0) * row[sid] for sid in ids) for el in elements} for row in rows]
+        drift = max((abs(t[el] - totals[0][el]) / max(abs(totals[0][el]), 1e-300) for t in totals for el in elements if totals[0][el]), default=0.0)
+        return {"initial": totals[0], "final": totals[-1], "max_relative_drift": drift}
+
     method = request.get("method", "rk4")
     if method not in METHODS:
         raise ChemicalKineticsError(f"method must be one of {', '.join(METHODS)}.")
     if method != "rk4":
-        return _adaptive_run(request, method, ids, initial, parsed, rate_vector, duration, dt, steps, temp, warnings,
-                             atom_balance_checks, concentration_unit, rate_constant_units)
+        result = _adaptive_run(request, method, ids, initial, parsed, rate_vector, duration, dt, steps, temp, warnings,
+                               atom_balance_checks, concentration_unit, rate_constant_units)
+        result["summary"]["element_conservation"] = element_conservation(result["rows"])
+        return result
 
     def integrate(step_dt, n_steps, record):
         y = initial[:]
@@ -246,7 +258,8 @@ def simulate_reaction_network(request: dict) -> dict:
             "total_concentration_initial": initial_total,
             "total_concentration_final": final_total,
             "estimated_final_error": error_estimate,
-            "error_estimate_method": "step doubling (dt vs dt/2), Richardson factor 16/15 for RK4" if error_estimate is not None else None
+            "error_estimate_method": "step doubling (dt vs dt/2), Richardson factor 16/15 for RK4" if error_estimate is not None else None,
+            "element_conservation": element_conservation(rows),
         },
         "warnings": warnings,
         "uncertainty_breakdown": {"numerical": {"estimated_final_error": error_estimate, "method": "RK4 step doubling"},
