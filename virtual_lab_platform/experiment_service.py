@@ -21,6 +21,7 @@ import linked_measurements
 import data_catalog
 import fitting
 import pipelines
+import trace_package
 import protocol_engine
 import workbench_circuit
 import workbench_transient
@@ -45,6 +46,11 @@ class ServiceError(ValueError):
 
 def _save(dossier: dict[str, Any]) -> dict[str, Any]:
     dossier["history_record"] = history.save_experiment(dossier)
+    # v6.4: event journal (model, engine, configuration hash, seeds) for the traceability package.
+    trace_package.log_event(dossier["history_record"]["id"], "saved", model_id=dossier.get("model_id"), engine=dossier.get("engine"),
+                            app_version=dossier.get("app_version"), configuration_hash=dossier.get("configuration_hash"),
+                            dossier_hash=dossier.get("dossier_hash"), seeds=trace_package.seeds(dossier.get("configuration", {})),
+                            replay_of=dossier.get("replay_of"))
     return dossier
 
 
@@ -206,7 +212,9 @@ def _record(experiment_id: int) -> dict[str, Any]:
 
 def verify(experiment_id: int) -> dict[str, Any]:
     record = _record(experiment_id)
-    return {"experiment_id": experiment_id, **verify_dossier(record["dossier"], record["configuration_hash"], record["dossier_hash"])}
+    result = {"experiment_id": experiment_id, **verify_dossier(record["dossier"], record["configuration_hash"], record["dossier_hash"])}
+    trace_package.log_event(experiment_id, "verified", valid=result.get("valid"), level=result.get("level"))
+    return result
 
 
 # ---- instruments linked to saved results (v4.7) ----------------------------------------------
@@ -403,7 +411,10 @@ def replay(experiment_id: int) -> dict[str, Any]:
     dossier["replay_of"] = experiment_id
     dossier["replay_comparison"] = comparison
     dossier["dossier_hash"] = dossier_content_hash(dossier)
-    return _save(dossier)
+    saved = _save(dossier)
+    trace_package.log_event(experiment_id, "replayed", replay_id=saved["history_record"]["id"], identical=comparison.get("identical_within_tolerance"),
+                            engine_changed=comparison.get("engine_changed"))
+    return saved
 
 
 # ---- export / import -------------------------------------------------------------------------
@@ -414,6 +425,7 @@ def _now() -> str:
 
 def export_one(experiment_id: int) -> dict[str, Any]:
     record = _record(experiment_id)
+    trace_package.log_event(experiment_id, "exported", format=EXPORT_FORMAT_DOSSIER)
     return {"format": EXPORT_FORMAT_DOSSIER, "format_version": EXPORT_FORMAT_VERSION, "exported_at": _now(), "app_version": APP_VERSION,
             "record": {"id": record["id"], "created_at": record["created_at"]}, "dossier": record["dossier"]}
 
@@ -459,6 +471,7 @@ def import_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
         copy["imported_from"] = {"original_id": entry.get("id"), "original_created_at": entry.get("created_at"),
                                  "source_app_version": bundle.get("app_version"), "imported_at": _now(), "verification_level": level}
         saved = history.save_experiment(copy)
+        trace_package.log_event(saved["id"], "imported", original_id=entry.get("id"), verification_level=level)
         existing.add(copy.get("dossier_hash"))
         imported.append({"original_id": entry.get("id"), "new_id": saved["id"], "verification_level": level})
     return {"imported": imported, "skipped": skipped, "imported_count": len(imported), "skipped_count": len(skipped)}

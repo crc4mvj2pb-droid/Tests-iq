@@ -35,3 +35,8 @@ Une expérience multi-modèles est une liste d'étapes. Chaque étape exécute u
 - Entrées livrées : `data_catalog/sources.json` (sources bibliographiques), `data_catalog/datasets/*.json` (jeux de données) et `data_catalog/catalog_lock.json` (empreinte par version).
 - Entrées locales : table `catalog_entries` de la base SQLite.
 - Les cinq natures (`reference`, `experimental`, `imported`, `computed`, `simulated`) sont contrôlées à l'enregistrement et filtrées strictement.
+
+## Traçabilité (v6.4, `trace_package.py`)
+- Journal : table `experiment_events` (saved, verified, replayed, exported, imported, packaged).
+- Paquet reproductible : `GET /api/history/{id}/package` (ZIP : dossier, données, code embarqué, `reproduce.py`, `MANIFEST.json`).
+- L'empreinte du manifeste sert à l'intégrité ; ce n'est pas une signature.
