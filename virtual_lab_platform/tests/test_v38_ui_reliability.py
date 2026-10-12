@@ -25,7 +25,8 @@ def test_workbench_can_explicitly_restore_saved_workspace():
     assert 'id="wbRestore"' in HTML
     assert "$('wbRestore').onclick=()=>restoreWorkspace(true)" in HTML
     assert "function restoreWorkspace(askFirst=true)" in HTML
-    assert "Array.isArray(saved.bench)" in HTML
+    # v4.3: validation moved to normalizeWorkspace (also exercised in tests/browser/test_v43_workbench_integrity.py).
+    assert "Array.isArray(raw.bench)" in HTML
 
 def test_storage_access_is_guarded_against_browser_security_errors():
     assert "const safeStorage={get(key){try{return localStorage.getItem(key)}catch{return null}},set(key,value){try{localStorage.setItem(key,value);return true}catch{return false}}}" in HTML
