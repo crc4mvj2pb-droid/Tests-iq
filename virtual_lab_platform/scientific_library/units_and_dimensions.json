@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "title": "SI unit and dimension reference",
-  "status": "reference catalogue; conversions and validation rules require implementation before use in calculations",
+  "status": "reference catalogue; conversions and dimensional checks are implemented in units.py since v5.1 (tests/test_v51_units.py)",
   "base_units": [
     {
       "quantity": "time",

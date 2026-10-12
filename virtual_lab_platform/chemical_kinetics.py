@@ -6,11 +6,13 @@ general-purpose quantum chemistry or thermodynamic equilibrium solver.
 from __future__ import annotations
 import math
 
-R_GAS = 8.31446261815324
+import units
+from constants import GAS_CONSTANT as R_GAS  # J/(mol·K), single source: scientific_library/physical_constants.json
 # 1.0: v2.8–v4.5. 2.0 (v4.6): unique reaction IDs, unbalanced reactions refused unless allowed,
 # step-doubling (Richardson) estimate of the RK4 global error with an accuracy warning.
+# 2.1 (v5.1): declared concentration unit (dimension checked) and derived rate-constant units.
 ENGINE_ID = "mass_action_rk4"
-ENGINE_VERSION = "2.0"
+ENGINE_VERSION = "2.1"
 # The error estimate repeats the run at dt/2; skipped above this work budget (steps × equations).
 ERROR_ESTIMATE_WORK_LIMIT = 2_000_000
 DISPLAY_RELATIVE_PRECISION = 1e-6  # final concentrations are displayed with 6 significant digits
@@ -94,6 +96,27 @@ def simulate_reaction_network(request: dict) -> dict:
         tref = _finite_number(reaction.get("reference_temperature_k", 298.15), f"{rid}.reference_temperature_k", strictly_positive=True)
         parsed.append({"id": rid, "reactants": reactants, "products": products,
                        "k": k, "ea": ea, "tref": tref})
+
+    concentration_unit = request.get("concentration_unit", "mol/L")
+    try:
+        cu = units.parse(concentration_unit)
+    except units.UnitError as exc:
+        raise ChemicalKineticsError(f"concentration_unit: {exc}") from exc
+    if not cu.arbitrary and cu.dims != units.parse("mol/L").dims:
+        raise ChemicalKineticsError(f"concentration_unit '{concentration_unit}' is not an amount/volume unit (dimension {units.dimension(concentration_unit)}).")
+    rate_constant_units = []
+    for rxn in parsed:
+        order = sum(c for _, c in rxn["reactants"])
+        if cu.arbitrary:
+            unit = "a.u."
+        elif order == 1:
+            unit = "1/s"
+        else:
+            unit = f"({concentration_unit})^{1 - order}/s"
+        # Dimensional check: k·Π[R]^ν must have the dimension of concentration/time.
+        if not cu.arbitrary and not units.compatible(f"{unit}·({concentration_unit})^{order}", f"{concentration_unit}/s"):
+            raise ChemicalKineticsError(f"Internal unit inconsistency for reaction {rxn['id']}.")  # guards the derivation above
+        rate_constant_units.append({"reaction": rxn["id"], "order": order, "unit": unit})
 
     duration = _finite_number(request.get("duration"), "duration", strictly_positive=True)
     dt = _finite_number(request.get("dt"), "dt", strictly_positive=True)
@@ -197,6 +220,8 @@ def simulate_reaction_network(request: dict) -> dict:
         "validation_level": "L1",
         "method": "fixed_step_RK4",
         "temperature_k": temp,
+        "concentration_unit": concentration_unit,
+        "rate_constant_units": rate_constant_units,
         "species_ids": ids,
         "reaction_ids": [r["id"] for r in parsed],
         "rows": rows,

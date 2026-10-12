@@ -1,23 +1,32 @@
 {
-  "schema_version": "1.0",
-  "title": "Selected physical constants",
-  "status": "Reference starter set; values and uncertainty must be verified against an authoritative current metrology source before high-precision use.",
+  "schema_version": "2.0",
+  "constants_version": "SI-2019+CODATA-2018",
+  "title": "Physical constants with source, reference date and uncertainty",
+  "policy": "Each constant states its source, reference date, whether it is exact by definition, and its relative standard uncertainty. Engines read constants from this file (constants.py); they do not hard-code them.",
   "constants": [
     {
       "id": "speed_of_light_vacuum",
       "name": "Speed of light in vacuum",
       "symbol": "c",
       "value": 299792458,
-      "unit": "m s^-1",
-      "status": "exact SI-defined value"
+      "unit": "m/s",
+      "status": "defining constant of the SI",
+      "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
+      "reference_date": "2019-05-20",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
     },
     {
       "id": "planck_constant",
       "name": "Planck constant",
       "symbol": "h",
       "value": 6.62607015e-34,
-      "unit": "J s",
-      "status": "exact SI-defined value"
+      "unit": "J·s",
+      "status": "defining constant of the SI",
+      "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
+      "reference_date": "2019-05-20",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
     },
     {
       "id": "elementary_charge",
@@ -25,47 +34,91 @@
       "symbol": "e",
       "value": 1.602176634e-19,
       "unit": "C",
-      "status": "exact SI-defined value"
+      "status": "defining constant of the SI",
+      "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
+      "reference_date": "2019-05-20",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
     },
     {
       "id": "boltzmann_constant",
       "name": "Boltzmann constant",
       "symbol": "k_B",
       "value": 1.380649e-23,
-      "unit": "J K^-1",
-      "status": "exact SI-defined value"
+      "unit": "J/K",
+      "status": "defining constant of the SI",
+      "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
+      "reference_date": "2019-05-20",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
     },
     {
       "id": "avogadro_constant",
       "name": "Avogadro constant",
       "symbol": "N_A",
       "value": 6.02214076e+23,
-      "unit": "mol^-1",
-      "status": "exact SI-defined value"
-    },
-    {
-      "id": "standard_gravity",
-      "name": "Standard acceleration of gravity",
-      "symbol": "g_n",
-      "value": 9.80665,
-      "unit": "m s^-2",
-      "status": "conventional standard value; local gravity varies"
+      "unit": "1/mol",
+      "status": "defining constant of the SI",
+      "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
+      "reference_date": "2019-05-20",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
     },
     {
       "id": "gas_constant",
       "name": "Molar gas constant",
       "symbol": "R",
       "value": 8.31446261815324,
-      "unit": "J mol^-1 K^-1",
-      "status": "derived from exact SI constants; displayed digits should be reviewed for application"
+      "unit": "J/(mol·K)",
+      "status": "exact: R = N_A·k_B (value shown to double precision)",
+      "derived_from": [
+        "avogadro_constant",
+        "boltzmann_constant"
+      ],
+      "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
+      "reference_date": "2019-05-20",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
     },
     {
-      "id": "faraday_constant_approx",
-      "name": "Faraday constant (approximate)",
+      "id": "faraday_constant",
+      "name": "Faraday constant",
       "symbol": "F",
-      "value": 96485.33212,
-      "unit": "C mol^-1",
-      "status": "derived value; verify precision needed"
+      "value": 96485.33212331001,
+      "unit": "C/mol",
+      "status": "exact: F = N_A·e (value shown to double precision)",
+      "derived_from": [
+        "avogadro_constant",
+        "elementary_charge"
+      ],
+      "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
+      "reference_date": "2019-05-20",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
+    },
+    {
+      "id": "standard_gravity",
+      "name": "Standard acceleration of gravity",
+      "symbol": "g_n",
+      "value": 9.80665,
+      "unit": "m/s^2",
+      "status": "conventional value; local gravity varies by ~0.5 %",
+      "source": "3rd CGPM (1901), conventional standard value; restated in the SI Brochure, 9th edition",
+      "reference_date": "1901-10-22",
+      "exact": true,
+      "relative_standard_uncertainty": 0.0
+    },
+    {
+      "id": "vacuum_electric_permittivity",
+      "name": "Vacuum electric permittivity",
+      "symbol": "ε0",
+      "value": 8.8541878128e-12,
+      "unit": "F/m",
+      "status": "measured since the 2019 SI redefinition",
+      "exact": false,
+      "relative_standard_uncertainty": 1.5e-10,
+      "source": "CODATA 2018 recommended values — E. Tiesinga et al., Rev. Mod. Phys. 93, 025010 (2021); NIST https://physics.nist.gov/cuu/Constants/",
+      "reference_date": "2019-05-20"
     }
   ]
 }

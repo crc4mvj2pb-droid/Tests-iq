@@ -17,6 +17,7 @@ import reaction_stoichiometry
 import workbench_circuit
 from contracts import CONTRACT_VERSION, ContractError, check_contract, output, param, resolve_path, validate_inputs
 from models import execute_model
+import units
 from version import APP_VERSION
 
 MODELS_ENGINE_VERSION = "1.0"
@@ -120,8 +121,10 @@ register(_contract(
      param("dt", "number", unit="s", minimum=0, exclusive_minimum=True, maximum=1e6, required=True),
      param("temperature_k", "number", unit="K", minimum=0, exclusive_minimum=True, maximum=1e5, default=298.15),
      param("allow_unbalanced", "boolean", default=False),
+     param("concentration_unit", "string", default="mol/L", description="Unit of every concentration: an amount/volume unit or 'a.u.'"),
      param("name", "string", default=""), param("question", "string", default="")],
-    [output("integration_steps", "summary.integration_steps", "1"), output("temperature", "temperature_k", "K")],
+    [output("integration_steps", "summary.integration_steps", "1"), output("temperature", "temperature_k", "K"),
+     output("first_rate_constant_unit", "rate_constant_units[0].unit", "1", "Unit of the first reaction's rate constant (text)")],
     ["Well-mixed, constant volume", "Elementary mass-action rate laws", "Constant temperature"], ["Fixed-step RK4; error estimated by step doubling"],
     ["invalid_parameter", "negative_concentration", "unbalanced_reaction"],
     ["Guldberg & Waage (mass action); Arrhenius (1889); Butcher, Numerical Methods for ODEs (RK4)"],
@@ -229,9 +232,13 @@ def get_contract(model_id: str) -> dict[str, Any]:
 
 
 def run_model(model_id: str, inputs: Any, converter=None) -> dict[str, Any]:
-    """Validate inputs against the contract, run the engine and return the standard envelope."""
+    """Validate inputs against the contract, run the engine and return the standard envelope.
+
+    Numeric inputs may be given as {"value": x, "unit": "..."}: they are converted to the contract unit,
+    or refused when the dimensions differ (v5.1).
+    """
     contract = get_contract(model_id)
-    normalized = validate_inputs(contract, inputs, converter=converter)
+    normalized = validate_inputs(contract, inputs, converter=converter or units.contract_converter)
     result = REGISTRY[model_id]["runner"](dict(normalized))
     outputs = {}
     for out in contract["outputs"]:

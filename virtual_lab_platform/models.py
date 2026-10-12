@@ -1,5 +1,6 @@
 from __future__ import annotations
 import math
+from constants import GAS_CONSTANT
 from typing import Any
 
 MODEL_CATALOG = [
@@ -311,7 +312,7 @@ def run_leaky_integrate_fire(params: dict[str, Any]) -> dict[str, Any]:
 def run_arrhenius_reaction(params: dict[str, Any]) -> dict[str, Any]:
     a0=_finite_positive(params.get("initial_A",1.0),"initial_A",allow_zero=True); pre=_finite_positive(params.get("pre_exponential_s_inv",1.0),"pre_exponential_s_inv",allow_zero=True); ea=_finite_positive(params.get("activation_energy_j_mol",40000.0),"activation_energy_j_mol",allow_zero=True); temp=_finite_positive(params.get("temperature_k",298.15),"temperature_k"); duration=_finite_positive(params.get("duration_s",10.0),"duration_s"); points=params.get("points",51)
     if temp<1 or duration>100000 or not isinstance(points,int) or isinstance(points,bool) or not 3<=points<=1001: raise ValueError("temperature must be >=1 K, duration <=100000 and points an integer from 3 to 1001.")
-    gas_constant=8.31446261815324; exponent=-ea/(gas_constant*temp); k=pre*math.exp(exponent)
+    gas_constant=GAS_CONSTANT; exponent=-ea/(gas_constant*temp); k=pre*math.exp(exponent)
     rows=[]
     for i in range(points):
         t=duration*i/(points-1); a=a0*math.exp(-k*t); rows.append({"time_s":t,"A":a,"B":a0-a,"total_A_plus_B":a0})

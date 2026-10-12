@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+import units
 from virtual_instruments import simulate_instrument_measurement
 
 ENGINE_ID = "linked_virtual_instrument"
@@ -26,9 +27,12 @@ METERS: dict[str, dict[str, Any]] = {
 }
 SPECTRO_ID = "spectrophotometer"
 
-# factor such that value_in_target = value_in_source × factor
-CONVERSIONS = {("V", "V"): 1.0, ("V", "mV"): 1e3, ("A", "A"): 1.0, ("A", "mA"): 1e3, ("W", "W"): 1.0, ("W", "mW"): 1e3,
-               ("mol/L", "mol/L"): 1.0, ("mol/L", "mmol/L"): 1e3, ("mol", "mol"): 1.0, ("mol", "mmol"): 1e3}
+def _factor(source_unit: str, target_unit: str) -> float | None:
+    """Conversion factor from the units module (v5.1); None when the dimensions differ."""
+    try:
+        return units.convert(1.0, source_unit, target_unit)
+    except units.UnitError:
+        return None
 
 
 class MeasurementError(ValueError):
@@ -65,7 +69,7 @@ def measurable_quantities(dossier: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def instruments_for_unit(unit: str) -> list[dict[str, Any]]:
-    options = [{"id": k, "name": v["name"], "unit": v["measurement_unit"]} for k, v in METERS.items() if (unit, v["measurement_unit"]) in CONVERSIONS]
+    options = [{"id": k, "name": v["name"], "unit": v["measurement_unit"]} for k, v in METERS.items() if _factor(unit, v["measurement_unit"]) is not None]
     if unit == "mol/L":
         options.append({"id": SPECTRO_ID, "name": "Spectrophotomètre (absorbance via Beer–Lambert)", "unit": "AU", "requires": ["epsilon_l_per_mol_cm", "path_length_cm"]})
     return options
@@ -90,7 +94,7 @@ def measure(dossier: dict[str, Any], request: dict[str, Any]) -> dict[str, Any]:
 
     if instrument_id in METERS:
         meter = METERS[instrument_id]
-        factor = CONVERSIONS.get((q["unit"], meter["measurement_unit"]))
+        factor = _factor(q["unit"], meter["measurement_unit"])
         if factor is None:
             raise MeasurementError(f"Unit mismatch: {q['unit']} cannot be read by {meter['name']} ({meter['measurement_unit']}).")
         reference = q["value"] * factor
