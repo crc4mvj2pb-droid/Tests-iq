@@ -37,6 +37,13 @@ ARTIFACTS = Path(__file__).resolve().parents[2] / "test-artifacts"
 @pytest.fixture
 def live_server(tmp_path, monkeypatch):
     monkeypatch.setattr(history, "DB_PATH", tmp_path / "browser_history.sqlite3")
+    # Imported SBML/CSV files go to a temporary copy of the library, never into the project folder.
+    import shutil, sbml_engine, scientific_imports
+    library = tmp_path / "scientific_library" / "imported_assets"
+    shutil.copytree(Path(scientific_imports.ASSET_DIR), library)
+    for module in (scientific_imports, sbml_engine):
+        monkeypatch.setattr(module, "BASE", tmp_path); monkeypatch.setattr(module, "ASSET_DIR", library)
+    monkeypatch.setattr(scientific_imports, "INDEX", library / "index.json")
     server = ThreadingHTTPServer(("127.0.0.1", 0), app.Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

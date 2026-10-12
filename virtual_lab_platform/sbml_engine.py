@@ -4,9 +4,17 @@ Supports fixed compartments, constant stoichiometry, initial species amounts or
 concentrations, global/local parameters, and a safe subset of MathML kinetic laws.
 It intentionally rejects events, rules, functions, algebraic constructs, and unsupported
 MathML instead of pretending to simulate them.
+
+v5.6 (engine 2.0): the compatibility analysis detects unsupported features with their real
+SBML tag names (assignmentRule, rateRule, algebraicRule, …) — v5.5 and earlier looked for a
+"rule" tag that does not exist and silently ignored rules on constant parameters. Units are
+read from unitDefinitions and kinetic laws are checked dimensionally; Level 3 values without
+a default are refused instead of being set to 0 or 1; adaptive integrators are available.
 """
 from __future__ import annotations
 import hashlib, json, math, xml.etree.ElementTree as ET
+import numerics
+import units
 from pathlib import Path
 from typing import Any, Callable
 
@@ -124,155 +132,372 @@ def _load_model(asset_id: str) -> dict:
         raise SBMLSimulationError("Stored SBML file hash mismatch; file may have changed.")
     return {"record": rec, "xml": raw}
 
-def simulate_sbml(asset_id: str, duration: Any, dt: Any, method: str = "rk4", parameter_overrides: dict | None = None) -> dict:
-    duration = _num(duration, "duration")
-    dt = _num(dt, "dt")
-    if duration <= 0 or dt <= 0: raise SBMLSimulationError("Duration and time step must be positive.")
-    if method != "rk4": raise SBMLSimulationError("Only fixed-step RK4 is supported in this version.")
-    steps_f = duration / dt
-    steps = int(round(steps_f))
-    if abs(steps_f - steps) > 1e-8: raise SBMLSimulationError("Duration must be divisible by dt.")
-    if steps < 1 or steps > MAX_STEPS: raise SBMLSimulationError(f"Choose a duration/time step yielding 1–{MAX_STEPS} steps.")
-    loaded = _load_model(asset_id)
-    rec, raw = loaded["record"], loaded["xml"]
-    try: doc = ET.fromstring(raw)
-    except ET.ParseError: raise SBMLSimulationError("Imported XML is no longer parseable.") from None
+ENGINE_ID = "sbml_subset_simulator"
+ENGINE_VERSION = "2.0"
+import re
+_PACKAGE_NS = re.compile(r"\{http://www\.sbml\.org/sbml/level3/version\d+/([a-z]+)/version\d+\}")
+# Features with semantics this engine does not implement: refusing is the only honest option.
+UNSUPPORTED_ELEMENTS = {
+    "assignmentRule": "assignment rules", "rateRule": "rate rules", "algebraicRule": "algebraic rules", "event": "events",
+    "functionDefinition": "function definitions", "initialAssignment": "initial assignments", "constraint": "constraints",
+    "stoichiometryMath": "variable stoichiometry (stoichiometryMath)", "piecewise": "piecewise MathML", "delay": "delay",
+}
+IGNORABLE_PACKAGES = {"layout", "render"}  # graphical information only: ignored with a warning
+SBML_UNIT_KINDS = {"mole": "mol", "litre": "L", "liter": "L", "second": "s", "metre": "m", "meter": "m", "gram": "g", "kilogram": "kg",
+                   "dimensionless": "1", "item": "1", "ampere": "A", "kelvin": "K", "joule": "J", "hertz": "Hz", "newton": "N", "pascal": "Pa",
+                   "volt": "V", "watt": "W", "coulomb": "C", "farad": "F", "ohm": "Ω", "siemens": "S", "henry": "H", "radian": "1", "steradian": "1"}
+
+
+def _sbml_unit(definition) -> "units.Unit":
+    total = units.ONE
+    for u in (x for x in definition.iter() if _local(x.tag) == "unit"):
+        kind = u.attrib.get("kind")
+        if kind not in SBML_UNIT_KINDS:
+            raise SBMLSimulationError(f"Unsupported SBML unit kind '{kind}'.")
+        base = units.parse(SBML_UNIT_KINDS[kind])
+        exponent = _num(u.attrib.get("exponent", "1"), "unit exponent")
+        scale = _num(u.attrib.get("scale", "0"), "unit scale")
+        multiplier = _num(u.attrib.get("multiplier", "1"), "unit multiplier")
+        if not float(exponent).is_integer():
+            raise SBMLSimulationError("Non-integer unit exponents are not supported.")
+        scaled = units.Unit((multiplier * 10 ** scale) * base.factor, base.dims)
+        total = total * (scaled ** int(exponent))
+    return total
+
+
+def _unit_ref(ref, unit_defs):
+    """Unit for an SBML 'units' attribute: a unitDefinition id or a base kind; None when undeclared."""
+    if not ref:
+        return None
+    if ref in unit_defs:
+        return unit_defs[ref]
+    if ref in SBML_UNIT_KINDS:
+        return units.parse(SBML_UNIT_KINDS[ref])
+    raise SBMLSimulationError(f"Unknown unit reference '{ref}'.")
+
+
+def _mathml_units(node, env):
+    """Dimension of a MathML expression; None means 'unknown' (an undeclared unit somewhere)."""
+    tag = _local(node.tag)
+    if tag == "math":
+        return _mathml_units(node[0], env)
+    if tag == "ci":
+        return env.get((node.text or "").strip())
+    if tag == "cn":
+        return units.ONE if node.attrib.get("{http://www.sbml.org/sbml/level3/version1/core}units") == "dimensionless" else "number"
+    if tag in ("pi", "exponentiale", "true", "false"):
+        return units.ONE
+    if tag != "apply":
+        return None
+    op = _local(node[0].tag)
+    args = [_mathml_units(c, env) for c in list(node)[1:]]
+    known = [a for a in args if isinstance(a, units.Unit)]
+    if op in ("plus", "minus"):
+        if any(a is None for a in args):
+            return None
+        if known and any(k.dims != known[0].dims for k in known):
+            raise _UnitMismatch(f"'{op}' combines {', '.join(sorted({_dims(k) for k in known}))}")
+        return known[0] if known else "number"
+    if op in ("times", "divide"):
+        if any(a is None or a == "number" for a in args):  # an undeclared number makes the result unknown
+            return None if any(a is None for a in args) or op == "times" and args.count("number") else None
+        result = args[0]
+        for a in args[1:]:
+            result = result * a if op == "times" else result / a
+        return result
+    if op == "power":
+        if not isinstance(args[0], units.Unit):
+            return None
+        exponent_node = list(node)[2]
+        if _local(exponent_node.tag) == "cn":
+            value = float("".join(exponent_node.itertext()).strip())
+            if value.is_integer():
+                return args[0] ** int(value)
+        return None if args[0].dims != units.ONE.dims else units.ONE
+    if op in ("exp", "ln", "log", "sin", "cos", "tan", "sinh", "cosh", "tanh"):
+        if isinstance(args[0], units.Unit) and args[0].dims != units.ONE.dims:
+            raise _UnitMismatch(f"'{op}' applied to a quantity with dimension {_dims(args[0])}")
+        return units.ONE
+    return None
+
+
+class _UnitMismatch(Exception):
+    pass
+
+
+def _dims(u) -> str:
+    parts = [f"{b}^{e}" if e != 1 else b for b, e in zip(units.BASE, u.dims) if e]
+    return "·".join(parts) or "1"
+
+
+def _parse(raw: bytes, parameter_overrides: dict | None = None) -> dict:
+    """Parse and check an SBML document; returns the model or a list of blocking problems."""
+    try:
+        doc = ET.fromstring(raw)
+    except ET.ParseError:
+        raise SBMLSimulationError("Imported XML is no longer parseable.") from None
+    level = doc.attrib.get("level")
     model = next((e for e in doc.iter() if _local(e.tag) == "model"), None)
-    if model is None: raise SBMLSimulationError("No SBML model element.")
-    unsupported = {"event", "rule", "functionDefinition", "initialAssignment", "constraint"}
-    present = sorted({_local(e.tag) for e in model.iter()} & unsupported)
-    if present:
-        raise SBMLSimulationError("This SBML subset does not yet support: " + ", ".join(present))
-    comps = {}
-    for el in model.iter():
-        if _local(el.tag) == "compartment":
-            cid = el.attrib.get("id")
-            if not cid: raise SBMLSimulationError("Compartment without id.")
-            if el.attrib.get("spatialDimensions", "3") not in ("0", "1", "2", "3"):
-                raise SBMLSimulationError("Unsupported compartment dimensions.")
-            if el.attrib.get("constant", "true").casefold() == "false":
-                raise SBMLSimulationError("Dynamic compartment sizes are not supported.")
-            comps[cid] = _num(el.attrib.get("size", "1"), f"compartment {cid} size")
-            if comps[cid] <= 0: raise SBMLSimulationError(f"Compartment {cid} size must be positive.")
-    globals_ = {}
-    for el in model.iter():
-        if _local(el.tag) == "parameter":
-            pid = el.attrib.get("id")
-            if pid and "value" in el.attrib:
-                if el.attrib.get("constant", "true").casefold() == "false":
-                    raise SBMLSimulationError("Variable parameters/rules are not supported.")
-                globals_[pid] = _num(el.attrib["value"], f"parameter {pid}")
+    if model is None:
+        raise SBMLSimulationError("No SBML model element.")
+    blocking, warnings = [], []
+    present = sorted({UNSUPPORTED_ELEMENTS[_local(e.tag)] for e in doc.iter() if _local(e.tag) in UNSUPPORTED_ELEMENTS})
+    blocking += [f"not supported: {name}" for name in present]
+    for e in doc.iter():
+        if _local(e.tag) == "csymbol" and "delay" in e.attrib.get("definitionURL", ""):
+            blocking.append("not supported: delay")
+        if _local(e.tag) == "reaction" and e.attrib.get("fast", "false").casefold() == "true":
+            blocking.append(f"not supported: fast reaction {e.attrib.get('id', '?')}")
+        if "conversionFactor" in e.attrib:
+            blocking.append("not supported: conversion factors")
+    packages = set()
+    for e in doc.iter():
+        for name in [e.tag] + list(e.attrib):
+            match = _PACKAGE_NS.match(name)
+            if match and match.group(1) != "core":
+                packages.add(match.group(1))
+    for package in sorted(packages):
+        if package in IGNORABLE_PACKAGES:
+            warnings.append(f"SBML package '{package}' (graphical information) ignored.")
+        else:
+            blocking.append(f"not supported: SBML package '{package}'")
+    unit_defs = {}
+    for ud in (e for e in model.iter() if _local(e.tag) == "unitDefinition"):
+        try:
+            unit_defs[ud.attrib.get("id")] = _sbml_unit(ud)
+        except SBMLSimulationError as exc:
+            blocking.append(str(exc))
+    substance = _unit_ref(model.attrib.get("substanceUnits"), unit_defs) if model.attrib.get("substanceUnits") else (units.parse("mol") if level == "2" else None)
+    time_unit = _unit_ref(model.attrib.get("timeUnits"), unit_defs) if model.attrib.get("timeUnits") else (units.parse("s") if level == "2" else None)
+    extent = _unit_ref(model.attrib.get("extentUnits"), unit_defs) if model.attrib.get("extentUnits") else substance
+    volume_default = _unit_ref(model.attrib.get("volumeUnits"), unit_defs) if model.attrib.get("volumeUnits") else (units.parse("L") if level == "2" else None)
+    if level == "2":  # Level 2 lets models redefine the built-in units by id
+        substance = unit_defs.get("substance", substance); time_unit = unit_defs.get("time", time_unit); volume_default = unit_defs.get("volume", volume_default); extent = substance
+
+    comps, comp_units = {}, {}
+    for el in (e for e in model.iter() if _local(e.tag) == "compartment"):
+        cid = el.attrib.get("id")
+        if not cid:
+            blocking.append("compartment without id"); continue
+        if el.attrib.get("constant", "true").casefold() == "false":
+            blocking.append(f"not supported: variable size of compartment {cid}")
+        if "size" in el.attrib:
+            comps[cid] = _num(el.attrib["size"], f"compartment {cid} size")
+        elif level == "2":
+            comps[cid] = 1.0; warnings.append(f"Compartment {cid}: no size given, SBML Level 2 default 1 used.")
+        else:
+            blocking.append(f"compartment {cid} has no size (SBML Level 3 has no default)"); comps[cid] = float("nan")
+        if comps.get(cid, 1) <= 0:
+            blocking.append(f"compartment {cid} size must be positive")
+        try:
+            comp_units[cid] = _unit_ref(el.attrib.get("units"), unit_defs) or volume_default
+        except SBMLSimulationError as exc:
+            blocking.append(str(exc)); comp_units[cid] = None
+
+    list_of_parameters = next((e for e in model if _local(e.tag) == "listOfParameters"), None)
+    globals_, param_units = {}, {}
+    for el in (list(list_of_parameters) if list_of_parameters is not None else []):
+        if _local(el.tag) != "parameter":
+            continue
+        pid = el.attrib.get("id")
+        if el.attrib.get("constant", "true").casefold() == "false":
+            blocking.append(f"not supported: variable parameter {pid}")
+        if "value" not in el.attrib:
+            blocking.append(f"parameter {pid} has no value"); continue
+        globals_[pid] = _num(el.attrib["value"], f"parameter {pid}")
+        try:
+            param_units[pid] = _unit_ref(el.attrib.get("units"), unit_defs)
+        except SBMLSimulationError as exc:
+            blocking.append(str(exc))
+        if param_units.get(pid) is None:
+            warnings.append(f"Parameter {pid}: units not declared; dimensional checks involving it are skipped.")
     overrides = parameter_overrides or {}
     if not isinstance(overrides, dict) or len(overrides) > 30:
         raise SBMLSimulationError("Parameter overrides must be an object with at most 30 entries.")
     for pid, value in overrides.items():
         if pid not in globals_:
             raise SBMLSimulationError(f"Unknown or non-global model parameter: {pid}")
-        parsed_value = _num(value, f"override for parameter {pid}")
-        globals_[pid] = parsed_value
-    species = []
-    state0 = []
-    for el in model.iter():
-        if _local(el.tag) != "species": continue
+        globals_[pid] = _num(value, f"override for parameter {pid}")
+
+    species, state0, species_units = [], [], {}
+    for el in (e for e in model.iter() if _local(e.tag) == "species"):
         sid = el.attrib.get("id")
-        if not sid: raise SBMLSimulationError("Species without id.")
-        if el.attrib.get("boundaryCondition", "false").casefold() == "true" or el.attrib.get("constant", "false").casefold() == "true":
-            fixed = True
-        else: fixed = False
         comp = el.attrib.get("compartment")
-        if comp not in comps: raise SBMLSimulationError(f"Species {sid} refers to missing compartment {comp}.")
-        if "initialAmount" in el.attrib: amount = _num(el.attrib["initialAmount"], sid+" initialAmount")
-        elif "initialConcentration" in el.attrib: amount = _num(el.attrib["initialConcentration"], sid+" initialConcentration") * comps[comp]
-        else: amount = 0.0
-        if amount < 0: raise SBMLSimulationError(f"Species {sid} starts with a negative amount.")
-        species.append({"id":sid,"name":el.attrib.get("name",sid),"compartment":comp,
-                        "fixed":fixed,"has_only_amount":el.attrib.get("hasOnlySubstanceUnits","false").casefold()=="true"})
+        if not sid or comp not in comps:
+            blocking.append(f"species {sid or '?'} has no id or refers to a missing compartment"); continue
+        fixed = el.attrib.get("boundaryCondition", "false").casefold() == "true" or el.attrib.get("constant", "false").casefold() == "true"
+        has_only = el.attrib.get("hasOnlySubstanceUnits", "false").casefold() == "true"
+        if "initialAmount" in el.attrib:
+            amount = _num(el.attrib["initialAmount"], sid + " initialAmount")
+        elif "initialConcentration" in el.attrib:
+            amount = _num(el.attrib["initialConcentration"], sid + " initialConcentration") * comps[comp]
+        elif level == "2":
+            amount = 0.0; warnings.append(f"Species {sid}: no initial value, 0 used.")
+        else:
+            blocking.append(f"species {sid} has no initial amount or concentration (SBML Level 3 has no default)"); amount = 0.0
+        if amount < 0:
+            blocking.append(f"species {sid} starts with a negative amount")
+        try:
+            su = _unit_ref(el.attrib.get("substanceUnits"), unit_defs) or substance
+        except SBMLSimulationError as exc:
+            blocking.append(str(exc)); su = None
+        cu = comp_units.get(comp)
+        species_units[sid] = su if has_only else (su / cu if su is not None and cu is not None else None)
+        species.append({"id": sid, "name": el.attrib.get("name", sid), "compartment": comp, "fixed": fixed, "has_only_amount": has_only})
         state0.append(amount)
-    if not species: raise SBMLSimulationError("No species found in SBML model.")
     ids = [s["id"] for s in species]
-    if len(set(ids)) != len(ids): raise SBMLSimulationError("Duplicate species IDs.")
-    species_index = {sid:i for i,sid in enumerate(ids)}
-    reactions = []
+    if not species:
+        blocking.append("no species")
+    if len(set(ids)) != len(ids):
+        blocking.append("duplicate species IDs")
+    index = {sid: i for i, sid in enumerate(ids)}
+
+    reactions, unit_checks = [], []
     for reaction in (e for e in model.iter() if _local(e.tag) == "reaction"):
+        rid = reaction.attrib.get("id", f"reaction_{len(reactions)+1}")
         stoich = [0.0] * len(species)
-        for ref in reaction.iter():
-            if _local(ref.tag) not in ("speciesReference", "modifierSpeciesReference"): continue
-            sid = ref.attrib.get("species")
-            if sid not in species_index: raise SBMLSimulationError(f"Reaction references unknown species {sid}.")
-            if _local(ref.tag) == "modifierSpeciesReference": continue
-            if ref.attrib.get("constant", "true").casefold() == "false" or any(_local(x.tag)=="stoichiometryMath" for x in ref):
-                raise SBMLSimulationError("Variable stoichiometry is not supported.")
-            n = _num(ref.attrib.get("stoichiometry", "1"), "stoichiometry")
-            parent_list = next((p for p in reaction.iter() if ref in list(p)), None)
-            list_name = _local(parent_list.tag) if parent_list is not None else ""
-            stoich[species_index[sid]] += n if list_name == "listOfProducts" else -n
+        for lst in (e for e in reaction if _local(e.tag) in ("listOfReactants", "listOfProducts")):
+            for ref in (e for e in lst if _local(e.tag) == "speciesReference"):
+                sid = ref.attrib.get("species")
+                if sid not in index:
+                    blocking.append(f"reaction {rid} references unknown species {sid}"); continue
+                if ref.attrib.get("constant", "true").casefold() == "false":
+                    blocking.append(f"not supported: variable stoichiometry in {rid}")
+                n = _num(ref.attrib.get("stoichiometry", "1"), "stoichiometry")
+                stoich[index[sid]] += n if _local(lst.tag) == "listOfProducts" else -n
+        for mod in (e for e in reaction.iter() if _local(e.tag) == "modifierSpeciesReference"):
+            if mod.attrib.get("species") not in index:
+                blocking.append(f"reaction {rid} references unknown modifier {mod.attrib.get('species')}")
         kl = next((e for e in reaction.iter() if _local(e.tag) == "kineticLaw"), None)
-        if kl is None: raise SBMLSimulationError(f"Reaction {reaction.attrib.get('id','?')} has no kinetic law.")
-        math_node = next((e for e in kl if _local(e.tag) == "math"), None)
-        if math_node is None: raise SBMLSimulationError(f"Reaction {reaction.attrib.get('id','?')} has no MathML kinetic law.")
-        local_params = {}
+        math_node = next((e for e in kl if _local(e.tag) == "math"), None) if kl is not None else None
+        if math_node is None:
+            blocking.append(f"reaction {rid} has no MathML kinetic law"); continue
+        local_params, local_units = {}, {}
         for el in kl.iter():
-            if _local(el.tag) in ("localParameter", "parameter") and el is not kl and el.attrib.get("id") and "value" in el.attrib:
+            if _local(el.tag) in ("localParameter", "parameter") and el.attrib.get("id") and "value" in el.attrib:
                 local_params[el.attrib["id"]] = _num(el.attrib["value"], "local parameter")
-        reactions.append({"id":reaction.attrib.get("id",f"reaction_{len(reactions)+1}"),
-                          "stoich":stoich,"math":math_node,"local_params":local_params})
-    if not reactions: raise SBMLSimulationError("No reactions found; this engine currently supports reaction-network SBML only.")
-    if any(not math.isfinite(x) for x in state0): raise SBMLSimulationError("Invalid initial state.")
-    warnings = [
-        "This engine supports only a subset of SBML Level 2/3.",
-        "Units are not dimensionally reconciled automatically; confirm model units and time scale.",
-        "A successful numerical run is not empirical validation."
-    ]
+                try:
+                    local_units[el.attrib["id"]] = _unit_ref(el.attrib.get("units"), unit_defs)
+                except SBMLSimulationError as exc:
+                    blocking.append(str(exc))
+        reactions.append({"id": rid, "stoich": stoich, "math": math_node, "local_params": local_params})
+        expected = (extent / time_unit) if extent is not None and time_unit is not None else None
+        env = {**{c: comp_units.get(c) for c in comps}, **param_units, **species_units, **local_units}
+        try:
+            got = _mathml_units(math_node, env)
+            if expected is None or not isinstance(got, units.Unit):
+                unit_checks.append({"reaction": rid, "status": "unchecked", "reason": "a unit is undeclared (parameter, number or model units)"})
+            elif got.dims == expected.dims:
+                unit_checks.append({"reaction": rid, "status": "consistent", "dimension": _dims(got)})
+            else:
+                unit_checks.append({"reaction": rid, "status": "inconsistent", "dimension": _dims(got), "expected": _dims(expected)})
+                warnings.append(f"Kinetic law of {rid} has dimension {_dims(got)}, expected {_dims(expected)} (extent/time).")
+        except _UnitMismatch as exc:
+            unit_checks.append({"reaction": rid, "status": "inconsistent", "reason": str(exc)})
+            warnings.append(f"Kinetic law of {rid}: {exc}.")
+    if not reactions and not blocking:
+        blocking.append("no reactions (this engine simulates reaction networks only)")
+    return {"level": level, "version": doc.attrib.get("version"), "blocking": sorted(set(blocking)), "warnings": warnings, "comps": comps,
+            "globals": globals_, "species": species, "state0": state0, "reactions": reactions, "unit_checks": unit_checks,
+            "units": {"substance": _dims(substance) if substance else None, "time": _dims(time_unit) if time_unit else None,
+                      "extent": _dims(extent) if extent else None}}
+
+
+def analyze_sbml(asset_id: str) -> dict:
+    """Compatibility report: what this engine can and cannot simulate in the imported model."""
+    loaded = _load_model(asset_id)
+    parsed = _parse(loaded["xml"])
+    rec = loaded["record"]
+    return {"asset_id": asset_id, "engine": {"id": ENGINE_ID, "version": ENGINE_VERSION}, "simulatable": not parsed["blocking"],
+            "blocking_problems": parsed["blocking"], "warnings": parsed["warnings"], "sbml_level": parsed["level"], "sbml_version": parsed["version"],
+            "species": [s["id"] for s in parsed["species"]], "parameters": parsed["globals"], "reactions": [r["id"] for r in parsed["reactions"]],
+            "unit_checks": parsed["unit_checks"], "model_units": parsed["units"],
+            "provenance": {"sha256": rec.get("sha256"), "source_url": rec.get("source_url"), "license": rec.get("license"), "imported_at": rec.get("imported_at"),
+                           "filename": rec.get("filename")}}
+
+
+def simulate_sbml(asset_id: str, duration: Any, dt: Any, method: str = "rk4", parameter_overrides: dict | None = None) -> dict:
+    duration = _num(duration, "duration")
+    dt = _num(dt, "dt")
+    if duration <= 0 or dt <= 0: raise SBMLSimulationError("Duration and time step must be positive.")
+    if method not in ("rk4", "dopri5", "implicit_euler"): raise SBMLSimulationError("method must be rk4, dopri5 or implicit_euler.")
+    steps_f = duration / dt
+    steps = int(round(steps_f))
+    if abs(steps_f - steps) > 1e-8: raise SBMLSimulationError("Duration must be divisible by dt.")
+    if steps < 1 or steps > MAX_STEPS: raise SBMLSimulationError(f"Choose a duration/time step yielding 1–{MAX_STEPS} steps.")
+    loaded = _load_model(asset_id)
+    rec = loaded["record"]
+    parsed = _parse(loaded["xml"], parameter_overrides)
+    if parsed["blocking"]:
+        raise SBMLSimulationError("This model cannot be simulated by this SBML subset: " + "; ".join(parsed["blocking"]) + ".")
+    comps, globals_, species, reactions, state0 = parsed["comps"], parsed["globals"], parsed["species"], parsed["reactions"], parsed["state0"]
+    warnings = ["This engine supports only a subset of SBML Level 2/3 (see the compatibility analysis).",
+                "A successful numerical run is not empirical validation."] + parsed["warnings"]
+
     def rhs(state):
         env = dict(globals_)
+        env.update(comps)
         for s, amount in zip(species, state):
-            val = amount if s["has_only_amount"] else amount / comps[s["compartment"]]
-            env[s["id"]] = val
-        rates = []
-        deriv = [0.0] * len(species)
+            env[s["id"]] = amount if s["has_only_amount"] else amount / comps[s["compartment"]]
+        rates, deriv = [], [0.0] * len(species)
         for r in reactions:
             local_env = dict(env); local_env.update(r["local_params"])
             rate = _mathml(r["math"], local_env)
             rates.append(rate)
             for i, coeff in enumerate(r["stoich"]):
-                if not species[i]["fixed"]: deriv[i] += coeff * rate
+                if not species[i]["fixed"]:
+                    deriv[i] += coeff * rate
         if not all(math.isfinite(v) for v in deriv): raise SBMLSimulationError("Non-finite derivative.")
         return deriv, rates
-    def add(a,b,factor):
-        return [x+factor*y for x,y in zip(a,b)]
-    state = state0[:]
-    rows = []
+
     output_every = max(1, math.ceil(steps / (MAX_OUTPUT_POINTS - 1)))
+    times = [min(duration, k * dt) for k in range(0, steps + 1, output_every)]
+    if times[-1] != duration:
+        times.append(duration)
+    diagnostics = None
+    if method == "rk4":
+        def add(a, b, factor):
+            return [x + factor * y for x, y in zip(a, b)]
+        state, states = state0[:], [state0[:]]
+        for n in range(steps):
+            k1, _ = rhs(state); k2, _ = rhs(add(state, k1, dt / 2)); k3, _ = rhs(add(state, k2, dt / 2)); k4, _ = rhs(add(state, k3, dt))
+            new = [y + dt * (a + 2 * b + 2 * c + d) / 6 for y, a, b, c, d in zip(state, k1, k2, k3, k4)]
+            if not all(math.isfinite(v) for v in new): raise SBMLSimulationError(f"Numerical solution diverged near t={(n+1)*dt:g}.")
+            if min(new) < -1e-7:
+                raise SBMLSimulationError(f"Negative species amount encountered near t={(n+1)*dt:g}; reduce dt or check model/kinetic law.")
+            state = [max(0.0, v) if v > -1e-7 else v for v in new]
+            if (n + 1) % output_every == 0 or n == steps - 1:
+                states.append(state[:])
+        times = [0.0] + [min(duration, (n + 1) * dt) for n in range(steps) if (n + 1) % output_every == 0 or n == steps - 1]
+    else:
+        solver = numerics.dopri5 if method == "dopri5" else numerics.implicit_euler
+        try:
+            states, diagnostics = solver(lambda t, y: rhs(y)[0], 0.0, state0, duration, times, numerics.Tolerances(rtol=1e-8 if method == "dopri5" else 1e-6, atol=1e-12))
+        except numerics.NumericalError as exc:
+            raise SBMLSimulationError(f"{exc} [{exc.code}]") from None
+        if min(min(s) for s in states) < -1e-7:
+            raise SBMLSimulationError("Negative species amount beyond the solver tolerance.")
+        states = [[max(0.0, v) for v in s] for s in states]
+
     def row_at(t, st):
         row = {"time": round(t, 12)}
         for s, amount in zip(species, st):
-            row[s["id"]+"_amount"] = amount
-            row[s["id"]+"_concentration"] = amount / comps[s["compartment"]]
+            row[s["id"] + "_amount"] = amount
+            row[s["id"] + "_concentration"] = amount / comps[s["compartment"]]
         return row
-    rows.append(row_at(0.0,state))
-    for n in range(steps):
-        k1,_ = rhs(state)
-        k2,_ = rhs(add(state,k1,dt/2))
-        k3,_ = rhs(add(state,k2,dt/2))
-        k4,_ = rhs(add(state,k3,dt))
-        new = [y + dt*(a+2*b+2*c+d)/6 for y,a,b,c,d in zip(state,k1,k2,k3,k4)]
-        if not all(math.isfinite(v) for v in new): raise SBMLSimulationError(f"Numerical solution diverged near t={(n+1)*dt:g}.")
-        if min(new) < -1e-7:
-            raise SBMLSimulationError(f"Negative species amount encountered near t={(n+1)*dt:g}; reduce dt or check model/kinetic law.")
-        state = [max(0.0,v) if v > -1e-7 else v for v in new]
-        if (n+1) % output_every == 0 or n == steps-1:
-            rows.append(row_at((n+1)*dt,state))
+    rows = [row_at(t, st) for t, st in zip(times, states)]
+    state = states[-1]
     _, final_rates = rhs(state)
     return {
-      "asset_id":asset_id,"model_name":rec.get("metadata",{}).get("model_name",asset_id),
-      "model_sha256":rec.get("sha256"),"method":"fixed_step_RK4","duration":duration,"dt":dt,
-      "steps":steps,"output_points":len(rows),"parameter_values":globals_,"species":[{"id":s["id"],"name":s["name"],"compartment":s["compartment"]} for s in species],
-      "reaction_ids":[r["id"] for r in reactions],"rows":rows,
-      "summary":{"initial_amounts":{s["id"]:state0[i] for i,s in enumerate(species)},
-                 "final_amounts":{s["id"]:state[i] for i,s in enumerate(species)},
-                 "final_reaction_rates":{r["id"]:final_rates[i] for i,r in enumerate(reactions)}},
-      "checks":{"all_outputs_finite":all(math.isfinite(v) for row in rows for v in row.values()),
-                "species_amounts_nonnegative":all(row[s["id"]+"_amount"] >= 0 for row in rows for s in species)},
-      "validation_status":"numerically_executed_subset_not_benchmarked_against_reference",
-      "warnings":warnings
+        "asset_id": asset_id, "model_name": rec.get("metadata", {}).get("model_name", asset_id), "model_sha256": rec.get("sha256"),
+        "engine": {"id": ENGINE_ID, "version": ENGINE_VERSION}, "method": "fixed_step_RK4" if method == "rk4" else method, "diagnostics": diagnostics,
+        "duration": duration, "dt": dt, "steps": steps, "output_points": len(rows), "parameter_values": globals_,
+        "species": [{"id": s["id"], "name": s["name"], "compartment": s["compartment"]} for s in species], "reaction_ids": [r["id"] for r in reactions], "rows": rows,
+        "summary": {"initial_amounts": {s["id"]: state0[i] for i, s in enumerate(species)}, "final_amounts": {s["id"]: state[i] for i, s in enumerate(species)},
+                    "final_reaction_rates": {r["id"]: final_rates[i] for i, r in enumerate(reactions)}},
+        "checks": {"all_outputs_finite": all(math.isfinite(v) for row in rows for v in row.values()),
+                   "species_amounts_nonnegative": all(row[s["id"] + "_amount"] >= 0 for row in rows for s in species)},
+        "unit_checks": parsed["unit_checks"], "model_units": parsed["units"],
+        "provenance": {"sha256": rec.get("sha256"), "source_url": rec.get("source_url"), "license": rec.get("license"), "imported_at": rec.get("imported_at")},
+        "validation_status": "numerically_executed_subset_not_benchmarked_against_reference", "warnings": warnings,
     }
