@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "note": "Content hash of each shipped dataset at its version. Changing a dataset's content requires a new version and a new line here (checked by tests/test_v60_data_catalog.py).",
+  "datasets": {
+    "bod_marske_1967": {
+      "version": "1.0",
+      "content_sha256": "2c05a8dddf93739a45b1c8f6e5f4b2f643ec6c02e62c76e363ce7c5caa595c74"
+    },
+    "puromycin_treloar_1974": {
+      "version": "1.0",
+      "content_sha256": "a3d0a0abce5996259008af39ad4e2765c925ca311078b6b8595218f1c1788ceb"
+    }
+  }
+}

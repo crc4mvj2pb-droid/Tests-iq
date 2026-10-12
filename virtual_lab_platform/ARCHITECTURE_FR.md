@@ -30,3 +30,8 @@ Une expérience multi-modèles est une liste d'étapes. Chaque étape exécute u
 - Les liaisons `{from: "étape.sortie", to: "entrée"}` convertissent les unités avec `units.py` et refusent les dimensions incompatibles.
 - La maturité de l'expérience est la plus basse de ses étapes, avec la liste des étapes limitantes.
 - Routes : `GET /api/pipelines/examples`, `POST /api/pipelines/run`. Le dossier est rejouable (`model_id = multi_model_pipeline`).
+
+## Catalogue de données (v6.0, `data_catalog.py`)
+- Entrées livrées : `data_catalog/sources.json` (sources bibliographiques), `data_catalog/datasets/*.json` (jeux de données) et `data_catalog/catalog_lock.json` (empreinte par version).
+- Entrées locales : table `catalog_entries` de la base SQLite.
+- Les cinq natures (`reference`, `experimental`, `imported`, `computed`, `simulated`) sont contrôlées à l'enregistrement et filtrées strictement.

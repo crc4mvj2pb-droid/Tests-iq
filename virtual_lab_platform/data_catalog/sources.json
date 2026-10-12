@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "title": "Bibliographic sources of the data catalogue",
+  "policy": "Every catalogue value cites one of these sources. A source records what was consulted (edition, version or access date) and the licence or usage terms as far as known; 'unknown' is stated explicitly rather than assumed.",
+  "sources": [
+    {"id": "bipm_si_brochure_2019", "kind": "standard", "citation": "BIPM, The International System of Units (SI Brochure), 9th edition", "year": 2019,
+     "url": "https://www.bipm.org/en/publications/si-brochure", "version": "9th edition (2019), v1.08 or later", "license": "BIPM publication, free access; values are definitions"},
+    {"id": "codata_2018", "kind": "evaluated_data", "citation": "E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor, CODATA recommended values of the fundamental physical constants: 2018, Rev. Mod. Phys. 93, 025010 (2021)", "year": 2021,
+     "url": "https://physics.nist.gov/cuu/Constants/", "version": "CODATA 2018", "license": "NIST data, public; factual values", "doi": "10.1103/RevModPhys.93.025010"},
+    {"id": "bates_watts_1988", "kind": "book", "citation": "D. M. Bates, D. G. Watts, Nonlinear Regression Analysis and Its Applications, Wiley, New York (1988), Appendix A1", "year": 1988,
+     "version": "1st edition", "license": "data reproduced for teaching in many packages; numerical facts", "doi": "10.1002/9780470316757"},
+    {"id": "treloar_1974", "kind": "thesis", "citation": "M. A. Treloar, Effects of Puromycin on Galactosyltransferase in Golgi Membranes, M.Sc. thesis, University of Toronto (1974)", "year": 1974,
+     "license": "original thesis; data as reproduced in Bates & Watts (1988) and in the R 'datasets' package (data frame Puromycin)"},
+    {"id": "marske_1967", "kind": "thesis", "citation": "D. Marske, Biochemical Oxygen Demand Data Interpretation Using Sum of Squares Surface, M.Sc. thesis, University of Wisconsin (1967)", "year": 1967,
+     "license": "original thesis; data as reproduced in Bates & Watts (1988) and in the R 'datasets' package (data frame BOD)"},
+    {"id": "r_datasets_package", "kind": "software", "citation": "R Core Team, R: A Language and Environment for Statistical Computing, package 'datasets'", "year": 2024,
+     "url": "https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/00Index.html", "version": "R 4.x", "license": "GPL-2 | GPL-3 (software); the numerical data are factual"}
+  ]
+}

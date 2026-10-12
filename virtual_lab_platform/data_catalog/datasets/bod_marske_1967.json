@@ -1,0 +1,83 @@
+{
+  "id": "bod_marske_1967",
+  "version": "1.0",
+  "title": "Biochemical oxygen demand versus incubation time",
+  "data_kind": "experimental",
+  "domain": "environmental chemistry",
+  "source_ids": [
+    "marske_1967",
+    "bates_watts_1988",
+    "r_datasets_package"
+  ],
+  "license": "Factual data from a 1967 thesis, reproduced in Bates & Watts (1988) and in R 'datasets'; verify reuse terms for publication.",
+  "description": "Oxygen demand of a water sample after incubation for 1 to 7 days (no measurement on day 6).",
+  "conditions": {
+    "note": "As reported by the source; incubation temperature not given in the reproduced table."
+  },
+  "columns": [
+    {
+      "name": "time",
+      "quantity": "incubation time",
+      "unit": "d"
+    },
+    {
+      "name": "demand",
+      "quantity": "biochemical oxygen demand",
+      "unit": "mg/L"
+    }
+  ],
+  "uncertainty": {
+    "kind": "unknown",
+    "note": "No stated uncertainty and no replicates."
+  },
+  "applicability": "First-order BOD curve fitting exercises; six points only, so parameter uncertainty is large.",
+  "rows": [
+    [
+      1,
+      8.3
+    ],
+    [
+      2,
+      10.3
+    ],
+    [
+      3,
+      19.0
+    ],
+    [
+      4,
+      16.0
+    ],
+    [
+      5,
+      15.6
+    ],
+    [
+      7,
+      19.8
+    ]
+  ],
+  "published_analyses": [
+    {
+      "source_id": "r_datasets_package",
+      "model": "first_order_rise",
+      "subset": {},
+      "estimates": {
+        "A": {
+          "value": 19.1426,
+          "standard_error": 2.4959,
+          "unit": "mg/L"
+        },
+        "k": {
+          "value": 0.5311,
+          "standard_error": 0.2031,
+          "unit": "1/d",
+          "note": "published as log(k) = -0.6328 (SE 0.3825); k and its standard error derived here (k = e^-0.6328, SE = k·0.3825)"
+        }
+      },
+      "residual_standard_error": 2.549,
+      "degrees_of_freedom": 4,
+      "note": "Same estimates as Bates & Watts (1988); values from the nls() example on the BOD data."
+    }
+  ]
+}

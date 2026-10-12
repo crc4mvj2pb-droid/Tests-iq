@@ -68,6 +68,8 @@ _PLAIN = {
     "1": ONE, "%": Unit(0.01, _d()), "AU": ONE, "rad": ONE, "sr": ONE, "min": Unit(60.0, _d(T=1)), "h": Unit(3600.0, _d(T=1)),
     "d": Unit(86400.0, _d(T=1)), "atm": Unit(101325.0, _d(M=1, L=-1, T=-2)), "°C": Unit(1.0, _d(Th=1), 273.15), "degC": Unit(1.0, _d(Th=1), 273.15),
     "a.u.": Unit(1.0, _d(), 0.0, True), "ohm": _PREFIXABLE["Ω"], "Ohm": _PREFIXABLE["Ω"], "l": Unit(1e-3, _d(L=3)), "Da": Unit(1.66053906660e-27, _d(M=1)),
+    # v6.0: dimensionless counts and parts-per notation (a ratio of like quantities; which ones — mass or volume — is stated by the data source).
+    "count": ONE, "counts": ONE, "ppm": Unit(1e-6, _d()), "ppb": Unit(1e-9, _d()),
 }
 _PREFIXES = {"Y": 1e24, "Z": 1e21, "E": 1e18, "P": 1e15, "T": 1e12, "G": 1e9, "M": 1e6, "k": 1e3, "h": 1e2, "da": 1e1, "d": 1e-1,
              "c": 1e-2, "m": 1e-3, "µ": 1e-6, "μ": 1e-6, "u": 1e-6, "n": 1e-9, "p": 1e-12, "f": 1e-15, "a": 1e-18}

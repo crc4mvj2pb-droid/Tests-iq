@@ -1,0 +1,29 @@
+{
+  "id": "puromycin_treloar_1974",
+  "version": "1.0",
+  "title": "Puromycin: initial velocity of an enzymatic reaction versus substrate concentration (treated and untreated cells)",
+  "data_kind": "experimental",
+  "domain": "biochemistry",
+  "source_ids": ["treloar_1974", "bates_watts_1988", "r_datasets_package"],
+  "license": "Factual data from a 1974 thesis, reproduced in Bates & Watts (1988) and in R 'datasets'; verify reuse terms for publication.",
+  "description": "Galactosyltransferase reaction velocity (radioactive counts per minute per minute) against substrate concentration (ppm), measured on cells treated with Puromycin and on untreated cells; duplicate measurements at each concentration (one missing untreated point at 1.10 ppm).",
+  "conditions": {"note": "As reported by the source; temperature and buffer are not given in the reproduced table."},
+  "columns": [
+    {"name": "conc", "quantity": "substrate concentration", "unit": "ppm"},
+    {"name": "rate", "quantity": "initial reaction velocity", "unit": "counts/min/min"},
+    {"name": "state", "quantity": "cell treatment", "unit": null}
+  ],
+  "uncertainty": {"kind": "replicates", "note": "No stated measurement uncertainty; duplicates allow a pooled replicate standard deviation to be estimated."},
+  "applicability": "Michaelis–Menten fitting exercises and validation; not a general property of the enzyme.",
+  "rows": [
+    [0.02, 76, "treated"], [0.02, 47, "treated"], [0.06, 97, "treated"], [0.06, 107, "treated"], [0.11, 123, "treated"], [0.11, 139, "treated"],
+    [0.22, 159, "treated"], [0.22, 152, "treated"], [0.56, 191, "treated"], [0.56, 201, "treated"], [1.10, 207, "treated"], [1.10, 200, "treated"],
+    [0.02, 67, "untreated"], [0.02, 51, "untreated"], [0.06, 84, "untreated"], [0.06, 86, "untreated"], [0.11, 98, "untreated"], [0.11, 115, "untreated"],
+    [0.22, 131, "untreated"], [0.22, 124, "untreated"], [0.56, 144, "untreated"], [0.56, 158, "untreated"], [1.10, 160, "untreated"]
+  ],
+  "published_analyses": [
+    {"source_id": "bates_watts_1988", "model": "michaelis_menten", "subset": {"state": "treated"},
+     "estimates": {"Vm": {"value": 212.7, "standard_error": 6.947, "unit": "counts/min/min"}, "K": {"value": 0.06412, "standard_error": 0.008281, "unit": "ppm"}},
+     "residual_standard_error": 10.93, "degrees_of_freedom": 10}
+  ]
+}
