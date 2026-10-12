@@ -21,7 +21,7 @@ def test_every_maturity_claim_is_backed():
 
 def test_counts_and_honest_absence_of_data_validation():
     counts = maturity.summary()["counts"]
-    assert counts["validated_on_data"] == 0  # no comparison with sourced data exists yet (planned: jalon C/D)
+    assert counts["validated_on_data"] == 1  # v7.3: enzyme_kinetics validated on the Puromycin data (was 0 up to v7.2)
     assert counts["concept"] == sum(m["status"] == "workflow_template" for m in MODEL_CATALOG)
     assert sum(counts.values()) == len(maturity.summary()["models"])
 
@@ -48,7 +48,8 @@ def test_every_contract_exposes_maturity_equations_assumptions_and_validity():
 def test_catalogue_templates_are_conceptual_mockups():
     for m in MODEL_CATALOG:
         level = maturity.maturity_of(m["id"], m["status"])["level"]
-        assert level == ("concept" if m["status"] == "workflow_template" else "verified"), m["id"]
+        expected = ("concept",) if m["status"] == "workflow_template" else ("verified", "validated_on_data")  # v7.3: enzyme_kinetics validated on data
+        assert level in expected, m["id"]
 
 
 def test_catalogue_counts_announced_by_the_api_match_the_code():

@@ -61,7 +61,12 @@ MATURITY: dict[str, dict[str, Any]] = {
     "stoichiometry": {"level": "verified", "evidence": [
         _ev("analytical", "tests/test_v36_stoichiometry.py::test_neutralization_checks_atom_balance_and_calculates_extent", "Bilan atomique et avancement calculés à la main", "exact"),
         _ev("analytical", "tests/test_v46_chemistry.py::test_stoichiometry_result_values_in_dossier", "2 H₂ + O₂ → 2 H₂O", "exact")]},
-    "enzyme_kinetics": {"level": "verified", "evidence": [_ev("analytical", f"{V57}::test_enzyme_kinetics_against_michaelis_menten_properties", "v(Km) = Vmax/2", "1e-15")]},
+    "enzyme_kinetics": {"level": "validated_on_data", "evidence": [
+        _ev("analytical", f"{V57}::test_enzyme_kinetics_against_michaelis_menten_properties", "v(Km) = Vmax/2", "1e-15"),
+        {**_ev("data", "tests/test_v73_data_validation.py::test_puromycin_protocol_is_validated_and_rejects_its_negative_control",
+               "Protocole fixé en v7.3 : ajustement sur un réplicat, validation sur l'autre (Puromycine, cellules traitées) ; témoin négatif rejeté",
+               "RMSE de validation ≤ 2 × écart-type des réplicats"), "dataset_source": "puromycin_treloar_1974 (Treloar 1974 ; Bates & Watts 1988)"}],
+        "note": "Validé uniquement pour ce jeu de données et ses conditions."},
     "sir_epidemic": {"level": "verified", "evidence": [
         _ev("independent_solver", f"{V57}::test_sir_epidemic_against_adaptive_integration", "Pic épidémique contre intégration adaptative (dt = 0,01 j)", "0,5 % ; 0,31 % au pas par défaut 0,1 j")]},
     "heat_diffusion_1d": {"level": "verified", "evidence": [_ev("analytical", f"{V57}::test_heat_diffusion_against_fourier_series", "Série de Fourier exacte", "0,02 °C (observé 0,0095 °C)")]},
