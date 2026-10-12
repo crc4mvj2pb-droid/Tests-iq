@@ -1,5 +1,7 @@
 # Installation et vérification — Virtual Lab Platform
 
+> Guide complet (configuration, sauvegardes, mises à jour, récupération, support) : `GUIDE_ADMINISTRATION_FR.md`. Contrôle rapide d'une installation : `python scripts/install_check.py`.
+
 ## 1. Utiliser l'application (aucune bibliothèque à installer)
 1. Installer **Python 3.10 ou plus récent** (python.org). L'application n'utilise que la bibliothèque standard.
 2. Décompresser l'archive `virtual_lab_platform_v<version>.zip`.

@@ -1,67 +1,32 @@
 # Virtual Lab Platform
 
-**Laboratoire scientifique virtuel local, multidisciplinaire et extensible.** Prototype de recherche : une entrée de catalogue ne signifie pas qu'une simulation correspondante existe. Les résultats calculés ne sont pas des mesures expérimentales.
+**Laboratoire scientifique virtuel local, multidisciplinaire, traçable et honnête sur ses limites.** L'application tourne sur votre ordinateur (Python 3.10 ou plus récent, aucune bibliothèque tierce), dans votre navigateur, à l'adresse http://127.0.0.1:8765. Les résultats calculés sont des **simulations, pas des mesures**.
 
-## Version actuelle
+## Démarrer
+- macOS / Linux : `sh launch_macos_linux.sh` · Windows : `launch_windows.bat` · partout : `python app.py`
+- Guide d'utilisation : **`GUIDE_UTILISATEUR_FR.md`** · Installation, sauvegardes, mises à jour, support : **`GUIDE_ADMINISTRATION_FR.md`** et `INSTALLATION_FR.md`
+- Vérifier une installation : `python scripts/install_check.py`
 
-La version actuelle est définie dans `version.py`. À la racine se trouvent ses notes (`RELEASE_NOTES_v<version>_FR.md`), sa matrice de validation générée (`VALIDATION_MATRIX_v<version>.md`) et le rapport de tests généré (`TEST_RESULTS_v<version>.txt`). Installation, mise à jour et vérification : **`INSTALLATION_FR.md`**.
+## Ce que fait la plateforme
+| Domaine | Ce qui est réellement calculé |
+|---|---|
+| Électricité | Réseaux résistifs CC (paillasse graphique), transitoires RC/RL, RLC série (échelon, sinusoïdal, balayage) |
+| Chimie | Cinétique d'action de masse (3 intégrateurs dont un pour systèmes raides), stœchiométrie, Arrhenius, équilibres acide–base exacts et titrages |
+| Thermique | Corps à une capacité thermique (contrôle de Biot), murs composites, diffusion 1D |
+| Biologie | Michaelis–Menten (**validé sur données publiques**), croissance logistique, Lotka–Volterra |
+| Neurosciences | Intègre-et-tire, Hodgkin–Huxley (1952), FitzHugh–Nagumo |
+| Biomédical exploratoire | SIR, pharmacocinétique, Gompertz, Finke–Watzky — jamais à usage clinique |
+| Données | Catalogue sourcé, import CSV/JSON avec contrôle qualité, ajustement non linéaire avec diagnostics et validation séparée |
+| Traçabilité | Dossiers vérifiables, rejeu, journal, paquets reproductibles (un tiers relance le calcul), rapports scientifiques |
+| Assistant | À règles (pas un modèle de langage) : appels d'outils tracés, aucune valeur inventée, évaluation publiée |
+| Maintenance | Configuration validée, sauvegardes et restauration, diagnostic, mode récupération, projets partageables |
 
-Les documents de toutes les versions précédentes sont conservés dans `docs/history/`. La feuille de route et le brief d'audit sont dans `docs/`.
+Chaque modèle porte un **niveau de maturité vérifié par la machine** (maquette, calculable, vérifié, validé sur données) avec ses preuves. Voir `GET /api/maturity`, le rapport `BENCHMARK_REPORT_FR.md` (banc d'essai indépendant) et `ASSISTANT_EVAL_REPORT_FR.md`.
 
-## Démarrage rapide
+## Ce qu'elle ne fait pas
+Pas de SPICE ni de composants non linéaires ; pas de modèle de langage ; pas de collaboration multi-utilisateur ; aucune prédiction clinique ; un seul modèle validé sur données réelles (les autres sont vérifiés mathématiquement). Ne pas exposer le serveur sur un réseau.
 
-- Python 3.10 ou plus récent; aucun paquet Python tiers requis pour lancer le serveur.
-- Mac/Linux : `sh launch_macos_linux.sh`
-- Windows : double-cliquer sur `launch_windows.bat`.
-- Ouvrir `http://127.0.0.1:8765`.
-
-Le serveur écoute sur la boucle locale. Ne pas l'exposer directement à Internet.
-
-## Nouveauté v2.7 : le circuit graphique devient calculable
-
-Les composants électriques affichent des bornes nommées (`+`, `−`, `A`, `B`, `GND`). Un câble relie deux bornes précises. Les connexions sont converties en nœuds électriques, puis en netlist envoyée au solveur nodal CC. Le résultat comprend les tensions de nœuds, les courants, les chutes de tension, les puissances, la résistance équivalente, les contrôles de Kirchhoff et le bilan de puissance.
-
-Pour le premier circuit, ajouter une source CC, une résistance et une masse; relier `+` à `A`, `B` à `GND`, puis `−` à `GND`; cliquer sur **Résoudre le circuit CC câblé**. Les valeurs sont modifiables dans Propriétés. La paillasse et les câbles sont sauvegardés localement et exportables en JSON.
-
-### Domaine pris en charge par ce solveur graphique
-
-Une source idéale CC, une masse de référence, des fils idéaux et des résistances linéaires. Les condensateurs, inductances, interrupteurs, diodes, transistors et sources alternatives ne sont pas encore intégrés à ce solveur graphique. Des solveurs analytiques RC/RL et RLC séparés sont disponibles, mais ils ne sont pas automatiquement déduits du câblage de la paillasse. Ce n'est pas un remplacement de SPICE.
-
-## Autres fonctions conservées
-
-- Paillasse bilingue FR/EN au minimum, avec options NL/ES, bibliothèque catégorisée et export JSON.
-- Placement d'échantillons dans des machines, avec opérations explicitement prises en charge (par exemple, consigne thermique, Beer–Lambert avec paramètres fournis et bilans stœchiométriques limités).
-- Modèles numériques de cinétique enzymatique, croissance, réactions du premier ordre, pharmacocinétique pédagogique, dynamique prédateur-proie, neurone simplifié, SIR, diffusion thermique et autres modèles listés dans le registre.
-- Analyse d'incertitude Monte Carlo, sensibilité, balayage de paramètres, ajustement de paramètres et comparaison aux données de référence.
-- Analyse descriptive de CSV, import SBML partiel, provenance, dossier JSON, historique SQLite et outils de protocole.
-
-## Vérification
-
-Voir `INSTALLATION_FR.md`, section 4 : `python scripts/run_validation.py` génère la matrice de validation à partir des tests réellement exécutés. Les tests logiciels ne remplacent ni une validation scientifique indépendante, ni une vérification physique.
-
-## Architecture principale
-
-- `app.py` : serveur HTTP local (bibliothèque standard), routes de l'API, contrôle `Host`/`Origin`.
-- `static/index.html` : interface (paillasse, chimie, instruments, historique, outils de recherche).
-- `experiment_service.py` : cycle de vie des expériences (calcul → dossier → enregistrement → vérification → rejeu → export/import).
-- `dossier.py` : format de dossier unique (schéma 2), empreintes et vérification à trois niveaux.
-- `history.py` : historique SQLite avec migration de schéma et sauvegarde automatique.
-- `electrical_circuits.py`, `workbench_circuit.py` : solveur nodal CC (raffinement en précision mixte, incertitudes) et diagnostic de topologie de la paillasse.
-- `chemical_kinetics.py`, `reaction_stoichiometry.py` : cinétique RK4 avec estimation d'erreur, stœchiométrie avec contrôle des éléments.
-- `virtual_instruments.py`, `linked_measurements.py` : mesures simulées, et mesures reliées aux dossiers.
-- `electrical_advanced.py`, `models.py`, `research_tools.py`, `sbml_engine.py`, `lab_designer.py`, `protocol_engine.py` : autres modèles et outils (niveaux de vérification variables, voir la documentation de chaque version).
-- `scientific_library/` : catalogue, connaissances, constantes, unités et sources.
-- `tests/` : tests unitaires, d'API et de navigateur (`tests/browser/`, Playwright).
-- `scripts/` : validation générée, audit d'accessibilité, vérification de syntaxe, construction et vérification des archives.
-
-## Limites globales
-
-Le logiciel ne contient pas « tout ce que l'humanité connaît » et ne prétend pas le faire. La couverture doit grandir par intégration de bases de données scientifiques sourcées, avec provenance, licence, unités, incertitudes et domaine de validité. Les objets conceptuels, les modèles pédagogiques et les résultats calculés doivent rester clairement distingués.
-
-
-## v2.8 — Chemical reaction-network kinetics
-
-A new local endpoint, `POST /api/chemistry/kinetics`, integrates user-defined concentration-based reaction networks using fixed-step RK4. It supports elementary mass-action rate laws, constant-temperature Arrhenius scaling when activation energy is supplied, optional per-reaction atom-balance checks when formulas are provided, bounded network sizes, and explicit stability/error guards. See `RELEASE_NOTES_v2.8_FR.md` for the request format and limitations.
-
-## v3.0 — interface de cinétique chimique
-La v3.0 relie le solveur de réactions de v2.8 à un panneau interactif de l’interface. Voir `README_v3.0_FR.md`, `DEMARRAGE_RAPIDE_v3.0_FR.md` et `RELEASE_NOTES_v3.0_FR.md`.
+## Où trouver quoi
+- Notes de la version courante : `RELEASE_NOTES_v<version>_FR.md` ; matrice de validation générée : `VALIDATION_MATRIX_v<version>.md`
+- Bilans des grands jalons : `JALON_A_BILAN_FR.md` … `JALON_F_BILAN_FR.md` ; rapport final : `RAPPORT_FINAL_FR.md`
+- Architecture : `ARCHITECTURE_FR.md` ; historique des versions : `docs/history/` ; feuille de route : `docs/ROADMAP_VIRTUAL_LAB_PLATFORM_FR.md`

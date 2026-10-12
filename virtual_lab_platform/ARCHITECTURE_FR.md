@@ -40,3 +40,13 @@ Une expérience multi-modèles est une liste d'étapes. Chaque étape exécute u
 - Journal : table `experiment_events` (saved, verified, replayed, exported, imported, packaged).
 - Paquet reproductible : `GET /api/history/{id}/package` (ZIP : dossier, données, code embarqué, `reproduce.py`, `MANIFEST.json`).
 - L'empreinte du manifeste sert à l'intégrité ; ce n'est pas une signature.
+
+## Modules ajoutés de la v6.0 à la v9.4
+| Couche | Modules |
+|---|---|
+| Données et provenance (v6) | `data_catalog.py`, `references.py`, `data_import.py`, `fitting.py`, `trace_package.py`, `reports.py` |
+| Domaines et modèles (v7) | `domains.py`, `thermal.py`, `acid_base.py`, `data_validation.py`, `neuro.py`, `biomed.py`, `pipeline_analysis.py` |
+| Assistant (v8) | `assistant.py`, `research_question.py`, `protocol_design.py`, `task_graph.py`, `critical_analysis.py`, `iterative_planning.py`, `assistant_eval.py` (+ `evaluation/`) |
+| Installation et exploitation (v9) | `config.py`, `maintenance.py`, `security.py`, `observability.py`, `projects.py`, `scripts/install_check.py` |
+
+Règle constante : les moteurs de calcul n'importent ni `app`, ni `history`, ni le réseau (test v5.0). Les modules d'orchestration appellent les moteurs uniquement par leurs contrats.
