@@ -335,6 +335,38 @@
       "year": 1962,
       "version": "as cited",
       "license": "bibliographic reference (equations cited)"
+    },
+    {
+      "id": "gompertz_1825",
+      "kind": "article",
+      "citation": "B. Gompertz, On the nature of the function expressive of the law of human mortality, Philosophical Transactions of the Royal Society 115, 513–583 (1825)",
+      "year": 1825,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
+    },
+    {
+      "id": "laird_1964",
+      "kind": "article",
+      "citation": "A. K. Laird, Dynamics of tumour growth, British Journal of Cancer 18, 490–502 (1964)",
+      "year": 1964,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
+    },
+    {
+      "id": "watzky_finke_1997",
+      "kind": "article",
+      "citation": "M. A. Watzky, R. G. Finke, Transition metal nanocluster formation kinetic and mechanistic studies, Journal of the American Chemical Society 119, 10382–10400 (1997)",
+      "year": 1997,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
+    },
+    {
+      "id": "morris_2008",
+      "kind": "article",
+      "citation": "A. M. Morris, M. A. Watzky, J. N. Agar, R. G. Finke, Fitting neurological protein aggregation kinetic data via a 2-step, minimal/Ockham's razor model, Biochemistry 47, 2413–2427 (2008)",
+      "year": 2008,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
     }
   ]
 }

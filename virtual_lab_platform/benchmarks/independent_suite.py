@@ -310,6 +310,20 @@ def hh_no_spike_without_current():
     return _run("hodgkin_huxley", {"current_ua_cm2": 0.0, "duration_ms": 100.0})["spike_count"], 0
 
 
+def gompertz_inflection_size():
+    """At the inflection point of Gompertz growth the size equals K/e."""
+    k, v0, r = 100.0, 1.0, 0.1
+    t_inf = math.log(math.log(k / v0)) / r
+    d = _run("gompertz_growth", {"initial_size": v0, "carrying_capacity": k, "growth_rate": r, "duration": 2 * t_inf, "points": 3})
+    return d["rows"][1]["size"], k / math.e
+
+
+def finke_watzky_early_nucleation():
+    """At very short times [B] ≈ k1·A0·t (nucleation dominates)."""
+    d = _run("finke_watzky_aggregation", {"initial_monomer": 1.0, "k1": 1e-3, "k2": 1.0, "duration": 1e-3, "points": 3})
+    return d["rows"][-1]["aggregate"], 1e-3 * 1e-3
+
+
 # ---- units (SI Brochure, 9th edition, BIPM 2019; CODATA 2018) --------------------------------
 
 def unit_case(value, from_unit, to_unit, expected):
@@ -395,6 +409,11 @@ CASES = [
           kind="analytical", source="Trace du jacobien nulle à l'équilibre (FitzHugh 1961)", tol=1e-12, basis="formule fermée"),
     _case("hh_no_spike_without_current", "neurosciences", "hodgkin_huxley", "Hodgkin–Huxley au repos : aucun potentiel d'action sans courant", hh_no_spike_without_current,
           kind="analytical", source="Équilibre stable au potentiel de repos (Hodgkin & Huxley 1952)", tol=0, relative=False, basis="exact"),
+    _case("gompertz_inflection_size", "biomédical exploratoire", "gompertz_growth", "Gompertz : taille K/e au point d'inflexion", gompertz_inflection_size,
+          kind="analytical", source="Laird (1964)", tol=1e-12, basis="formule fermée"),
+    _case("finke_watzky_early_nucleation", "biomédical exploratoire", "finke_watzky_aggregation", "Finke–Watzky : régime initial [B] ≈ k1·A0·t", finke_watzky_early_nucleation,
+          kind="analytical", source="Développement limité de la solution de Watzky & Finke (1997)", tol=1e-3,
+          basis="terme suivant (k2·A0 + …)·t/2 ≈ 5e-4 relatif à t = 1e-3"),
     _case("unit_atm", "unités", "units", "1 atm = 101 325 Pa", unit_case(1.0, "atm", "Pa", 101325.0), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),
     _case("unit_ev", "unités", "units", "1 eV = 1,602 176 634e-19 J", unit_case(1.0, "eV", "J", 1.602176634e-19), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.) : e exact", tol=1e-15, basis="définition exacte"),
     _case("unit_celsius", "unités", "units", "25 °C = 298,15 K (conversion affine)", unit_case(25.0, "degC", "K", 298.15), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),

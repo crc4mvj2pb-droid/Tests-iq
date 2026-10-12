@@ -96,6 +96,14 @@
     "fitzhugh_nagumo": [
       "fitzhugh_1961",
       "nagumo_1962"
+    ],
+    "gompertz_growth": [
+      "gompertz_1825",
+      "laird_1964"
+    ],
+    "finke_watzky_aggregation": [
+      "watzky_finke_1997",
+      "morris_2008"
     ]
   }
 }

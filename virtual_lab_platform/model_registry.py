@@ -17,6 +17,7 @@ import reaction_stoichiometry
 import workbench_circuit
 import workbench_transient
 import thermal
+import biomed
 import neuro
 import acid_base
 from contracts import CONTRACT_VERSION, ContractError, check_contract, output, param, resolve_path, validate_inputs
@@ -285,6 +286,32 @@ register(_contract(
     ["FitzHugh (1961); Nagumo et al. (1962)"],
     ["dv/dt = v − v³/3 − w + I", "dw/dt = ε(v + a − b·w)", "Hopf: 1 − v*² − ε·b = 0"]),
     neuro.fitzhugh_nagumo, {"current": 0.5, "duration": 100.0})
+
+# ---- exploratory biomedical (v7.5) ------------------------------------------------------------
+
+register(_contract(
+    "gompertz_growth", biomed.ENGINE_VERSION, "Croissance de Gompertz (exploratoire)", "medicine", biomed.ENGINE_ID,
+    [param("initial_size", "number", unit="a.u.", minimum=0, exclusive_minimum=True, maximum=1e12, default=1.0),
+     param("carrying_capacity", "number", unit="a.u.", minimum=0, exclusive_minimum=True, maximum=1e12, default=100.0),
+     param("growth_rate", "number", unit="1/d", minimum=0, maximum=100, default=0.1),
+     param("duration", "number", unit="d", minimum=0, exclusive_minimum=True, maximum=1e5, default=60.0),
+     param("points", "integer", unit="1", minimum=3, maximum=5001, default=121)],
+    [output("final_size", "final_size", "a.u."), output("inflection_time", "inflection_time", "d")],
+    ["Deterministic growth, specific rate decaying exponentially", biomed.DISCLAIMER], ["Exploratory: not fitted to clinical data"], ["invalid_parameter"],
+    ["Gompertz (1825); Laird (1964)"], ["dV/dt = r·V·ln(K/V)", "V(t) = K·exp(ln(V0/K)·e^(−r·t))", "inflection at V = K/e"]),
+    biomed.gompertz, {"initial_size": 1.0, "carrying_capacity": 100.0, "growth_rate": 0.1})
+
+register(_contract(
+    "finke_watzky_aggregation", biomed.ENGINE_VERSION, "Agrégation en deux étapes de Finke–Watzky (exploratoire)", "medicine", biomed.ENGINE_ID,
+    [param("initial_monomer", "number", unit="a.u.", minimum=0, exclusive_minimum=True, maximum=1e6, default=1.0),
+     param("k1", "number", unit="1/h", minimum=0, exclusive_minimum=True, maximum=1e6, default=1e-3),
+     param("k2", "number", unit="1/h", minimum=0, exclusive_minimum=True, maximum=1e6, default=1.0, description="per unit of concentration (a.u.)"),
+     param("duration", "number", unit="h", minimum=0, exclusive_minimum=True, maximum=1e6, default=20.0),
+     param("points", "integer", unit="1", minimum=3, maximum=5001, default=201)],
+    [output("half_conversion_time", "half_conversion_time", "h"), output("final_aggregate", "final_aggregate", "a.u.")],
+    ["Nucleation A→B and autocatalytic growth A+B→2B in a closed well-mixed system", biomed.DISCLAIMER], ["Exploratory: phenomenological rate constants"], ["invalid_parameter"],
+    ["Watzky & Finke (1997); Morris et al. (2008)"], ["d[B]/dt = k1[A] + k2[A][B]", "[B](t) = A0 − (k1/k2 + A0)/(1 + (k1/(k2·A0))·e^((k1 + k2·A0)t))"]),
+    biomed.finke_watzky, {"initial_monomer": 1.0, "k1": 1e-3, "k2": 1.0})
 
 # ---- catalogue models (models.py) -----------------------------------------------------------
 

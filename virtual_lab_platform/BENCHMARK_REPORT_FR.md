@@ -1,12 +1,12 @@
-# Banc d'essai indépendant — Virtual Lab Platform v7.4
+# Banc d'essai indépendant — Virtual Lab Platform v7.5
 
-Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:52:13+00:00 (Python 3.13.16).
+Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:56:47+00:00 (Python 3.13.16).
 Les références sont calculées dans `benchmarks/independent_suite.py` : formule fermée, table publiée ou intégrateur écrit à part. Ce fichier n'est importé par aucun test unitaire de moteur. Les tolérances ont été fixées avant la première exécution, à partir de l'erreur connue de chaque méthode (colonne « Base de la tolérance »).
 
 ## Synthèse
 
-- **41 cas**, 22 moteurs ou modules, 11 domaines (biochimie, chimie, environnement, neurosciences, pharmacologie, physicochimie, thermique, unités, écologie, électricité, épidémiologie).
-- Conformes : 37 · limites connues reproduites : 2 · refus attendus obtenus : 2.
+- **43 cas**, 24 moteurs ou modules, 12 domaines (biochimie, biomédical exploratoire, chimie, environnement, neurosciences, pharmacologie, physicochimie, thermique, unités, écologie, électricité, épidémiologie).
+- Conformes : 39 · limites connues reproduites : 2 · refus attendus obtenus : 2.
 - Échecs : 0 · limites modifiées : 0 · non refusés : 0 · erreurs : 0.
 - Verdict : **tous les cas ont le résultat attendu**.
 
@@ -50,6 +50,8 @@ Les références sont calculées dans `benchmarks/independent_suite.py` : formul
 | Base forte 1e-3 mol/L : pH = 11 | physicochimie | `aqueous_acid_base` | analytical — pH + pOH = pKw avec [OH⁻] = C + Kw/[OH⁻] | 11 | 11 | 0 | 1e-09 (absolue) | formule fermée (quadratique) | conforme |
 | FitzHugh–Nagumo : courant de Hopf supérieur | neurosciences | `fitzhugh_nagumo` | analytical — Trace du jacobien nulle à l'équilibre (FitzHugh 1961) | 1.418718663 | 1.418718663 | 0 | 1e-12 (relative) | formule fermée | conforme |
 | Hodgkin–Huxley au repos : aucun potentiel d'action sans courant | neurosciences | `hodgkin_huxley` | analytical — Équilibre stable au potentiel de repos (Hodgkin & Huxley 1952) | 0 | 0 | 0 | 0 (absolue) | exact | conforme |
+| Gompertz : taille K/e au point d'inflexion | biomédical exploratoire | `gompertz_growth` | analytical — Laird (1964) | 36.78794412 | 36.78794412 | 1.931455407e-16 | 1e-12 (relative) | formule fermée | conforme |
+| Finke–Watzky : régime initial [B] ≈ k1·A0·t | biomédical exploratoire | `finke_watzky_aggregation` | analytical — Développement limité de la solution de Watzky & Finke (1997) | 1.000499666e-06 | 1e-06 | 0.000499666115 | 0.001 (relative) | terme suivant (k2·A0 + …)·t/2 ≈ 5e-4 relatif à t = 1e-3 | conforme |
 | 1 atm = 101 325 Pa | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 101325 | 101325 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 1 eV = 1,602 176 634e-19 J | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) : e exact | 1.602176634e-19 | 1.602176634e-19 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 25 °C = 298,15 K (conversion affine) | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 298.15 | 298.15 | 0 | 1e-15 (relative) | définition exacte | conforme |

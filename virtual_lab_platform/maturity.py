@@ -103,6 +103,13 @@ MATURITY: dict[str, dict[str, Any]] = {
     "fitzhugh_nagumo": {"level": "verified", "evidence": [
         _ev("analytical", "tests/test_v74_neuro.py::test_fhn_loses_stability_exactly_at_the_analytical_hopf_current", "Perte de stabilité au courant de Hopf analytique (trace du jacobien nulle)", "±0,02 en courant"),
         _ev("analytical", "tests/test_v74_neuro.py::test_fhn_equilibrium_is_an_exact_root", "Équilibre racine exacte du système", "1e-12")]},
+    "gompertz_growth": {"level": "verified", "evidence": [
+        _ev("independent_solver", "tests/test_v75_biomed.py::test_gompertz_against_independent_integration", "Intégration RK4 de dV/dt = rV ln(K/V)", "1e-9 relatif")],
+        "note": "Exploratoire : vérification mathématique seulement ; aucune donnée clinique."},
+    "finke_watzky_aggregation": {"level": "verified", "evidence": [
+        _ev("independent_solver", "tests/test_v75_biomed.py::test_finke_watzky_against_independent_integration", "Intégration RK4 des deux étapes", "1e-9 absolu"),
+        _ev("conserved_quantity", "tests/test_v75_biomed.py::test_finke_watzky_mass_conservation", "[A] + [B] = A0", "1e-12")],
+        "note": "Exploratoire : vérification mathématique seulement."},
     "model_fit": {"level": "verified", "evidence": [
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_puromycin_fit_reproduces_bates_and_watts", "Estimations et erreurs types de Bates & Watts (1988), Puromycine", "5e-4 relatif"),
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_bod_fit_reproduces_the_published_estimates", "Estimations publiées, DBO", "2e-4 relatif"),
