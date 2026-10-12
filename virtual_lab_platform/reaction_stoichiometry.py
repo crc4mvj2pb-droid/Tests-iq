@@ -15,6 +15,12 @@ class StoichiometryError(ValueError):
 
 
 _TOKEN = re.compile(r"([A-Z][a-z]?|\(|\)|\d+)")
+# 1.0: v3.6–v4.5. 1.1 (v4.6): element symbols checked against the periodic table.
+ENGINE_ID = "stoichiometric_batch_balance"
+ENGINE_VERSION = "1.1"
+ELEMENTS = frozenset("""H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr
+Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir
+Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og""".split())
 
 
 def parse_formula(formula: str) -> dict[str, int]:
@@ -51,6 +57,8 @@ def parse_formula(formula: str) -> dict[str, int]:
             if not re.fullmatch(r"[A-Z][a-z]?", token):
                 raise StoichiometryError(f"Expected an element symbol in formula {formula!r}.")
             element = token
+            if element not in ELEMENTS:
+                raise StoichiometryError(f"Unknown chemical element '{element}' in formula {formula!r}.")
             pos += 1
             multiplier = 1
             if pos < len(tokens) and tokens[pos].isdigit():

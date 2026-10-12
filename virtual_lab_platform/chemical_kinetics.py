@@ -7,6 +7,13 @@ from __future__ import annotations
 import math
 
 R_GAS = 8.31446261815324
+# 1.0: v2.8–v4.5. 2.0 (v4.6): unique reaction IDs, unbalanced reactions refused unless allowed,
+# step-doubling (Richardson) estimate of the RK4 global error with an accuracy warning.
+ENGINE_ID = "mass_action_rk4"
+ENGINE_VERSION = "2.0"
+# The error estimate repeats the run at dt/2; skipped above this work budget (steps × equations).
+ERROR_ESTIMATE_WORK_LIMIT = 2_000_000
+DISPLAY_RELATIVE_PRECISION = 1e-6  # final concentrations are displayed with 6 significant digits
 
 
 class ChemicalKineticsError(ValueError):
@@ -69,6 +76,8 @@ def simulate_reaction_network(request: dict) -> dict:
         rid = reaction.get("id", f"r{n}")
         if not isinstance(rid, str) or not rid.strip():
             raise ChemicalKineticsError("Reaction IDs must be non-empty strings.")
+        if any(p["id"] == rid for p in parsed):
+            raise ChemicalKineticsError(f"Reaction IDs must be unique: '{rid}' is used twice.")
         reactants, products = [], []
         for key, target in (("reactants", reactants), ("products", products)):
             side = reaction.get(key)
@@ -111,6 +120,18 @@ def simulate_reaction_network(request: dict) -> dict:
                 for el, count in atom_vectors[ids[i]].items():
                     deltas[el] = deltas.get(el, 0) + coeff * count
             atom_balance_checks[reaction["id"]] = all(abs(v) < 1e-12 for v in deltas.values())
+    unbalanced = [rid for rid, ok in atom_balance_checks.items() if not ok]
+    warnings = []
+    if unbalanced:
+        if request.get("allow_unbalanced") is not True:
+            raise ChemicalKineticsError(
+                f"Reaction(s) {', '.join(unbalanced)} are not atom-balanced with the supplied formulas. "
+                "Fix the formulas or coefficients, or set allow_unbalanced to simulate anyway.")
+        warnings.append({"code": "unbalanced_reaction", "params": {"reactions": ", ".join(unbalanced)},
+                         "message": f"Simulated although not atom-balanced: {', '.join(unbalanced)}."})
+    elif not atom_balance_checks:
+        warnings.append({"code": "atom_balance_not_checked", "params": {},
+                         "message": "Atom balance not checked: provide atom formulas for every species."})
 
     def rate_vector(conc):
         rates = []
@@ -131,22 +152,42 @@ def simulate_reaction_network(request: dict) -> dict:
     def add_scaled(y, terms, scale):
         return [max(-1e-12, y[i] + scale * terms[i]) for i in range(len(y))]
 
-    y = initial[:]
-    rows = [{"time": 0.0, **dict(zip(ids, y))}]
-    for step in range(steps):
-        k1, _ = rate_vector(y)
-        k2, _ = rate_vector(add_scaled(y, k1, dt / 2))
-        k3, _ = rate_vector(add_scaled(y, k2, dt / 2))
-        k4, _ = rate_vector(add_scaled(y, k3, dt))
-        next_y = [y[i] + dt * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]) / 6 for i in range(len(y))]
-        # A negative concentration beyond round-off signals an unstable step, not a valid result.
-        if any(v < -1e-8 for v in next_y):
-            raise ChemicalKineticsError(
-                f"Negative concentration encountered at t={(step+1)*dt:g}; reduce dt or check the kinetic model."
-            )
-        y = [0.0 if -1e-8 <= v < 0 else v for v in next_y]
-        if step == steps - 1 or (step + 1) % max(1, steps // 200) == 0:
-            rows.append({"time": (step + 1) * dt, **dict(zip(ids, y))})
+    def integrate(step_dt, n_steps, record):
+        y = initial[:]
+        rows = [{"time": 0.0, **dict(zip(ids, y))}] if record else None
+        for step in range(n_steps):
+            k1, _ = rate_vector(y)
+            k2, _ = rate_vector(add_scaled(y, k1, step_dt / 2))
+            k3, _ = rate_vector(add_scaled(y, k2, step_dt / 2))
+            k4, _ = rate_vector(add_scaled(y, k3, step_dt))
+            next_y = [y[i] + step_dt * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]) / 6 for i in range(len(y))]
+            # A negative concentration beyond round-off signals an unstable step, not a valid result.
+            if any(v < -1e-8 for v in next_y):
+                raise ChemicalKineticsError(
+                    f"Negative concentration encountered at t={(step+1)*step_dt:g}; reduce dt or check the kinetic model."
+                )
+            y = [0.0 if -1e-8 <= v < 0 else v for v in next_y]
+            if record and (step == n_steps - 1 or (step + 1) % max(1, n_steps // 200) == 0):
+                rows.append({"time": (step + 1) * step_dt, **dict(zip(ids, y))})
+        return y, rows
+
+    y, rows = integrate(dt, steps, True)
+    # Step doubling: for RK4 the global error of the dt run is ≈ (y_dt − y_dt/2)·16/15.
+    error_estimate = None
+    if 2 * steps * (len(ids) + len(parsed)) <= ERROR_ESTIMATE_WORK_LIMIT:
+        y_half, _ = integrate(dt / 2, 2 * steps, False)
+        error_estimate = {sid: abs(a - b) * 16 / 15 for sid, a, b in zip(ids, y, y_half)}
+        scale = max([abs(v) for v in initial] + [abs(v) for v in y] + [1e-300])
+        coarse = [sid for sid, v in zip(ids, y)
+                  if error_estimate[sid] > DISPLAY_RELATIVE_PRECISION * max(abs(v), 1e-9 * scale)]
+        if coarse:
+            worst = max(error_estimate[sid] / max(abs(v), 1e-9 * scale) for sid, v in zip(ids, y) if sid in coarse)
+            warnings.append({"code": "coarse_time_step", "params": {"species": ", ".join(coarse), "relative_error": worst},
+                             "message": f"Estimated RK4 error exceeds 6 significant digits for {', '.join(coarse)} "
+                                        f"(up to {worst:.1e} relative): reduce dt."})
+    else:
+        warnings.append({"code": "error_not_estimated", "params": {},
+                         "message": "Run too large for the step-doubling error estimate."})
 
     _, final_rates = rate_vector(y)
     initial_total = sum(initial)
@@ -167,8 +208,11 @@ def simulate_reaction_network(request: dict) -> dict:
             "nonnegative_concentrations": all(v >= 0 for v in y),
             "atom_balance_by_reaction": atom_balance_checks or None,
             "total_concentration_initial": initial_total,
-            "total_concentration_final": final_total
+            "total_concentration_final": final_total,
+            "estimated_final_error": error_estimate,
+            "error_estimate_method": "step doubling (dt vs dt/2), Richardson factor 16/15 for RK4" if error_estimate is not None else None
         },
+        "warnings": warnings,
         "assumptions": [
             "Well-mixed, constant-volume system; concentrations use user-defined consistent units.",
             "Elementary mass-action rate law: rate = k × product(reactant concentration ** stoichiometric coefficient).",

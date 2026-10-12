@@ -11,7 +11,9 @@ import math
 from datetime import datetime, timezone
 from typing import Any, Callable
 
+import chemical_kinetics
 import electrical_circuits
+import reaction_stoichiometry
 import engine as model_engine
 import history
 import lab_designer
@@ -92,6 +94,28 @@ def run_model_experiment(request: dict[str, Any]) -> dict[str, Any]:
     return _save(dossier)
 
 
+KINETICS_KEYS = ("species", "reactions", "duration", "dt", "temperature_k", "allow_unbalanced")
+STOICHIOMETRY_KEYS = ("reaction_id", "reaction_name", "reactants", "products", "species")
+
+
+def run_kinetics(request: dict[str, Any]) -> dict[str, Any]:
+    result = chemical_kinetics.simulate_reaction_network(request)
+    configuration = {k: request[k] for k in KINETICS_KEYS if k in request}
+    dossier = build_dossier(result, model_id="chemical_kinetics_network", title=request.get("name") or "Cinétique chimique — réseau de réactions",
+                            question=request.get("question") or "", configuration=configuration,
+                            engine_id=chemical_kinetics.ENGINE_ID, engine_version=chemical_kinetics.ENGINE_VERSION)
+    return _save(dossier)
+
+
+def run_stoichiometry(request: dict[str, Any]) -> dict[str, Any]:
+    result = reaction_stoichiometry.calculate_stoichiometry(request)
+    configuration = {k: request[k] for k in STOICHIOMETRY_KEYS if k in request}
+    dossier = build_dossier(result, model_id="chemical_stoichiometry", title=request.get("name") or f"Stœchiométrie — {request.get('reaction_name') or request.get('reaction_id', 'réaction')}",
+                            question=request.get("question") or "", configuration=configuration,
+                            engine_id=reaction_stoichiometry.ENGINE_ID, engine_version=reaction_stoichiometry.ENGINE_VERSION)
+    return _save(dossier)
+
+
 # ---- verification ----------------------------------------------------------------------------
 
 def _record(experiment_id: int) -> dict[str, Any]:
@@ -145,8 +169,44 @@ def _compare_workbench(original: dict[str, Any], replayed: dict[str, Any]) -> di
             "differences": differences[:20]}
 
 
+def _compare_values(pairs, relative=1e-12):
+    """Compare (name, original, replay) triples; deterministic engines must reproduce to round-off."""
+    differences, max_diff = [], 0.0
+    for name, a, b in pairs:
+        if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+            if a != b:
+                differences.append({"quantity": name, "original": a, "replay": b})
+            continue
+        diff = abs(a - b); max_diff = max(max_diff, diff)
+        tolerance = max(relative * max(abs(a), abs(b)), 1e-15)
+        if diff > tolerance:
+            differences.append({"quantity": name, "original": a, "replay": b, "difference": diff, "tolerance": tolerance})
+    return {"identical_within_tolerance": not differences, "compared_values": len(pairs), "max_abs_difference": max_diff,
+            "differences": differences[:20]}
+
+
+def _compare_kinetics(original: dict[str, Any], replayed: dict[str, Any]) -> dict[str, Any]:
+    pairs = [(f"[{sid}](t_final)", original["summary"]["final_concentrations"].get(sid), value)
+             for sid, value in replayed["summary"]["final_concentrations"].items()]
+    for i, (row_o, row_r) in enumerate(zip(original.get("rows", []), replayed.get("rows", []))):
+        pairs += [(f"[{sid}](t={row_r['time']:g})", row_o.get(sid), row_r[sid]) for sid in replayed["species_ids"]]
+    if len(original.get("rows", [])) != len(replayed.get("rows", [])):
+        pairs.append(("number of sampled rows", len(original.get("rows", [])), len(replayed.get("rows", []))))
+    return _compare_values(pairs)
+
+
+def _compare_stoichiometry(original: dict[str, Any], replayed: dict[str, Any]) -> dict[str, Any]:
+    pairs = [("reaction extent (mol)", original.get("reaction_extent_mol"), replayed.get("reaction_extent_mol")),
+             ("limiting reactants", original.get("limiting_reactants"), replayed.get("limiting_reactants"))]
+    for key in ("reactant_amounts_remaining_mol", "product_amounts_theoretical_mol"):
+        pairs += [(f"{key}[{sid}]", (original.get(key) or {}).get(sid), value) for sid, value in (replayed.get(key) or {}).items()]
+    return _compare_values(pairs)
+
+
 REPLAYERS: dict[str, tuple[Callable[[dict], dict], Callable[[dict, dict], dict], tuple[str, str]]] = {
     "electrical_workbench_dc": (lambda config: workbench_circuit.solve_workbench_circuit(_workbench_configuration(config)), _compare_workbench, WORKBENCH_ENGINE),
+    "chemical_kinetics_network": (chemical_kinetics.simulate_reaction_network, _compare_kinetics, (chemical_kinetics.ENGINE_ID, chemical_kinetics.ENGINE_VERSION)),
+    "chemical_stoichiometry": (reaction_stoichiometry.calculate_stoichiometry, _compare_stoichiometry, (reaction_stoichiometry.ENGINE_ID, reaction_stoichiometry.ENGINE_VERSION)),
 }
 
 

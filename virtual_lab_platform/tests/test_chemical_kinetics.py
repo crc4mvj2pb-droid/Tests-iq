@@ -18,7 +18,11 @@ class ChemicalKineticsTests(unittest.TestCase):
         with self.assertRaisesRegex(ChemicalKineticsError,"unknown species"): simulate_reaction_network(req)
     def test_flags_unbalanced_atom_stoichiometry(self):
         req=self.request(); req["species"][1]["atoms"]={"X":2}
+        # v4.6: an unbalanced reaction is refused by default; it is simulated and flagged only on explicit request.
+        with self.assertRaisesRegex(ChemicalKineticsError,"not atom-balanced"): simulate_reaction_network(req)
+        req["allow_unbalanced"]=True
         result=simulate_reaction_network(req); self.assertFalse(result["summary"]["atom_balance_by_reaction"]["convert"])
+        self.assertEqual(result["warnings"][0]["code"],"unbalanced_reaction")
     def test_rejects_unstable_timestep(self):
         req=self.request(); req["reactions"][0]["rate_constant"]=100; req["duration"]=1; req["dt"]=1
         with self.assertRaisesRegex(ChemicalKineticsError,"Negative concentration"): simulate_reaction_network(req)
