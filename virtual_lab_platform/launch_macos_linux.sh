@@ -24,5 +24,5 @@ echo "Python détecté : $VERSION"
   exit 1
 }
 
-echo "Démarrage de Virtual Lab sur http://127.0.0.1:8765"
+echo "Démarrage de Virtual Lab sur http://127.0.0.1:${VIRTUAL_LAB_PORT:-8765}"
 exec "$PYTHON" app.py

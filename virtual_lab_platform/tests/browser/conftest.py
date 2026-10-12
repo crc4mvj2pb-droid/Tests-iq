@@ -13,7 +13,20 @@ from pathlib import Path
 
 import pytest
 
-playwright_api = pytest.importorskip("playwright.sync_api", reason="Playwright is not installed (pip install -r requirements-dev.txt)")
+try:
+    import playwright.sync_api as playwright_api
+    PLAYWRIGHT_MISSING = None
+except ImportError as exc:  # each browser test is then reported as skipped, with this reason
+    playwright_api = None
+    PLAYWRIGHT_MISSING = f"Playwright non installé ({exc.name}) : pip install -r requirements-dev.txt puis python -m playwright install chromium"
+
+
+def pytest_collection_modifyitems(config, items):
+    if PLAYWRIGHT_MISSING:
+        marker = pytest.mark.skip(reason=PLAYWRIGHT_MISSING)
+        for item in items:
+            if "tests/browser" in str(item.fspath).replace("\\", "/"):
+                item.add_marker(marker)
 
 import app
 import history

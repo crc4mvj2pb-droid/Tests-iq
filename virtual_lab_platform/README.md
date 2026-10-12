@@ -4,7 +4,9 @@
 
 ## Version actuelle
 
-La version actuelle est définie dans `version.py`. Pour chaque version, consulter `README_v<version>_FR.md`, `RELEASE_NOTES_v<version>_FR.md` et la matrice générée `VALIDATION_MATRIX_v<version>.md`. Les documents des versions précédentes sont conservés.
+La version actuelle est définie dans `version.py`. À la racine se trouvent ses notes (`RELEASE_NOTES_v<version>_FR.md`), sa matrice de validation générée (`VALIDATION_MATRIX_v<version>.md`) et le rapport de tests généré (`TEST_RESULTS_v<version>.txt`). Installation, mise à jour et vérification : **`INSTALLATION_FR.md`**.
+
+Les documents de toutes les versions précédentes sont conservés dans `docs/history/`. La feuille de route et le brief d'audit sont dans `docs/`.
 
 ## Démarrage rapide
 
@@ -35,24 +37,22 @@ Une source idéale CC, une masse de référence, des fils idéaux et des résist
 
 ## Vérification
 
-```bash
-pytest -q
-python -m unittest discover -s tests -q
-python -m py_compile *.py tests/*.py
-```
-
-Les résultats de construction v2.7 sont dans `TEST_RESULTS_v2.7.txt`. Les tests logiciels ne remplacent ni une validation indépendante des modèles scientifiques, ni une vérification physique, ni un test Safari sur l'ordinateur de l'utilisateur.
+Voir `INSTALLATION_FR.md`, section 4 : `python scripts/run_validation.py` génère la matrice de validation à partir des tests réellement exécutés. Les tests logiciels ne remplacent ni une validation scientifique indépendante, ni une vérification physique.
 
 ## Architecture principale
 
-- `app.py` : serveur HTTP local et API.
-- `static/index.html` : interface interactive.
-- `electrical_circuits.py` : solveur nodal pour réseaux résistifs CC.
-- `workbench_circuit.py` : conversion des connexions graphiques bornes-à-bornes en netlist.
-- `electrical_advanced.py` : modèles analytiques RC/RL et RLC.
-- `models.py`, `research_tools.py`, `sbml_engine.py`, `lab_designer.py`, `protocol_engine.py` : modèles, outils de recherche et workflows.
-- `scientific_library/` : catalogue, connaissances, constantes, unités, sources et politique de traçabilité.
-- `tests/` : tests unitaires et de régression.
+- `app.py` : serveur HTTP local (bibliothèque standard), routes de l'API, contrôle `Host`/`Origin`.
+- `static/index.html` : interface (paillasse, chimie, instruments, historique, outils de recherche).
+- `experiment_service.py` : cycle de vie des expériences (calcul → dossier → enregistrement → vérification → rejeu → export/import).
+- `dossier.py` : format de dossier unique (schéma 2), empreintes et vérification à trois niveaux.
+- `history.py` : historique SQLite avec migration de schéma et sauvegarde automatique.
+- `electrical_circuits.py`, `workbench_circuit.py` : solveur nodal CC (raffinement en précision mixte, incertitudes) et diagnostic de topologie de la paillasse.
+- `chemical_kinetics.py`, `reaction_stoichiometry.py` : cinétique RK4 avec estimation d'erreur, stœchiométrie avec contrôle des éléments.
+- `virtual_instruments.py`, `linked_measurements.py` : mesures simulées, et mesures reliées aux dossiers.
+- `electrical_advanced.py`, `models.py`, `research_tools.py`, `sbml_engine.py`, `lab_designer.py`, `protocol_engine.py` : autres modèles et outils (niveaux de vérification variables, voir la documentation de chaque version).
+- `scientific_library/` : catalogue, connaissances, constantes, unités et sources.
+- `tests/` : tests unitaires, d'API et de navigateur (`tests/browser/`, Playwright).
+- `scripts/` : validation générée, audit d'accessibilité, vérification de syntaxe, construction et vérification des archives.
 
 ## Limites globales
 
