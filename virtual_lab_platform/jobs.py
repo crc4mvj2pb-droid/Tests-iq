@@ -108,6 +108,15 @@ ARGUMENTS = {"sweep": ("model_id", "base_inputs", "parameter", "values", "output
 
 def submit_from_request(request: dict) -> dict:
     kind = request.get("kind")
+    if kind == "research_plan":  # v8.3: formulate → design → execute as a cancellable task graph
+        import task_graph
+        question = request.get("question")
+        if not isinstance(question, str) or not question.strip():
+            raise analysis.AnalysisError("question is required for a research plan.", "invalid_analysis")
+        kwargs = {"question": question[:2000], "points": int(request.get("points", 7)),
+                  "time_limit_s": min(float(request.get("time_limit_s", task_graph.DEFAULT_TIME_LIMIT_S)), 600.0),
+                  "max_runs": min(int(request.get("max_runs", task_graph.DEFAULT_MAX_RUNS)), 2000)}
+        return MANAGER.submit(kind, task_graph.run_question, **kwargs)
     if kind not in KINDS:
         raise analysis.AnalysisError(f"kind must be one of {', '.join(KINDS)}.", "invalid_analysis")
     kwargs = {k: request[k] for k in ARGUMENTS[kind] if k in request}
