@@ -10,7 +10,7 @@
 | Thermique (v7.1) | 1D, une constante de temps (Bi < 0,1), murs composites | 5 cas | vérifié |
 | Biologie quantitative (v7.3) | Michaelis–Menten, logistique, Lotka–Volterra | 3 cas | vérifié ; **1 modèle validé sur données** (Puromycine) |
 | Neurosciences (v7.4) | Neurone unique ; aucun jumeau du cerveau | 4 cas | vérifié |
-| Biomédical exploratoire (v7.5) | Modèles pédagogiques et exploratoires, aucun usage clinique | 5 cas | vérifié (aucune donnée clinique) |
+| Biomédical exploratoire (v7.5) | Modèles pédagogiques et exploratoires, aucun usage clinique | 6 cas | vérifié (aucune donnée clinique) |
 | Processus environnementaux | Premier ordre, un compartiment | 1 cas | vérifié |
 
 Les nombres de cas sont ceux de `GET /api/domains` (un cas compte pour le modèle qu'il exerce).
@@ -30,6 +30,6 @@ Réserves :
 - l'interface affiche les domaines, mais les nouveaux modèles (thermique, acide–base, neurones, biomédical) ne s'utilisent que par l'API standard (`POST /api/models/{id}/run`), par le panneau d'analyses et par les chaînes multi-modèles. Ils n'ont pas de formulaire dédié.
 
 ## Chiffres
-- Validation générée : 1 078 tests passés en v7.5 (le total v7.6 figure dans la matrice).
+- Validation générée : 1 088 tests passés en v7.6 (`VALIDATION_MATRIX_v7.6.md`).
 - Banc indépendant : 43 cas.
 - Maturité : 29 modèles vérifiés, 1 validé sur données, 1 calculable, 33 maquettes.
