@@ -9,6 +9,10 @@
     "puromycin_treloar_1974": {
       "version": "1.0",
       "content_sha256": "a3d0a0abce5996259008af39ad4e2765c925ca311078b6b8595218f1c1788ceb"
+    },
+    "pka_aqueous_25c": {
+      "version": "1.0",
+      "content_sha256": "f62747cde8acbfcbea11cbd046a7c44eb9a648db2524c607d5ffbc786f1b4dbf"
     }
   }
 }

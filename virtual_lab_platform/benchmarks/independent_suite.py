@@ -248,6 +248,8 @@ def heat_unstable_refused():
 INCIDENTS = [
     "Arrhenius : la première version de la référence utilisait R = 8,314462618 J/(mol·K) (valeur tronquée) ; l'écart de 1,3e-11 venait "
     "de la référence, pas du moteur. Correction : R = N_A·k_B exact.",
+    "Base forte 1e-3 mol/L (v7.2) : la référence supposait l'autoprotolyse de l'eau négligeable (< 1e-10) ; l'effet réel vaut 4,3e-9 en pH. "
+    "La référence inclut désormais l'eau exactement (tolérance inchangée).",
     "SIR au pas de 1 jour : l'estimation a priori de l'erreur (≤ 5 %) a été dépassée (5,05 % observé). La borne supérieure, non démontrée, "
     "a été retirée pour ce cas de limite connue ; seul le seuil bas (> 0,5 %) est vérifié.",
 ]
@@ -283,6 +285,18 @@ def two_layer_wall_interface():
     d = _run("plane_wall_conduction", {"layers": [{"thickness_m": 0.1, "conductivity_w_mk": 1.0}, {"thickness_m": 0.05, "conductivity_w_mk": 0.05}],
                                        "area_m2": 2.0, "hot_temperature_k": 300.0, "cold_temperature_k": 260.0})
     return d["temperatures"][1]["temperature_k"], 300.0 - 40.0 * r1 / (r1 + r2)
+
+
+def acetate_buffer_ph():
+    """Equal amounts of acetic acid and acetate (0.1 mol/L each): the exact pH is within 1e-3 of pKa for this concentration."""
+    d = _run("aqueous_acid_base", {"weak_systems": [{"name": "acetic", "pka": [4.756], "total_concentration_mol_l": 0.2}], "strong_base_mol_l": 0.1})
+    return d["ph"], 4.756
+
+
+def strong_base_ph():
+    d = _run("aqueous_acid_base", {"strong_base_mol_l": 1e-3})
+    oh = (1e-3 + math.sqrt(1e-6 + 4e-14)) / 2  # [OH⁻] = C + Kw/[OH⁻] (water autoionisation included exactly)
+    return d["ph"], 14.0 + math.log10(oh)
 
 
 # ---- units (SI Brochure, 9th edition, BIPM 2019; CODATA 2018) --------------------------------
@@ -361,6 +375,11 @@ CASES = [
           kind="analytical", source="Loi de refroidissement de Newton (Incropera et al., §5.2)", tol=1e-12, basis="formule fermée"),
     _case("two_layer_wall_interface", "thermique", "plane_wall_conduction", "Mur à deux couches : température d'interface (diviseur de résistances)", two_layer_wall_interface,
           kind="analytical", source="Résistances thermiques en série (Incropera et al., §3.1)", tol=1e-12, basis="formule fermée"),
+    _case("acetate_buffer_ph", "physicochimie", "aqueous_acid_base", "Tampon acétate équimolaire : pH = pKa", acetate_buffer_ph,
+          kind="analytical", source="Henderson–Hasselbalch dans son domaine de validité (Atkins & de Paula)", tol=1e-3, relative=False,
+          basis="écart dû à [H⁺] ≪ 0,1 mol/L : |ΔpH| < 1e-3"),
+    _case("strong_base_ph", "physicochimie", "aqueous_acid_base", "Base forte 1e-3 mol/L : pH = 11", strong_base_ph,
+          kind="analytical", source="pH + pOH = pKw avec [OH⁻] = C + Kw/[OH⁻]", tol=1e-9, relative=False, basis="formule fermée (quadratique)"),
     _case("unit_atm", "unités", "units", "1 atm = 101 325 Pa", unit_case(1.0, "atm", "Pa", 101325.0), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),
     _case("unit_ev", "unités", "units", "1 eV = 1,602 176 634e-19 J", unit_case(1.0, "eV", "J", 1.602176634e-19), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.) : e exact", tol=1e-15, basis="définition exacte"),
     _case("unit_celsius", "unités", "units", "25 °C = 298,15 K (conversion affine)", unit_case(25.0, "degC", "K", 298.15), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),

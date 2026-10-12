@@ -71,7 +71,7 @@ MODEL_CATALOG = [
 # Additional discoverable model/workflow templates. These entries are intentionally
 # L0: they document research directions but do not claim a solver exists.
 _EXTRA_MODEL_TEMPLATES = [
-("acid_base_equilibrium","Acid–base equilibrium","chemistry","Equilibrium speciation from pKa, activities and charge balance; solver not yet connected."),
+("acid_base_equilibrium","Acid–base equilibrium","chemistry","Equilibrium speciation from pKa, activities and charge balance; this conceptual entry is not connected — the computing model is aqueous_acid_base (v7.2, without activity corrections)."),
 ("redox_electrochemistry","Redox and electrochemistry","chemistry","Electrode potentials and coupled redox equilibria; thermodynamic database and solver not connected."),
 ("chemical_equilibrium","General chemical equilibrium","chemistry","Equilibrium constants, activities and mass/charge balance; general equilibrium solver not connected."),
 ("reaction_diffusion","Reaction–diffusion system","physics","Coupled spatial transport and reaction kinetics; PDE solver not connected."),

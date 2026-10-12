@@ -85,6 +85,12 @@ MATURITY: dict[str, dict[str, Any]] = {
     "plane_wall_conduction": {"level": "verified", "evidence": [
         _ev("independent_solver", "tests/test_v71_thermal.py::test_composite_wall_against_finite_differences", "Différences finies de l'équation de conduction stationnaire, 3 couches", "1e-9 relatif"),
         _ev("analytical", "tests/test_v71_thermal.py::test_single_layer_hand_calculation", "q = kAΔT/L calculé à la main", "1e-12 relatif")]},
+    "aqueous_acid_base": {"level": "verified", "evidence": [
+        _ev("independent_solver", "tests/test_v72_acid_base.py::test_weak_acid_against_independent_cubic_solution", "Racine de l'équation cubique exacte par Newton, écrite à part", "1e-9 pH"),
+        _ev("analytical", "tests/test_v72_acid_base.py::test_strong_acid_and_base_closed_forms", "Acide fort avec autoprotolyse de l'eau (quadratique)", "1e-9 pH"),
+        _ev("conserved_quantity", "tests/test_v72_acid_base.py::test_charge_and_mass_balances_hold", "Bilans de charges et de matière", "1e-12")]},
+    "aqueous_titration": {"level": "verified", "evidence": [
+        _ev("analytical", "tests/test_v72_acid_base.py::test_titration_landmarks", "Volume d'équivalence C·V/Cb ; pH à la demi-équivalence ≈ pKa", "1e-12 mL / 0,01 pH")]},
     "model_fit": {"level": "verified", "evidence": [
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_puromycin_fit_reproduces_bates_and_watts", "Estimations et erreurs types de Bates & Watts (1988), Puromycine", "5e-4 relatif"),
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_bod_fit_reproduces_the_published_estimates", "Estimations publiées, DBO", "2e-4 relatif"),

@@ -80,6 +80,14 @@
     "plane_wall_conduction": [
       "fourier_1822",
       "incropera_2007"
+    ],
+    "aqueous_acid_base": [
+      "haynes_crc_2016",
+      "atkins_depaula_2014"
+    ],
+    "aqueous_titration": [
+      "haynes_crc_2016",
+      "atkins_depaula_2014"
     ]
   }
 }

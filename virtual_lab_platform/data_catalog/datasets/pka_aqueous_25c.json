@@ -1,0 +1,25 @@
+{
+  "id": "pka_aqueous_25c",
+  "version": "1.0",
+  "title": "Acid dissociation constants (pKa) of common acids in water at 25 °C",
+  "data_kind": "reference",
+  "domain": "physical chemistry",
+  "source_ids": ["haynes_crc_2016"],
+  "license": "Factual values; CRC Handbook tables are copyrighted as a compilation — only a few individual values are reproduced here.",
+  "description": "Thermodynamic pKa values (extrapolated to zero ionic strength) as tabulated in the CRC Handbook and widely reproduced in textbooks. Approximate: rounded to 2–3 decimals.",
+  "conditions": {"temperature_k": 298.15, "ionic_strength": "zero (extrapolated)"},
+  "columns": [
+    {"name": "acid", "quantity": "acid (fully protonated form)", "unit": null},
+    {"name": "step", "quantity": "dissociation step", "unit": "1"},
+    {"name": "pka", "quantity": "-log10(Ka)", "unit": "1"}
+  ],
+  "uncertainty": {"kind": "rounding", "note": "Values are rounded; literature values differ by up to a few hundredths. Approximate — check the consulted edition before research use."},
+  "applicability": "Dilute aqueous solutions near 25 °C; activity corrections needed at higher ionic strength.",
+  "approximate": true,
+  "rows": [
+    ["acetic acid", 1, 4.756], ["formic acid", 1, 3.75], ["benzoic acid", 1, 4.20], ["ammonium", 1, 9.25],
+    ["phosphoric acid", 1, 2.16], ["phosphoric acid", 2, 7.21], ["phosphoric acid", 3, 12.32],
+    ["carbonic acid", 1, 6.35], ["carbonic acid", 2, 10.33],
+    ["citric acid", 1, 3.13], ["citric acid", 2, 4.76], ["citric acid", 3, 6.40]
+  ]
+}

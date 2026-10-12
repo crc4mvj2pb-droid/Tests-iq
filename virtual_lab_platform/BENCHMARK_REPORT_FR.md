@@ -1,12 +1,12 @@
-# Banc d'essai indépendant — Virtual Lab Platform v7.1
+# Banc d'essai indépendant — Virtual Lab Platform v7.2
 
-Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:31:00+00:00 (Python 3.13.16).
+Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:42:58+00:00 (Python 3.13.16).
 Les références sont calculées dans `benchmarks/independent_suite.py` : formule fermée, table publiée ou intégrateur écrit à part. Ce fichier n'est importé par aucun test unitaire de moteur. Les tolérances ont été fixées avant la première exécution, à partir de l'erreur connue de chaque méthode (colonne « Base de la tolérance »).
 
 ## Synthèse
 
-- **37 cas**, 19 moteurs ou modules, 10 domaines (biochimie, chimie, environnement, neurosciences, pharmacologie, thermique, unités, écologie, électricité, épidémiologie).
-- Conformes : 33 · limites connues reproduites : 2 · refus attendus obtenus : 2.
+- **39 cas**, 20 moteurs ou modules, 11 domaines (biochimie, chimie, environnement, neurosciences, pharmacologie, physicochimie, thermique, unités, écologie, électricité, épidémiologie).
+- Conformes : 35 · limites connues reproduites : 2 · refus attendus obtenus : 2.
 - Échecs : 0 · limites modifiées : 0 · non refusés : 0 · erreurs : 0.
 - Verdict : **tous les cas ont le résultat attendu**.
 
@@ -46,6 +46,8 @@ Les références sont calculées dans `benchmarks/independent_suite.py` : formul
 | Pharmacocinétique : aire sous la courbe = dose/clairance | pharmacologie | `one_compartment_pk` | analytical — Gibaldi & Perrier, Pharmacokinetics : AUC = D/CL | 49.98808117 | 50 | 0.0002383766031 | 0.001 (relative) | trapèzes sur 1 000 intervalles (erreur ~(kΔt)²/12 ≈ 6e-6) et queue après 12 demi-vies (2,4e-4) | conforme |
 | Refroidissement newtonien : température après t = τ·ln(3) | thermique | `lumped_thermal_transient` | analytical — Loi de refroidissement de Newton (Incropera et al., §5.2) | 310 | 310 | 0 | 1e-12 (relative) | formule fermée | conforme |
 | Mur à deux couches : température d'interface (diviseur de résistances) | thermique | `plane_wall_conduction` | analytical — Résistances thermiques en série (Incropera et al., §3.1) | 296.3636364 | 296.3636364 | 0 | 1e-12 (relative) | formule fermée | conforme |
+| Tampon acétate équimolaire : pH = pKa | physicochimie | `aqueous_acid_base` | analytical — Henderson–Hasselbalch dans son domaine de validité (Atkins & de Paula) | 4.756152282 | 4.756 | 0.0001522817648 | 0.001 (absolue) | écart dû à [H⁺] ≪ 0,1 mol/L : |ΔpH| < 1e-3 | conforme |
+| Base forte 1e-3 mol/L : pH = 11 | physicochimie | `aqueous_acid_base` | analytical — pH + pOH = pKw avec [OH⁻] = C + Kw/[OH⁻] | 11 | 11 | 0 | 1e-09 (absolue) | formule fermée (quadratique) | conforme |
 | 1 atm = 101 325 Pa | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 101325 | 101325 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 1 eV = 1,602 176 634e-19 J | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) : e exact | 1.602176634e-19 | 1.602176634e-19 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 25 °C = 298,15 K (conversion affine) | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 298.15 | 298.15 | 0 | 1e-15 (relative) | définition exacte | conforme |
@@ -62,6 +64,7 @@ Les références sont calculées dans `benchmarks/independent_suite.py` : formul
 ## Incidents de la première exécution
 
 - Arrhenius : la première version de la référence utilisait R = 8,314462618 J/(mol·K) (valeur tronquée) ; l'écart de 1,3e-11 venait de la référence, pas du moteur. Correction : R = N_A·k_B exact.
+- Base forte 1e-3 mol/L (v7.2) : la référence supposait l'autoprotolyse de l'eau négligeable (< 1e-10) ; l'effet réel vaut 4,3e-9 en pH. La référence inclut désormais l'eau exactement (tolérance inchangée).
 - SIR au pas de 1 jour : l'estimation a priori de l'erreur (≤ 5 %) a été dépassée (5,05 % observé). La borne supérieure, non démontrée, a été retirée pour ce cas de limite connue ; seul le seuil bas (> 0,5 %) est vérifié.
 
 ## Ce que ce banc ne montre pas

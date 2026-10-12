@@ -295,6 +295,14 @@
       "year": 1954,
       "version": "as cited",
       "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "haynes_crc_2016",
+      "kind": "handbook",
+      "citation": "W. M. Haynes (ed.), CRC Handbook of Chemistry and Physics, 97th edition, CRC Press (2016), section 5: dissociation constants of inorganic and organic acids in aqueous solution",
+      "year": 2016,
+      "version": "97th edition; values as commonly reproduced (the handbook itself was not consulted in this environment)",
+      "license": "copyrighted compilation; individual factual values cited"
     }
   ]
 }

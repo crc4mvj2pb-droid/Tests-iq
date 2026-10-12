@@ -31,7 +31,7 @@ def test_shipped_datasets_follow_the_schema_and_cite_known_sources():
     sources = data_catalog.load_sources()
     assert {d["id"] for d in datasets} >= {"puromycin_treloar_1974", "bod_marske_1967"}
     for d in datasets:
-        assert d["data_kind"] == "experimental" and d["source_ids"] and all(s in sources for s in d["source_ids"])
+        assert d["data_kind"] in ("experimental", "reference") and d["source_ids"] and all(s in sources for s in d["source_ids"])
         assert d["license"] and d["applicability"] and len(d["content_sha256"]) == 64
     p = data_catalog.get_entry("puromycin_treloar_1974")
     assert len(p["rows"]) == 23 and len(data_catalog.column_values(p, "rate", {"state": "treated"})) == 12

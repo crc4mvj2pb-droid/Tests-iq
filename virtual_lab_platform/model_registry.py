@@ -17,6 +17,7 @@ import reaction_stoichiometry
 import workbench_circuit
 import workbench_transient
 import thermal
+import acid_base
 from contracts import CONTRACT_VERSION, ContractError, check_contract, output, param, resolve_path, validate_inputs
 from models import execute_model
 import references
@@ -226,6 +227,33 @@ register(_contract(
     ["q = ΔT/ΣR", "R_layer = L/(k·A)", "R_conv = 1/(h·A)"]),
     thermal.plane_wall, {"layers": [{"name": "brick", "thickness_m": 0.2, "conductivity_w_mk": 0.7}, {"name": "insulation", "thickness_m": 0.05, "conductivity_w_mk": 0.04}],
                          "h_hot_w_m2k": 8.0, "h_cold_w_m2k": 25.0})
+
+# ---- physical chemistry (v7.2) -----------------------------------------------------------------
+
+register(_contract(
+    "aqueous_acid_base", acid_base.ENGINE_VERSION, "Équilibres acide–base en solution aqueuse (bilan de charges exact)", "chemistry", acid_base.ENGINE_ID,
+    [param("weak_systems", "array", default=[], description="[{name, pka: [pKa1, …], total_concentration_mol_l, charge_of_fully_protonated}] (pKa: data_catalog pka_aqueous_25c)"),
+     param("strong_acid_mol_l", "number", unit="mol/L", minimum=0, maximum=20, default=0.0, description="Anions of fully dissociated acids (e.g. Cl⁻ from HCl)"),
+     param("strong_base_mol_l", "number", unit="mol/L", minimum=0, maximum=20, default=0.0, description="Cations of fully dissociated bases or salts (e.g. Na⁺)"),
+     param("pkw", "number", unit="1", minimum=10, maximum=16, default=14.0)],
+    [output("ph", "ph", "1"), output("charge_balance_residual", "checks.charge_balance_residual_mol_l", "mol/L")],
+    ["Ideal dilute solution (activities = concentrations)", "25 °C", "Strong acids and bases fully dissociated"],
+    ["Ionic strength ≲ 0.1 mol/L for activity effects to stay small", "pH searched between −1.5 and 15.5"],
+    ["invalid_parameter", "invalid_systems", "no_solution"], ["Charge and mass balances (Harris-type systematic treatment); pKa: CRC Handbook"],
+    ["α_j = Π Ka_i·h^(n−j) / Σ_k Π Ka_i·h^(n−k)", "h + Σ cations = Kw/h + Σ anions (charge balance)", "pH = −log10 h"]),
+    acid_base.equilibrium, {"weak_systems": [{"name": "acetic acid", "pka": [4.756], "total_concentration_mol_l": 0.1}]})
+
+register(_contract(
+    "aqueous_titration", acid_base.ENGINE_VERSION, "Titrage d'un acide faible par une base forte", "chemistry", acid_base.ENGINE_ID,
+    [param("analyte", "object", required=True, description="{name, pka: [...], total_concentration_mol_l}"),
+     param("analyte_volume_ml", "number", unit="mL", minimum=0, exclusive_minimum=True, maximum=1e5, default=25.0),
+     param("titrant_concentration_mol_l", "number", unit="mol/L", minimum=0, exclusive_minimum=True, maximum=20, default=0.1),
+     param("max_titrant_ml", "number", unit="mL", minimum=0, exclusive_minimum=True, maximum=1e5, default=50.0),
+     param("points", "integer", unit="1", minimum=3, maximum=2001, default=101)],
+    [output("first_equivalence_volume", "equivalence_volumes_ml[0]", "mL")],
+    ["As acid_base_equilibrium; additive volumes"], ["Monoprotic or polyprotic weak acid analyte"], ["invalid_parameter", "invalid_systems"],
+    ["Charge balance with dilution"], ["V_eq = C_a·V_a/C_b (first equivalence)", "pH from the exact charge balance at each added volume"]),
+    acid_base.titration, {"analyte": {"name": "acetic acid", "pka": [4.756], "total_concentration_mol_l": 0.1}})
 
 # ---- catalogue models (models.py) -----------------------------------------------------------
 
