@@ -11,6 +11,8 @@ import hashlib, json, math
 from typing import Any
 from lab_designer import COMPONENTS, EQUIPMENT, validate_experiment
 
+ENGINE_ID = "structured_protocol"
+ENGINE_VERSION = "1.0"
 MAX_STEPS = 40
 MAX_FLOWS = 100
 MEASUREMENT_CAPABILITIES = {

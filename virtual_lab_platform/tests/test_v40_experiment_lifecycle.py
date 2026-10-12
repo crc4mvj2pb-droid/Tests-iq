@@ -21,13 +21,30 @@ def test_circuit_workbench_uses_persisting_run_endpoint():
     assert "configuration_hash" in HTML
 
 
-def test_endpoint_creates_reproducible_configuration_hash_and_saves_history():
-    start = APP.index('elif parsed.path in ("/api/electrical/workbench-solve", "/api/electrical/workbench-run")')
-    block = APP[start:start + 1600]
-    # v4.2: the unused local sort_keys serialization was removed; canonical hashing lives in experiment_lifecycle.
-    assert "sort_keys=True" in (ROOT / "experiment_lifecycle.py").read_text(encoding="utf-8")
-    for required in ("configuration", "configuration_hash(configuration)", 'result["status"] = "completed"', 'result["data_status"] = "simulated_calculation"', 'result["history_record"] = save_experiment(result)'):
-        assert required in block
+def test_endpoint_creates_reproducible_configuration_hash_and_saves_history(tmp_path, monkeypatch):
+    # v4.5: the lifecycle moved to experiment_service.py; the same guarantees are now checked by behaviour
+    # (real HTTP call) instead of searching for source lines in app.py.
+    import threading, urllib.request
+    from http.server import ThreadingHTTPServer
+    import app, history
+    from experiment_lifecycle import configuration_hash
+    monkeypatch.setattr(history, "DB_PATH", tmp_path / "v40.sqlite3")
+    server = ThreadingHTTPServer(("127.0.0.1", 0), app.Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+    try:
+        body = {"name": "v40", "components": [{"instanceId": "s", "id": "dc-source", "displayName": "S", "qty": 9},
+                {"instanceId": "r", "id": "resistor", "displayName": "R", "qty": 1000}, {"instanceId": "g", "id": "ground", "displayName": "G", "qty": 0}],
+                "connections": [{"a": "s", "pinA": "P", "b": "r", "pinB": "A"}, {"a": "r", "pinA": "B", "b": "g", "pinB": "GND"},
+                                {"a": "s", "pinA": "N", "b": "g", "pinB": "GND"}]}
+        req = urllib.request.Request(f"http://127.0.0.1:{server.server_address[1]}/api/electrical/workbench-run", data=json.dumps(body).encode(), method="POST")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            result = json.load(response)
+    finally:
+        server.shutdown(); server.server_close(); thread.join(timeout=3)
+    assert result["configuration"] == {"components": body["components"], "connections": body["connections"]}
+    assert result["configuration_hash"] == configuration_hash(result["configuration"])
+    assert result["status"] == "completed" and result["data_status"] == "simulated_calculation"
+    assert history.get_experiment(result["history_record"]["id"])["configuration_hash"] == result["configuration_hash"]
 
 
 def test_old_non_persisting_solver_remains_available_for_compatibility():

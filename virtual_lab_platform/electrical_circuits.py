@@ -8,6 +8,10 @@ import math
 import sys
 from fractions import Fraction
 
+# 1.0: v2.x–v4.3 Gauss-Jordan. 2.0 (v4.4): LU + mixed-precision refinement, published uncertainties.
+ENGINE_ID = "dc_resistive_nodal"
+ENGINE_VERSION = "2.0"
+
 class CircuitError(ValueError):
     pass
 

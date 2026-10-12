@@ -17,14 +17,16 @@ sys.path.insert(0, str(ROOT))
 from version import APP_VERSION  # noqa: E402
 
 EXCLUDED_DIRS = {"__pycache__", ".pytest_cache", "test-artifacts", "dist", ".git"}
-EXCLUDED_SUFFIXES = {".pyc", ".sqlite3", ".sqlite3-journal"}
+EXCLUDED_SUFFIXES = {".pyc", ".sqlite3-journal"}
+# The user's history database and its migration backups are local data, never packaged.
+EXCLUDED_PREFIXES = ("virtual_lab_history.sqlite3",)
 
 
 def release_files() -> list[Path]:
     files = []
     for path in sorted(ROOT.rglob("*")):
         rel = path.relative_to(ROOT)
-        if path.is_dir() or any(part in EXCLUDED_DIRS for part in rel.parts) or path.suffix in EXCLUDED_SUFFIXES:
+        if path.is_dir() or any(part in EXCLUDED_DIRS for part in rel.parts) or path.suffix in EXCLUDED_SUFFIXES or path.name.startswith(EXCLUDED_PREFIXES):
             continue
         files.append(path)
     return files
@@ -50,7 +52,7 @@ def main() -> int:
         for line in listed:
             digest, rel = line.split("  ", 1)
             assert hashlib.sha256(zf.read(f"{folder}/{rel}")).hexdigest() == digest, rel
-        assert not [n for n in zf.namelist() if n.endswith((".sqlite3", ".pyc"))]
+        assert not [n for n in zf.namelist() if n.endswith(".pyc") or "virtual_lab_history.sqlite3" in n]
     archive_digest = hashlib.sha256(target.read_bytes()).hexdigest()
     print(f"{target} — {len(listed)} files verified — SHA-256 {archive_digest}")
     return 0

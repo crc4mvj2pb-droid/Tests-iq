@@ -4,6 +4,9 @@ from datetime import datetime, timezone
 from typing import Any
 from models import execute_model, MODEL_CATALOG_BY_ID
 
+ENGINE_ID = "model_catalog_runner"
+ENGINE_VERSION = "1.0"
+
 def canonical_hash(obj: Any) -> str:
     payload = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()

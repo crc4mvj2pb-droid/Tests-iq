@@ -11,6 +11,11 @@ import math
 from electrical_circuits import solve_dc_circuit
 
 
+# 1.0: v2.7–v4.1. 2.0 (v4.2–v4.4): error codes, value validation, floating/no-current topology diagnostics.
+ENGINE_ID = "workbench_dc_topology"
+ENGINE_VERSION = "2.0"
+
+
 class WorkbenchCircuitError(ValueError):
     """Invalid or unsupported topology assembled in the graphical workbench.
 

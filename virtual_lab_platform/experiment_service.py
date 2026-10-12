@@ -1,0 +1,241 @@
+"""Experiment lifecycle shared by the API: run → schema-2 dossier → save → verify → replay → export/import.
+
+Each saving endpoint goes through this module so that every record uses the same dossier
+format (see dossier.py). Replay is available only for models registered in REPLAYERS: the
+saved configuration is re-run with the current engine, and the new results are compared
+with the recorded ones within the published numerical uncertainties.
+"""
+from __future__ import annotations
+
+import math
+from datetime import datetime, timezone
+from typing import Any, Callable
+
+import electrical_circuits
+import engine as model_engine
+import history
+import lab_designer
+import protocol_engine
+import workbench_circuit
+from dossier import build_dossier, dossier_content_hash, legacy_model_id, verify_dossier
+from equipment_models import apply_equipment_operating_effects, apply_material_flow_model
+from version import APP_VERSION
+
+EXPORT_FORMAT_DOSSIER = "virtual-lab-dossier"
+EXPORT_FORMAT_HISTORY = "virtual-lab-history"
+EXPORT_FORMAT_VERSION = 1
+MAX_IMPORT_RECORDS = 500
+
+
+class ServiceError(ValueError):
+    """Request refused by the lifecycle (with an HTTP status code)."""
+
+    def __init__(self, message: str, status: int = 400, **details):
+        super().__init__(message)
+        self.status = status
+        self.details = details
+
+
+def _save(dossier: dict[str, Any]) -> dict[str, Any]:
+    dossier["history_record"] = history.save_experiment(dossier)
+    return dossier
+
+
+# ---- running and saving ----------------------------------------------------------------------
+
+WORKBENCH_ENGINE = ("workbench_dc", f"topology-{workbench_circuit.ENGINE_VERSION}+nodal-{electrical_circuits.ENGINE_VERSION}")
+
+
+def _workbench_configuration(request: dict[str, Any]) -> dict[str, Any]:
+    return {"components": request.get("components", []), "connections": request.get("connections", [])}
+
+
+def run_workbench(request: dict[str, Any]) -> dict[str, Any]:
+    result = workbench_circuit.solve_workbench_circuit(request)
+    dossier = build_dossier(result, model_id="electrical_workbench_dc", title=request.get("name") or "Circuit CC — paillasse virtuelle",
+                            question=request.get("question") or "", configuration=_workbench_configuration(request),
+                            engine_id=WORKBENCH_ENGINE[0], engine_version=WORKBENCH_ENGINE[1])
+    return _save(dossier)
+
+
+def run_protocol(request: dict[str, Any]) -> dict[str, Any]:
+    result = protocol_engine.execute_protocol(request)
+    configuration = {k: request.get(k) for k in ("name", "workflow_id", "components", "equipment", "protocol_steps", "material_flows", "measurements") if k in request}
+    dossier = build_dossier(result, model_id="structured_protocol", title=request.get("name") or "Structured protocol",
+                            configuration=configuration, engine_id=protocol_engine.ENGINE_ID, engine_version=protocol_engine.ENGINE_VERSION,
+                            data_status="protocol_trace")
+    return _save(dossier)
+
+
+def run_lab(request: dict[str, Any]) -> dict[str, Any]:
+    validation = protocol_engine.validate_protocol(request)
+    if not validation["valid"]:
+        raise ServiceError("Protocol validation failed. Resolve protocol issues before running.", 400, validation=validation)
+    result = lab_designer.run_lab_experiment(request)
+    result["results"] = apply_material_flow_model(request, result.get("results", {}))
+    result["results"] = apply_equipment_operating_effects(request, result.get("results", {}))
+    result["protocol_trace"] = protocol_engine.execute_protocol(request, result.get("results"))
+    configuration = {**result.get("configuration", {}), "workflow_id": result.get("workflow_id"),
+                     "protocol_steps": request.get("protocol_steps", []), "material_flows": request.get("material_flows", []),
+                     "measurements": request.get("measurements", [])}
+    status = "completed" if result.get("results", {}).get("computed_scientific_result") is not False else "workflow_only"
+    dossier = build_dossier(result, model_id=result.get("workflow_id", "virtual_lab_workflow"), title=result.get("name") or "Virtual lab experiment",
+                            configuration=configuration, engine_id=lab_designer.ENGINE_ID, engine_version=lab_designer.ENGINE_VERSION, status=status)
+    return _save(dossier)
+
+
+def run_model_experiment(request: dict[str, Any]) -> dict[str, Any]:
+    result = model_engine.run_experiment(request)
+    dossier = build_dossier(result, model_id=result["model"]["id"], title=result.get("name"), question=result.get("question"),
+                            configuration=result["configuration"], engine_id=model_engine.ENGINE_ID, engine_version=model_engine.ENGINE_VERSION,
+                            data_status="model_output")
+    return _save(dossier)
+
+
+# ---- verification ----------------------------------------------------------------------------
+
+def _record(experiment_id: int) -> dict[str, Any]:
+    record = history.get_experiment_record(experiment_id)
+    if not record:
+        raise ServiceError("Experiment not found", 404)
+    return record
+
+
+def verify(experiment_id: int) -> dict[str, Any]:
+    record = _record(experiment_id)
+    return {"experiment_id": experiment_id, **verify_dossier(record["dossier"], record["configuration_hash"], record["dossier_hash"])}
+
+
+# ---- replay ----------------------------------------------------------------------------------
+
+def _close(a: float, b: float, tolerance: float) -> bool:
+    return math.isfinite(a) and math.isfinite(b) and abs(a - b) <= tolerance
+
+
+def _compare_workbench(original: dict[str, Any], replayed: dict[str, Any]) -> dict[str, Any]:
+    """Compare node voltages, branch currents and source current within the published uncertainties."""
+    differences, compared, max_diff = [], 0, 0.0
+    o_unc, r_unc = original.get("node_voltage_uncertainty_v") or {}, replayed.get("node_voltage_uncertainty_v") or {}
+
+    def check(name, a, b, uncertainty):
+        nonlocal compared, max_diff
+        compared += 1
+        diff = abs(a - b)
+        max_diff = max(max_diff, diff)
+        # Pre-v4.5 dossiers publish no uncertainty: a relative tolerance of 1e-9 is used instead.
+        tolerance = max(4 * uncertainty, 1e-9 * max(abs(a), abs(b)), 1e-15)
+        if not _close(a, b, tolerance):
+            differences.append({"quantity": name, "original": a, "replay": b, "difference": diff, "tolerance": tolerance})
+
+    for node, value in (original.get("node_voltages_v") or {}).items():
+        if node not in (replayed.get("node_voltages_v") or {}):
+            differences.append({"quantity": f"V({node})", "original": value, "replay": None})
+            continue
+        check(f"V({node})", value, replayed["node_voltages_v"][node], o_unc.get(node, 0.0) + r_unc.get(node, 0.0))
+    replay_branches = {b["id"]: b for b in replayed.get("branches", [])}
+    for branch in original.get("branches", []):
+        other = replay_branches.get(branch["id"])
+        if other is None:
+            differences.append({"quantity": f"I({branch['id']})", "original": branch["current_a"], "replay": None})
+            continue
+        unc = branch.get("current_rounding_uncertainty_a", 0.0) + other.get("current_rounding_uncertainty_a", 0.0)
+        check(f"I({branch.get('display_name', branch['id'])})", branch["current_a"], other["current_a"], unc)
+    check("I(source)", original.get("source_current_a", 0.0), replayed.get("source_current_a", 0.0), 0.0)
+    return {"identical_within_tolerance": not differences, "compared_values": compared, "max_abs_difference": max_diff,
+            "differences": differences[:20]}
+
+
+REPLAYERS: dict[str, tuple[Callable[[dict], dict], Callable[[dict, dict], dict], tuple[str, str]]] = {
+    "electrical_workbench_dc": (lambda config: workbench_circuit.solve_workbench_circuit(_workbench_configuration(config)), _compare_workbench, WORKBENCH_ENGINE),
+}
+
+
+def register_replayer(model_id: str, run: Callable[[dict], dict], compare: Callable[[dict, dict], dict], engine: tuple[str, str]) -> None:
+    REPLAYERS[model_id] = (run, compare, engine)
+
+
+def replayable_models() -> list[str]:
+    return sorted(REPLAYERS)
+
+
+def replay(experiment_id: int) -> dict[str, Any]:
+    record = _record(experiment_id)
+    original = record["dossier"]
+    model_id = original.get("model_id") or legacy_model_id(original)
+    if model_id not in REPLAYERS:
+        raise ServiceError(f"Replay is not available for '{model_id}'. Replayable models: {', '.join(replayable_models())}.", 400)
+    integrity = verify_dossier(original, record["configuration_hash"], record["dossier_hash"])
+    if not integrity["valid"]:
+        raise ServiceError("Saved dossier integrity check failed; replay refused.", 409, integrity=integrity)
+    run, compare, engine = REPLAYERS[model_id]
+    configuration = original.get("configuration", {})
+    result = run(configuration)
+    dossier = build_dossier(result, model_id=model_id, title=str(original.get("title", model_id))[:180] + " (replay)",
+                            question=original.get("question", ""), configuration=configuration, engine_id=engine[0], engine_version=engine[1],
+                            data_status=original.get("data_status", "simulated_calculation"))
+    comparison = compare(original, result)
+    comparison["engine_original"] = original.get("engine") or {"id": "unrecorded", "version": "pre-v4.5"}
+    comparison["engine_replay"] = dossier["engine"]
+    comparison["engine_changed"] = comparison["engine_original"] != comparison["engine_replay"]
+    dossier["replay_of"] = experiment_id
+    dossier["replay_comparison"] = comparison
+    dossier["dossier_hash"] = dossier_content_hash(dossier)
+    return _save(dossier)
+
+
+# ---- export / import -------------------------------------------------------------------------
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def export_one(experiment_id: int) -> dict[str, Any]:
+    record = _record(experiment_id)
+    return {"format": EXPORT_FORMAT_DOSSIER, "format_version": EXPORT_FORMAT_VERSION, "exported_at": _now(), "app_version": APP_VERSION,
+            "record": {"id": record["id"], "created_at": record["created_at"]}, "dossier": record["dossier"]}
+
+
+def export_all() -> dict[str, Any]:
+    records = [history.get_experiment_record(i) for i in history.all_experiment_ids()]
+    return {"format": EXPORT_FORMAT_HISTORY, "format_version": EXPORT_FORMAT_VERSION, "exported_at": _now(), "app_version": APP_VERSION,
+            "record_count": len(records),
+            "records": [{"id": r["id"], "created_at": r["created_at"], "dossier": r["dossier"]} for r in records]}
+
+
+def import_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
+    """Import an exported dossier or history. All-or-nothing: any altered dossier rejects the whole file."""
+    fmt = bundle.get("format")
+    if fmt == EXPORT_FORMAT_DOSSIER:
+        entries = [{"id": bundle.get("record", {}).get("id"), "created_at": bundle.get("record", {}).get("created_at"), "dossier": bundle.get("dossier")}]
+    elif fmt == EXPORT_FORMAT_HISTORY:
+        entries = bundle.get("records")
+    else:
+        raise ServiceError(f"Unknown export format {fmt!r}: expected '{EXPORT_FORMAT_DOSSIER}' or '{EXPORT_FORMAT_HISTORY}'.")
+    if not isinstance(bundle.get("format_version"), int) or bundle["format_version"] > EXPORT_FORMAT_VERSION:
+        raise ServiceError(f"Unsupported export format_version {bundle.get('format_version')!r} (this version reads up to {EXPORT_FORMAT_VERSION}).")
+    if not isinstance(entries, list) or not entries or len(entries) > MAX_IMPORT_RECORDS:
+        raise ServiceError(f"The file must contain between 1 and {MAX_IMPORT_RECORDS} dossiers.")
+    checked, rejected = [], []
+    for position, entry in enumerate(entries, start=1):
+        dossier = entry.get("dossier") if isinstance(entry, dict) else None
+        if not isinstance(dossier, dict):
+            rejected.append({"position": position, "reason": "missing dossier object"}); continue
+        integrity = verify_dossier(dossier)
+        if not integrity["valid"] or integrity["level"] == "unverifiable":
+            rejected.append({"position": position, "original_id": entry.get("id"), "reason": integrity["reason"]}); continue
+        checked.append((entry, dossier, integrity["level"]))
+    if rejected:
+        raise ServiceError("Import refused: some dossiers fail their integrity check. Nothing was imported.", 409, rejected=rejected)
+    existing = {history.get_experiment_record(i)["dossier"].get("dossier_hash") for i in history.all_experiment_ids()} - {None}
+    imported, skipped = [], []
+    for entry, dossier, level in checked:
+        if dossier.get("dossier_hash") and dossier["dossier_hash"] in existing:
+            skipped.append({"original_id": entry.get("id"), "reason": "already present (same dossier hash)"}); continue
+        copy = dict(dossier)
+        copy.pop("history_record", None)
+        copy["imported_from"] = {"original_id": entry.get("id"), "original_created_at": entry.get("created_at"),
+                                 "source_app_version": bundle.get("app_version"), "imported_at": _now(), "verification_level": level}
+        saved = history.save_experiment(copy)
+        existing.add(copy.get("dossier_hash"))
+        imported.append({"original_id": entry.get("id"), "new_id": saved["id"], "verification_level": level})
+    return {"imported": imported, "skipped": skipped, "imported_count": len(imported), "skipped_count": len(skipped)}

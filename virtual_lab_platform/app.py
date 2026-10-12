@@ -16,6 +16,8 @@ from validation import compare_to_reference
 from planner import plan_enzyme_sweep
 from history import save_experiment, list_experiments, get_experiment
 from experiment_lifecycle import configuration_hash, verify_dossier_integrity
+import experiment_service
+from experiment_service import ServiceError
 from analysis_tools import enzyme_uncertainty, enzyme_local_sensitivity
 from models import get_solver_contract
 from provenance import parse_xy_csv, create_provenance_record
@@ -56,7 +58,7 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/scientific-ai/capabilities":
             return self._send(200, {"mode":"local_expert_router", "generative_model_connected":False, "supported_models":[m["id"] for m in MODEL_CATALOG if m["status"] == "implemented_demo"], "disclosure":"Deterministic local research copilot; no generative foundation model or live literature retrieval connected."})
         if parsed.path == "/api/version":
-            return self._send(200, {"version": APP_VERSION, "features": ["v4.4 DC solver consistency: floating sub-networks detected and named before solving, no-current branches and ignored components reported, relative singularity threshold, mixed-precision iterative refinement with per-node and per-branch uncertainty, KCL/ground-return/power balance checked against propagated bounds, explicit sign conventions; verified against closed-form and exact rational references", "v4.3 reliable workbench state: one canonical save/export format, validated restore with cleanup report, recursive deletion of contents and wires, empty values flagged instead of becoming 0, duplication, visible marking of components the DC solver does not compute", "v4.2 browser-verified workbench path: Playwright end-to-end tests, single-submission solve, coded and translated circuit errors, robust JSON body handling and logged internal errors", "v4.1 reproducibility: verify saved configuration hashes and replay supported saved DC workbench circuits into new dossiers" , "v4.0 experiment lifecycle: workbench circuit runs are saved as traceable SQLite experiment dossiers with configuration hashes, results, assumptions, limitations and history IDs", "v3.9 accessibility: keyboard-operable workbench items, visible focus, category state announcements and live updates for library and properties", "v3.8 interface reliability: visible local API connection status, actionable offline guidance, explicit workspace restore and robust save errors", "v3.7 virtual instruments: seeded simulated readings, calibration correction, display resolution, uncertainty budget and comparison with theory; explicit non-experimental status", "v3.2 expanded multidisciplinary catalog: 18 disciplines, 58 components, 70 equipment entries, 42 experiment workflows, 43 model entries including 30 L0 templates; sequential A-to-B-to-C kinetics remains available", "v2.7 graphical pin-to-pin circuit connections translated into a netlist and solved by the DC nodal engine","analytical RC/RL step response", "series RLC AC phasor analysis", "logarithmic RLC frequency sweep", "bounded multi-parameter least-squares fitting with residual diagnostics", "cross-model software sanity validation suite", "seven additional numerical solvers", "generic multi-model parameter sweeps", "generic seeded Monte Carlo parameter uncertainty", "reference comparison with model output column mapping", "ten-stage scientific development roadmap", "interactive multilingual workbench, categorized draggable catalog and local JSON export", "v3.5 kinetic engine bridge: abstract A/B/C species concentrations can be loaded from the workbench into the RK4 reaction-network simulator; local request cancellation and result export", "v3.6 server-side stoichiometric batch solver with formula parsing, limiting-reactant calculation, atom-balance rejection and auditable material balance", "v2.6 sample containment inside equipment, equipment operation panel, thermal setpoint transfer, conceptual microscopy/PCR checks, Beer-Lambert absorbance with user-supplied parameters, and stoichiometric reactions inside a reactor", "ideal dilution balance in the new workbench", "DC resistive circuit solver using nodal analysis with node voltages, branch currents, equivalent resistance, power and numerical KCL/power-balance checks", "visual virtual-bench workspace and protocol designer", "equipment-aware material-flow calculations and instrument uncertainty models", "descriptive CSV profiling and exploratory correlations", "bounded global-parameter sweeps for supported SBML models", "heat diffusion and SIR solvers connected to virtual-lab workflows", "equipment compatibility checks", "solution dilution calculator", "enzyme assay workflow", "solver registry", "parameter sweeps", "reference-data comparison", "traceable experiment dossiers", "SQLite experiment history", "uncertainty propagation", "local sensitivity", "provenance records", "scientific library catalog", "expanded multidomain scientific knowledge base", "SI unit and dimension reference", "selected physical constants", "local SBML model intake", "CSV reference dataset registry with provenance", "SBML subset simulator using fixed-step RK4"]})
+            return self._send(200, {"version": APP_VERSION, "features": ["v4.5 save/restore: unified schema-2 dossiers with app/engine versions and full-dossier hash for every saving endpoint, three-level verification, replay with result comparison, SQLite schema migration with automatic backup, lossless history export/import refusing altered files, workspace file import", "v4.4 DC solver consistency: floating sub-networks detected and named before solving, no-current branches and ignored components reported, relative singularity threshold, mixed-precision iterative refinement with per-node and per-branch uncertainty, KCL/ground-return/power balance checked against propagated bounds, explicit sign conventions; verified against closed-form and exact rational references", "v4.3 reliable workbench state: one canonical save/export format, validated restore with cleanup report, recursive deletion of contents and wires, empty values flagged instead of becoming 0, duplication, visible marking of components the DC solver does not compute", "v4.2 browser-verified workbench path: Playwright end-to-end tests, single-submission solve, coded and translated circuit errors, robust JSON body handling and logged internal errors", "v4.1 reproducibility: verify saved configuration hashes and replay supported saved DC workbench circuits into new dossiers" , "v4.0 experiment lifecycle: workbench circuit runs are saved as traceable SQLite experiment dossiers with configuration hashes, results, assumptions, limitations and history IDs", "v3.9 accessibility: keyboard-operable workbench items, visible focus, category state announcements and live updates for library and properties", "v3.8 interface reliability: visible local API connection status, actionable offline guidance, explicit workspace restore and robust save errors", "v3.7 virtual instruments: seeded simulated readings, calibration correction, display resolution, uncertainty budget and comparison with theory; explicit non-experimental status", "v3.2 expanded multidisciplinary catalog: 18 disciplines, 58 components, 70 equipment entries, 42 experiment workflows, 43 model entries including 30 L0 templates; sequential A-to-B-to-C kinetics remains available", "v2.7 graphical pin-to-pin circuit connections translated into a netlist and solved by the DC nodal engine","analytical RC/RL step response", "series RLC AC phasor analysis", "logarithmic RLC frequency sweep", "bounded multi-parameter least-squares fitting with residual diagnostics", "cross-model software sanity validation suite", "seven additional numerical solvers", "generic multi-model parameter sweeps", "generic seeded Monte Carlo parameter uncertainty", "reference comparison with model output column mapping", "ten-stage scientific development roadmap", "interactive multilingual workbench, categorized draggable catalog and local JSON export", "v3.5 kinetic engine bridge: abstract A/B/C species concentrations can be loaded from the workbench into the RK4 reaction-network simulator; local request cancellation and result export", "v3.6 server-side stoichiometric batch solver with formula parsing, limiting-reactant calculation, atom-balance rejection and auditable material balance", "v2.6 sample containment inside equipment, equipment operation panel, thermal setpoint transfer, conceptual microscopy/PCR checks, Beer-Lambert absorbance with user-supplied parameters, and stoichiometric reactions inside a reactor", "ideal dilution balance in the new workbench", "DC resistive circuit solver using nodal analysis with node voltages, branch currents, equivalent resistance, power and numerical KCL/power-balance checks", "visual virtual-bench workspace and protocol designer", "equipment-aware material-flow calculations and instrument uncertainty models", "descriptive CSV profiling and exploratory correlations", "bounded global-parameter sweeps for supported SBML models", "heat diffusion and SIR solvers connected to virtual-lab workflows", "equipment compatibility checks", "solution dilution calculator", "enzyme assay workflow", "solver registry", "parameter sweeps", "reference-data comparison", "traceable experiment dossiers", "SQLite experiment history", "uncertainty propagation", "local sensitivity", "provenance records", "scientific library catalog", "expanded multidomain scientific knowledge base", "SI unit and dimension reference", "selected physical constants", "local SBML model intake", "CSV reference dataset registry with provenance", "SBML subset simulator using fixed-step RK4"]})
         if parsed.path == "/api/research/validation-suite":
             return self._send(200, run_software_validation_suite())
         if parsed.path == "/api/research/roadmap":
@@ -99,16 +101,25 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": "Library entry not found"})
         if parsed.path == "/api/history":
             return self._send(200, {"experiments": list_experiments()})
+        if parsed.path == "/api/history/export":
+            return self._send(200, experiment_service.export_all())
+        if parsed.path == "/api/history/replayable":
+            return self._send(200, {"models": experiment_service.replayable_models()})
         if parsed.path.startswith("/api/history/"):
-            match = re.fullmatch(r"/api/history/(\d+)(?:/verify)?", parsed.path)
+            match = re.fullmatch(r"/api/history/(\d+)(/verify|/export)?", parsed.path)
             if not match:
-                return self._send(400, {"error": "Experiment ID must be an integer; optional suffix: /verify"})
+                return self._send(400, {"error": "Experiment ID must be an integer; optional suffix: /verify or /export"})
             experiment_id = int(match.group(1))
+            try:
+                if match.group(2) == "/verify":
+                    return self._send(200, experiment_service.verify(experiment_id))
+                if match.group(2) == "/export":
+                    return self._send(200, experiment_service.export_one(experiment_id))
+            except ServiceError as exc:
+                return self._send(exc.status, {"error": str(exc), **exc.details})
             dossier = get_experiment(experiment_id)
             if not dossier:
                 return self._send(404, {"error": "Experiment not found"})
-            if parsed.path.endswith("/verify"):
-                return self._send(200, {"experiment_id": experiment_id, **verify_dossier_integrity(dossier)})
             return self._send(200, dossier)
         if parsed.path in ("/", "/index.html"):
             path = STATIC / "index.html"
@@ -118,12 +129,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         is_replay_path = re.fullmatch(r"/api/history/\d+/replay", parsed.path) is not None
-        if parsed.path not in ("/api/experiments", "/api/validate", "/api/sweeps", "/api/uncertainty", "/api/sensitivity", "/api/import-csv", "/api/design", "/api/import-sbml", "/api/import-dataset", "/api/simulate-sbml", "/api/lab/validate", "/api/lab/run", "/api/analyze-dataset", "/api/sweep-sbml", "/api/protocol/validate", "/api/protocol/run", "/api/research/sweep", "/api/research/uncertainty", "/api/research/compare", "/api/research/fit", "/api/scientific-ai/ask", "/api/electrical/dc-solve", "/api/electrical/workbench-solve", "/api/electrical/workbench-run", "/api/electrical/transient", "/api/electrical/ac", "/api/electrical/ac-sweep", "/api/chemistry/kinetics", "/api/chemistry/stoichiometry", "/api/instruments/measure") and not is_replay_path:
+        if parsed.path not in ("/api/experiments", "/api/validate", "/api/sweeps", "/api/uncertainty", "/api/sensitivity", "/api/import-csv", "/api/design", "/api/import-sbml", "/api/import-dataset", "/api/simulate-sbml", "/api/lab/validate", "/api/lab/run", "/api/analyze-dataset", "/api/sweep-sbml", "/api/protocol/validate", "/api/protocol/run", "/api/research/sweep", "/api/research/uncertainty", "/api/research/compare", "/api/research/fit", "/api/scientific-ai/ask", "/api/electrical/dc-solve", "/api/electrical/workbench-solve", "/api/electrical/workbench-run", "/api/electrical/transient", "/api/electrical/ac", "/api/electrical/ac-sweep", "/api/chemistry/kinetics", "/api/chemistry/stoichiometry", "/api/instruments/measure", "/api/history/import") and not is_replay_path:
             return self._send(404, {"error": "Not found"})
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if length > 1_000_000:
-                return self._send(413, {"error": "Request body too large (maximum 1,000,000 bytes)."})
+            limit = 20_000_000 if parsed.path == "/api/history/import" else 1_000_000
+            if length > limit:
+                return self._send(413, {"error": f"Request body too large (maximum {limit:,} bytes)."})
             if length <= 0:
                 # Replay needs no parameters; every other endpoint requires a JSON object.
                 if not is_replay_path:
@@ -134,27 +146,9 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(request, dict):
                 return self._send(400, {"error": "Request body must be a JSON object."})
             if is_replay_path:
-                experiment_id = int(parsed.path.split("/")[3])
-                original = get_experiment(experiment_id)
-                if not original:
-                    return self._send(404, {"error": "Experiment not found"})
-                if original.get("model_id") != "electrical_workbench_dc":
-                    return self._send(400, {"error": "Replay is currently supported only for saved DC workbench circuits."})
-                integrity = verify_dossier_integrity(original)
-                if not integrity["valid"]:
-                    return self._send(409, {"error": "Saved dossier integrity check failed; replay refused.", "integrity": integrity})
-                config = original.get("configuration", {})
-                replayed = solve_workbench_circuit({"components": config.get("components", []), "connections": config.get("connections", [])})
-                replayed["model_id"] = "electrical_workbench_dc"
-                replayed["title"] = str(original.get("title", "DC workbench circuit"))[:200] + " (replay)"
-                replayed["question"] = original.get("question", "")
-                replayed["status"] = "completed"
-                replayed["configuration"] = config
-                replayed["configuration_hash"] = configuration_hash(config)
-                replayed["data_status"] = "simulated_calculation"
-                replayed["replay_of"] = experiment_id
-                replayed["history_record"] = save_experiment(replayed)
-                result = replayed
+                result = experiment_service.replay(int(parsed.path.split("/")[3]))
+            elif parsed.path == "/api/history/import":
+                result = experiment_service.import_bundle(request)
             elif parsed.path == "/api/instruments/measure":
                 result = simulate_instrument_measurement(request)
             elif parsed.path == "/api/chemistry/kinetics":
@@ -163,21 +157,10 @@ class Handler(BaseHTTPRequestHandler):
                 result = calculate_stoichiometry(request)
             elif parsed.path == "/api/electrical/dc-solve":
                 result = solve_dc_circuit(request)
-            elif parsed.path in ("/api/electrical/workbench-solve", "/api/electrical/workbench-run"):
+            elif parsed.path == "/api/electrical/workbench-solve":
                 result = solve_workbench_circuit(request)
-                if parsed.path == "/api/electrical/workbench-run":
-                    configuration = {
-                        "components": request.get("components", []),
-                        "connections": request.get("connections", []),
-                    }
-                    result["model_id"] = "electrical_workbench_dc"
-                    result["title"] = str(request.get("name") or "Circuit CC — paillasse virtuelle")[:200]
-                    result["question"] = str(request.get("question") or "")[:4000]
-                    result["status"] = "completed"
-                    result["configuration"] = configuration
-                    result["configuration_hash"] = configuration_hash(configuration)
-                    result["data_status"] = "simulated_calculation"
-                    result["history_record"] = save_experiment(result)
+            elif parsed.path == "/api/electrical/workbench-run":
+                result = experiment_service.run_workbench(request)
             elif parsed.path == "/api/electrical/transient":
                 result = simulate_first_order_step(request)
             elif parsed.path == "/api/electrical/ac":
@@ -197,11 +180,7 @@ class Handler(BaseHTTPRequestHandler):
             elif parsed.path == "/api/protocol/validate":
                 result = validate_protocol(request)
             elif parsed.path == "/api/protocol/run":
-                result = execute_protocol(request)
-                result["model_id"] = "structured_protocol"
-                result["title"] = request.get("name", "Structured protocol")
-                result["configuration_hash"] = result["protocol_sha256"]
-                result["history_record"] = save_experiment(result)
+                result = experiment_service.run_protocol(request)
             elif parsed.path == "/api/analyze-dataset":
                 result = analyze_csv(request.get("content", ""), preview_rows=request.get("preview_rows", 12))
             elif parsed.path == "/api/sweep-sbml":
@@ -209,23 +188,9 @@ class Handler(BaseHTTPRequestHandler):
             elif parsed.path == "/api/lab/validate":
                 result = validate_lab_experiment(request)
             elif parsed.path == "/api/lab/run":
-                protocol_validation = validate_protocol(request)
-                if not protocol_validation["valid"]:
-                    return self._send(400, {"error":"Protocol validation failed. Resolve protocol issues before running.","validation":protocol_validation})
-                result = run_lab_experiment(request)
-                result["results"] = apply_material_flow_model(request, result.get("results", {}))
-                result["results"] = apply_equipment_operating_effects(request, result.get("results", {}))
-                result["protocol_trace"] = execute_protocol(request, result.get("results"))
-                result["model_id"] = result.get("workflow_id", "virtual_lab_workflow")
-                result["title"] = result.get("name", "Virtual lab experiment")
-                result["configuration"] = {**result.get("configuration", {}), "workflow_id": result.get("workflow_id")}
-                result["configuration_hash"] = configuration_hash(result["configuration"])
-                result["status"] = "completed" if result.get("results", {}).get("computed_scientific_result") is not False else "workflow_only"
-                result["history_record"] = save_experiment(result)
+                result = experiment_service.run_lab(request)
             elif parsed.path == "/api/experiments":
-                result = run_experiment(request)
-                saved = save_experiment(result)
-                result["history_record"] = saved
+                result = experiment_service.run_model_experiment(request)
             elif parsed.path == "/api/uncertainty":
                 if request.get("model_id") != "enzyme_kinetics":
                     return self._send(400, {"error": "Uncertainty analysis currently supports enzyme_kinetics only."})
@@ -271,6 +236,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(400, {"error": "Parameter sweep currently supports enzyme_kinetics only."})
                 result = plan_enzyme_sweep(request.get("parameters", {}), request.get("parameter", ""), request.get("values", []))
             return self._send(200, result)
+        except ServiceError as exc:
+            return self._send(exc.status, {"error": str(exc), **exc.details})
         except (ValueError, json.JSONDecodeError, UnicodeDecodeError, SBMLSimulationError, CircuitError, ElectricalModelError, WorkbenchCircuitError, ChemicalKineticsError, StoichiometryError) as exc:
             body = {"error": str(exc)}
             if getattr(exc, "code", None):

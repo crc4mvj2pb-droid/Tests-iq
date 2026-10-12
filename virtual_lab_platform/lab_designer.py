@@ -9,6 +9,9 @@ from datetime import datetime, timezone
 from typing import Any
 from models import execute_model
 
+ENGINE_ID = "lab_workflow_designer"
+ENGINE_VERSION = "1.0"
+
 CATALOG: dict[str, Any] = {
     "disciplines": [
         {"id": "biology", "name": "Biology & biochemistry"},
