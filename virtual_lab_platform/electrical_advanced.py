@@ -5,6 +5,9 @@ These are idealized domain models, not a SPICE engine. SI units are used through
 from __future__ import annotations
 import math
 
+ENGINE_ID = "analytical_linear_circuits"
+ENGINE_VERSION = "1.0"
+
 class ElectricalModelError(ValueError):
     pass
 
