@@ -19,7 +19,7 @@ from constants import GAS_CONSTANT
 from contracts import ContractError, resolve_path
 
 ENGINE_ID = "multi_model_pipeline"
-ENGINE_VERSION = "1.0"
+ENGINE_VERSION = "1.1"
 MAX_STEPS = 10
 
 
@@ -136,6 +136,23 @@ def _source(step_results: dict, ref: str) -> tuple[Any, str]:
     return record["outputs"][rest]["value"], record["outputs"][rest]["unit"]
 
 
+def _condition_warnings(trace: list[dict]) -> list[dict]:
+    """Steps that use the same operating condition with different values (e.g. two temperatures)."""
+    out = []
+    for name in ("temperature_k", "concentration_unit"):
+        values = [(r["step"], r["inputs"][name]) for r in trace if r["kind"] == "model" and name in r["inputs"]]
+        values += [(r["step"], r["outputs"]["temperature_k"]["value"]) for r in trace if name == "temperature_k" and r["kind"] == "adapter" and "temperature_k" in r["outputs"]]
+        distinct = []
+        for step, value in values:
+            if not any(value == v or (isinstance(value, float) and isinstance(v, float) and abs(value - v) <= 1e-9 * max(abs(value), abs(v))) for _, v in distinct):
+                distinct.append((step, value))
+        if len(distinct) > 1:
+            out.append({"code": "inconsistent_conditions", "condition": name, "values": [{"step": s, "value": v} for s, v in values],
+                        "message": f"Steps use different values of {name}: " + ", ".join(f"{s} = {v}" for s, v in distinct)
+                                   + ". Bind the condition from one step to the others if they describe the same experiment."})
+    return out
+
+
 def run_pipeline(spec: dict) -> dict:
     steps = spec.get("steps") if isinstance(spec, dict) else None
     if not isinstance(steps, list) or not 2 <= len(steps) <= MAX_STEPS:
@@ -205,6 +222,7 @@ def run_pipeline(spec: dict) -> dict:
                                             "the stationary assumption passed downstream is not valid."})
         results[step["id"]] = record
         trace.append({"step": step["id"], "position": position, **{k: record[k] for k in record if k != "result"}})
+    warnings += _condition_warnings(trace)
     ranks = {l["id"]: l["rank"] for l in maturity.LEVELS}
     lowest = min(trace, key=lambda r: ranks[r["maturity"]["level"]])["maturity"]["level"]
     limiting = [r["step"] for r in trace if r["maturity"]["level"] == lowest]
