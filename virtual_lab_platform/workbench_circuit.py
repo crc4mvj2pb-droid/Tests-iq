@@ -72,6 +72,64 @@ SOURCE_IDS = {"dc-source", "battery"}
 RESISTOR_IDS = {"resistor", "resistor2"}
 
 
+def _biconnected_blocks(edges):
+    """Edge sets of the biconnected blocks of a multigraph (Tarjan). edges: list of (u, v)."""
+    adjacency: dict = {}
+    for i, (u, v) in enumerate(edges):
+        adjacency.setdefault(u, []).append((v, i)); adjacency.setdefault(v, []).append((u, i))
+    disc: dict = {}; low: dict = {}; stack: list = []; blocks: list = []; clock = [0]
+
+    def visit(u, parent_edge):
+        disc[u] = low[u] = clock[0]; clock[0] += 1
+        for v, i in adjacency[u]:
+            if i == parent_edge:
+                continue
+            if v not in disc:
+                stack.append(i); visit(v, i); low[u] = min(low[u], low[v])
+                if low[v] >= disc[u]:
+                    block = set()
+                    while True:
+                        e = stack.pop(); block.add(e)
+                        if e == i:
+                            break
+                    blocks.append(block)
+            elif disc[v] < disc[u]:
+                stack.append(i); low[u] = min(low[u], disc[v])
+
+    for node in adjacency:
+        if node not in disc:
+            visit(node, None)
+    return blocks
+
+
+def _topology_issues(resistors, find, source_pos, ground_net):
+    """Return (floating resistors, no-current resistors) before any numerical solve.
+
+    A resistor is floating when no chain of resistors links it to the source + net or to
+    the ground net: that sub-network has no defined potential and would make the nodal
+    matrix singular. A connected resistor can carry current only if it lies on a cycle
+    through the source, i.e. in the same biconnected block as the source branch; any other
+    resistor hangs from the circuit through a single node and carries no current whatever
+    the values (it is valid, but reported).
+    """
+    ends = [(find((x["instanceId"], "A")), find((x["instanceId"], "B"))) for x in resistors]
+    adjacency: dict = {}
+    for a, b in ends:
+        adjacency.setdefault(a, set()).add(b); adjacency.setdefault(b, set()).add(a)
+    reached, stack = {source_pos, ground_net}, [source_pos, ground_net]
+    while stack:
+        for nxt in adjacency.get(stack.pop(), ()):
+            if nxt not in reached:
+                reached.add(nxt); stack.append(nxt)
+    floating = [_label(x) for x, (a, b) in zip(resistors, ends) if a not in reached or b not in reached]
+    connected = [(x, e) for x, e in zip(resistors, ends) if e[0] in reached and e[1] in reached]
+    edges = [e for _, e in connected] + [(source_pos, ground_net)]  # the ideal source closes the loop
+    source_edge = len(edges) - 1
+    source_block = next(b for b in _biconnected_blocks(edges) if source_edge in b)
+    no_current = [_label(x) for i, (x, _) in enumerate(connected) if i not in source_block]
+    return floating, no_current
+
+
 def solve_workbench_circuit(request: dict) -> dict:
     """Solve the placed and wired components from a workbench request.
 
@@ -209,6 +267,14 @@ def solve_workbench_circuit(request: dict) -> dict:
             raise WorkbenchCircuitError(f"The resistance of '{_label(item)}' must be a finite value > 0 Ω and ≤ 1e15 Ω.", "invalid_resistance", name=_label(item))
         resistor_netlist.append({"id": f"{item['id']}:{item['instanceId']}", "display_name": str(item.get("displayName") or item["id"]), "a": a_node, "b": b_node, "resistance_ohm": ohms})
 
+    floating, dead_ends = _topology_issues(resistors, find, source_pos, ground_net)
+    if floating:
+        names = ", ".join(floating[:8])
+        raise WorkbenchCircuitError(
+            f"Part of the circuit is connected neither to the source nor to ground: {names}. Connect it or remove it.",
+            "floating_network", names=names,
+        )
+
     source_voltage = _number(source.get("qty"), _label(source), "DC source voltage in volts", "invalid_voltage")
     if not math.isfinite(source_voltage) or abs(source_voltage) > 1e6:
         raise WorkbenchCircuitError(f"The voltage of '{_label(source)}' must be finite and within ±1,000,000 V.", "invalid_voltage", name=_label(source))
@@ -240,6 +306,14 @@ def solve_workbench_circuit(request: dict) -> dict:
         "source": {"name": str(source.get("displayName") or source["id"]), "positive_node": "SOURCE+", "negative_node": "0 (GND)"},
         "ground": str(ground.get("displayName") or ground["id"]),
     }
+    ignored = [_label(x) for x in by_instance.values() if x["id"] not in SOLVER_IDS]
+    result["ignored_components"] = ignored
+    if ignored:
+        result["warnings"].append({"code": "ignored_components", "params": {"names": ", ".join(ignored[:8])},
+                                   "message": f"Unwired component(s) not part of the DC calculation: {', '.join(ignored[:8])}."})
+    if dead_ends:
+        result["warnings"].append({"code": "dead_end_branch", "params": {"names": ", ".join(dead_ends[:8])},
+                                   "message": f"Branch(es) attached to the circuit through a single node, carrying no current: {', '.join(dead_ends[:8])}."})
     result["assumptions"].append("The graphical wires are ideal conductors; the displayed pin-to-pin topology is converted to a node netlist.")
     result["limitations"].append("This workbench topology solver supports only one ideal DC source, a ground reference, ideal wires and linear resistors. It is not SPICE; capacitors, inductors, switches, diodes and transistors are not solved here.")
     return result
