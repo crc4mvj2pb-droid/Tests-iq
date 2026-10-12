@@ -1,0 +1,107 @@
+[
+  {
+    "step": "load",
+    "status": "INFO",
+    "detail": "title=\"Virtual Lab Platform v3.6\""
+  },
+  {
+    "step": "api status badge",
+    "status": "INFO",
+    "detail": "● API locale connectée · v4.1"
+  },
+  {
+    "step": "live global functions",
+    "status": "INFO",
+    "detail": "{\"download\":\"function download(filename,dat\",\"renderCatalog\":\"function renderCatalog(){$('catalog').innerHTML=models.map(m\",\"visualFor\":\"function visualFor(x){const id=x.id;cons\"}"
+  },
+  {
+    "step": "model catalog panel #catalog",
+    "status": "INFO",
+    "detail": "Enzyme kinetics — Michaelis–Menten | Rate versus substrate concentration for a simple enzyme model. | L1 · demo solver | SIR epidemic dynamics | Simple suscep"
+  },
+  {
+    "step": "add 3 components",
+    "status": "PASS",
+    "detail": "[\"dc-source=9V\",\"resistor=1000Ω\",\"ground=0\"]"
+  },
+  {
+    "step": "edit values in Properties",
+    "status": "PASS",
+    "detail": "dc-source=9,resistor=1000,ground=0"
+  },
+  {
+    "step": "wire 3 connections by clicking terminals",
+    "status": "PASS",
+    "detail": "P-A,B-GND,N-GND"
+  },
+  {
+    "step": "solve circuit from UI",
+    "status": "PASS",
+    "detail": "Circuit CC calculé et enregistré |  | Analyse nodale d’un réseau résistif idéal. Les connexions ont été converties en nœuds et le dossier a été enregistré dans l’historique local. |  | Dossier #1 · SHA-256 14134965edacdda7… · simulated_calculation | "
+  },
+  {
+    "step": "dossier saved in SQLite",
+    "status": "PASS",
+    "detail": "1 record(s)"
+  },
+  {
+    "step": "verify integrity button",
+    "status": "INFO",
+    "detail": "✓ Configuration hash matches"
+  },
+  {
+    "step": "replay button",
+    "status": "INFO",
+    "detail": ""
+  },
+  {
+    "step": "replay created new dossier",
+    "status": "PASS",
+    "detail": "2 record(s)"
+  },
+  {
+    "step": "double-click on Solve",
+    "status": "WARN",
+    "detail": "created 2 dossier(s) for one double-click"
+  },
+  {
+    "step": "export workbench JSON",
+    "status": "PASS",
+    "detail": "file=virtual_lab_workbench.json items=3 wires=3"
+  },
+  {
+    "step": "save → reload → auto-restore",
+    "status": "PASS",
+    "detail": "{\"n\":3,\"w\":3,\"q\":[\"dc-source=9\",\"resistor=1000\",\"ground=0\"]}"
+  },
+  {
+    "step": "solve after reload",
+    "status": "PASS",
+    "detail": "Circuit CC calculé et enregistré"
+  },
+  {
+    "step": "delete component removes its wires",
+    "status": "PASS",
+    "detail": "{\"n\":2,\"w\":1,\"orphan\":0}"
+  },
+  {
+    "step": "network failure on solve",
+    "status": "INFO",
+    "detail": "Circuit non résolu | "
+  },
+  {
+    "step": "non-JSON error response",
+    "status": "INFO",
+    "detail": "Circuit non résolu | "
+  },
+  {
+    "step": "export experiment dossier (#exportOne)",
+    "status": "PASS",
+    "detail": "suggested filename starts: \"VL-2CF70C6BE5CF.json\" ; content: {\n  \"experiment_id\": \"VL-2CF70C6BE5CF\",\n  \"created_at_utc\": "
+  },
+  {
+    "step": "console errors",
+    "status": "WARN",
+    "detail": "2 : Failed to load resource: net::ERR_FAILED || Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  }
+]
