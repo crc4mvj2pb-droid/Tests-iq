@@ -18,6 +18,8 @@ import engine as model_engine
 import history
 import lab_designer
 import linked_measurements
+import data_catalog
+import fitting
 import pipelines
 import protocol_engine
 import workbench_circuit
@@ -141,6 +143,55 @@ def run_pipeline(request: dict[str, Any]) -> dict[str, Any]:
     dossier = build_dossier(result, model_id="multi_model_pipeline", title=request.get("name") or "Expérience multi-modèles",
                             question=request.get("question") or "", configuration=configuration,
                             engine_id=pipelines.ENGINE_ID, engine_version=pipelines.ENGINE_VERSION)
+    return _save(dossier)
+
+
+FIT_KEYS = ("dataset_id", "x_column", "y_column", "where", "model", "start", "validation", "drop_missing", "x", "y", "x_unit", "y_unit")
+
+
+def _fit_inputs(configuration: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Fit request and data reference; data come from the catalogue (checked by content hash) or are given inline."""
+    request = {k: configuration[k] for k in ("model", "start", "validation") if k in configuration}
+    if not configuration.get("dataset_id"):
+        request.update({k: configuration.get(k) for k in ("x", "y", "x_unit", "y_unit")})
+        return request, None
+    entry = data_catalog.get_entry(configuration["dataset_id"])
+    expected = configuration.get("content_sha256")
+    if expected and entry["content_sha256"] != expected:
+        raise ServiceError("The dataset changed since this fit was saved (content hash differs); replay refused.", 409, error_code="dataset_changed")
+    where = configuration.get("where") or {}
+    xs = data_catalog.column_values(entry, configuration.get("x_column"), where)
+    ys = data_catalog.column_values(entry, configuration.get("y_column"), where)
+    dropped = [i for i, (x, y) in enumerate(zip(xs, ys)) if x is None or y is None]
+    if dropped and not configuration.get("drop_missing"):
+        raise ServiceError(f"{len(dropped)} row(s) have a missing x or y value; set drop_missing to exclude them explicitly.", 400, error_code="missing_values")
+    keep = [i for i in range(len(xs)) if i not in dropped]
+    columns = {c["name"]: c for c in entry["columns"]}
+    request.update({"x": [xs[i] for i in keep], "y": [ys[i] for i in keep], "x_unit": columns[configuration["x_column"]].get("unit") or "1",
+                    "y_unit": columns[configuration["y_column"]].get("unit") or "1"})
+    data = {"id": entry["id"], "version": entry["version"], "content_sha256": entry["content_sha256"], "data_kind": entry["data_kind"],
+            "source_ids": entry.get("source_ids", []), "x_column": configuration["x_column"], "y_column": configuration["y_column"], "where": where,
+            "rows_used": len(keep), "rows_dropped_missing": dropped}
+    return request, data
+
+
+def _run_fit_configuration(configuration: dict[str, Any]) -> dict[str, Any]:
+    request, data = _fit_inputs(configuration)
+    result = fitting.fit(request)
+    if data:
+        result["data"] = data
+    return result
+
+
+def run_fit(request: dict[str, Any]) -> dict[str, Any]:
+    """Fit a model to catalogue (or inline) data; the dossier records the dataset id, version and content hash."""
+    configuration = {k: request[k] for k in FIT_KEYS if k in request}
+    if configuration.get("dataset_id"):
+        configuration["content_sha256"] = data_catalog.get_entry(configuration["dataset_id"])["content_sha256"]
+    result = _run_fit_configuration(configuration)
+    title = request.get("name") or f"Ajustement {result['model']} — {configuration.get('dataset_id', 'données saisies')}"
+    dossier = build_dossier(result, model_id="model_fit", title=title, question=request.get("question") or "", configuration=configuration,
+                            engine_id=fitting.ENGINE_ID, engine_version=fitting.ENGINE_VERSION, data_status="model_fit_to_data")
     return _save(dossier)
 
 
@@ -302,11 +353,21 @@ def _compare_pipeline(original: dict[str, Any], replayed: dict[str, Any]) -> dic
     return _compare_values(pairs, relative=1e-9)
 
 
+def _compare_fit(original: dict[str, Any], replayed: dict[str, Any]) -> dict[str, Any]:
+    pairs = []
+    for name, p in replayed["parameters"].items():
+        before = (original.get("parameters") or {}).get(name, {})
+        pairs += [(f"{name}", before.get("value"), p["value"]), (f"SE({name})", before.get("standard_error"), p["standard_error"])]
+    pairs.append(("residual standard error", original.get("residual_standard_error"), replayed["residual_standard_error"]))
+    return _compare_values(pairs, relative=1e-9)
+
+
 REPLAYERS: dict[str, tuple[Callable[[dict], dict], Callable[[dict, dict], dict], tuple[str, str]]] = {
     "electrical_workbench_transient": (workbench_transient.solve_workbench_transient, _compare_transient, TRANSIENT_ENGINE),
     "electrical_workbench_dc": (lambda config: workbench_circuit.solve_workbench_circuit(_workbench_configuration(config)), _compare_workbench, WORKBENCH_ENGINE),
     "chemical_kinetics_network": (chemical_kinetics.simulate_reaction_network, _compare_kinetics, (chemical_kinetics.ENGINE_ID, chemical_kinetics.ENGINE_VERSION)),
     "chemical_stoichiometry": (reaction_stoichiometry.calculate_stoichiometry, _compare_stoichiometry, (reaction_stoichiometry.ENGINE_ID, reaction_stoichiometry.ENGINE_VERSION)),
+    "model_fit": (_run_fit_configuration, _compare_fit, (fitting.ENGINE_ID, fitting.ENGINE_VERSION)),
     "multi_model_pipeline": (pipelines.run_pipeline, _compare_pipeline, (pipelines.ENGINE_ID, pipelines.ENGINE_VERSION)),
     "instrument_reading": (lambda config: _linked_run(config), lambda o, r: _compare_reading(o, r), (linked_measurements.ENGINE_ID, linked_measurements.ENGINE_VERSION)),
 }

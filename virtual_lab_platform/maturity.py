@@ -79,6 +79,11 @@ MATURITY: dict[str, dict[str, Any]] = {
     "linked_virtual_instrument": {"level": "verified", "evidence": [_ev("statistical_property", "tests/test_v47_linked_instruments.py::test_expanded_uncertainty_has_about_95_percent_coverage",
                                                                        "Couverture de l'intervalle k = 2 sur 2 000 lectures simulées", "94–97 %")],
                                   "note": "Vérifie le modèle de mesure simulée, pas un instrument réel."},
+    "model_fit": {"level": "verified", "evidence": [
+        _ev("published_benchmark", "tests/test_v63_fitting.py::test_puromycin_fit_reproduces_bates_and_watts", "Estimations et erreurs types de Bates & Watts (1988), Puromycine", "5e-4 relatif"),
+        _ev("published_benchmark", "tests/test_v63_fitting.py::test_bod_fit_reproduces_the_published_estimates", "Estimations publiées, DBO", "2e-4 relatif"),
+        _ev("statistical_property", "tests/test_v63_fitting.py::test_confidence_intervals_have_their_nominal_coverage", "Couverture des IC 95 % sur 400 simulations", "92–98 %")],
+                  "note": "Vérifie le moteur d'ajustement (v6.3), pas la validité d'un modèle particulier pour des données."},
     "lab_workflow_designer": {"level": "computable", "evidence": [], "note": "Certains flux calculent un bilan (par exemple une dilution, C1·V1 = C2·V2) ; contrôles internes seulement."},
 }
 CATALOGUE_TEMPLATE_LEVEL = "concept"  # models.py entries with status "workflow_template"
