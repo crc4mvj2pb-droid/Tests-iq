@@ -303,6 +303,38 @@
       "year": 2016,
       "version": "97th edition; values as commonly reproduced (the handbook itself was not consulted in this environment)",
       "license": "copyrighted compilation; individual factual values cited"
+    },
+    {
+      "id": "hodgkin_huxley_1952",
+      "kind": "article",
+      "citation": "A. L. Hodgkin, A. F. Huxley, A quantitative description of membrane current and its application to conduction and excitation in nerve, Journal of Physiology 117, 500–544 (1952)",
+      "year": 1952,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
+    },
+    {
+      "id": "hodgkin_1948",
+      "kind": "article",
+      "citation": "A. L. Hodgkin, The local electric changes associated with repetitive action in a non-medullated axon, Journal of Physiology 107, 165–181 (1948)",
+      "year": 1948,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
+    },
+    {
+      "id": "fitzhugh_1961",
+      "kind": "article",
+      "citation": "R. FitzHugh, Impulses and physiological states in theoretical models of nerve membrane, Biophysical Journal 1, 445–466 (1961)",
+      "year": 1961,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
+    },
+    {
+      "id": "nagumo_1962",
+      "kind": "article",
+      "citation": "J. Nagumo, S. Arimoto, S. Yoshizawa, An active pulse transmission line simulating nerve axon, Proceedings of the IRE 50, 2061–2070 (1962)",
+      "year": 1962,
+      "version": "as cited",
+      "license": "bibliographic reference (equations cited)"
     }
   ]
 }

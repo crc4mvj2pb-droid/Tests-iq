@@ -88,6 +88,14 @@
     "aqueous_titration": [
       "haynes_crc_2016",
       "atkins_depaula_2014"
+    ],
+    "hodgkin_huxley": [
+      "hodgkin_huxley_1952",
+      "hodgkin_1948"
+    ],
+    "fitzhugh_nagumo": [
+      "fitzhugh_1961",
+      "nagumo_1962"
     ]
   }
 }

@@ -1,12 +1,12 @@
-# Banc d'essai indépendant — Virtual Lab Platform v7.3
+# Banc d'essai indépendant — Virtual Lab Platform v7.4
 
-Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:47:35+00:00 (Python 3.13.16).
+Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:52:13+00:00 (Python 3.13.16).
 Les références sont calculées dans `benchmarks/independent_suite.py` : formule fermée, table publiée ou intégrateur écrit à part. Ce fichier n'est importé par aucun test unitaire de moteur. Les tolérances ont été fixées avant la première exécution, à partir de l'erreur connue de chaque méthode (colonne « Base de la tolérance »).
 
 ## Synthèse
 
-- **39 cas**, 20 moteurs ou modules, 11 domaines (biochimie, chimie, environnement, neurosciences, pharmacologie, physicochimie, thermique, unités, écologie, électricité, épidémiologie).
-- Conformes : 35 · limites connues reproduites : 2 · refus attendus obtenus : 2.
+- **41 cas**, 22 moteurs ou modules, 11 domaines (biochimie, chimie, environnement, neurosciences, pharmacologie, physicochimie, thermique, unités, écologie, électricité, épidémiologie).
+- Conformes : 37 · limites connues reproduites : 2 · refus attendus obtenus : 2.
 - Échecs : 0 · limites modifiées : 0 · non refusés : 0 · erreurs : 0.
 - Verdict : **tous les cas ont le résultat attendu**.
 
@@ -48,6 +48,8 @@ Les références sont calculées dans `benchmarks/independent_suite.py` : formul
 | Mur à deux couches : température d'interface (diviseur de résistances) | thermique | `plane_wall_conduction` | analytical — Résistances thermiques en série (Incropera et al., §3.1) | 296.3636364 | 296.3636364 | 0 | 1e-12 (relative) | formule fermée | conforme |
 | Tampon acétate équimolaire : pH = pKa | physicochimie | `aqueous_acid_base` | analytical — Henderson–Hasselbalch dans son domaine de validité (Atkins & de Paula) | 4.756152282 | 4.756 | 0.0001522817648 | 0.001 (absolue) | écart dû à [H⁺] ≪ 0,1 mol/L : |ΔpH| < 1e-3 | conforme |
 | Base forte 1e-3 mol/L : pH = 11 | physicochimie | `aqueous_acid_base` | analytical — pH + pOH = pKw avec [OH⁻] = C + Kw/[OH⁻] | 11 | 11 | 0 | 1e-09 (absolue) | formule fermée (quadratique) | conforme |
+| FitzHugh–Nagumo : courant de Hopf supérieur | neurosciences | `fitzhugh_nagumo` | analytical — Trace du jacobien nulle à l'équilibre (FitzHugh 1961) | 1.418718663 | 1.418718663 | 0 | 1e-12 (relative) | formule fermée | conforme |
+| Hodgkin–Huxley au repos : aucun potentiel d'action sans courant | neurosciences | `hodgkin_huxley` | analytical — Équilibre stable au potentiel de repos (Hodgkin & Huxley 1952) | 0 | 0 | 0 | 0 (absolue) | exact | conforme |
 | 1 atm = 101 325 Pa | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 101325 | 101325 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 1 eV = 1,602 176 634e-19 J | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) : e exact | 1.602176634e-19 | 1.602176634e-19 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 25 °C = 298,15 K (conversion affine) | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 298.15 | 298.15 | 0 | 1e-15 (relative) | définition exacte | conforme |

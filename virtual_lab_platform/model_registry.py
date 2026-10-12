@@ -17,6 +17,7 @@ import reaction_stoichiometry
 import workbench_circuit
 import workbench_transient
 import thermal
+import neuro
 import acid_base
 from contracts import CONTRACT_VERSION, ContractError, check_contract, output, param, resolve_path, validate_inputs
 from models import execute_model
@@ -254,6 +255,36 @@ register(_contract(
     ["As acid_base_equilibrium; additive volumes"], ["Monoprotic or polyprotic weak acid analyte"], ["invalid_parameter", "invalid_systems"],
     ["Charge balance with dilution"], ["V_eq = C_a·V_a/C_b (first equivalence)", "pH from the exact charge balance at each added volume"]),
     acid_base.titration, {"analyte": {"name": "acetic acid", "pka": [4.756], "total_concentration_mol_l": 0.1}})
+
+# ---- computational neuroscience (v7.4) ----------------------------------------------------------
+
+register(_contract(
+    "hodgkin_huxley", neuro.ENGINE_VERSION, "Neurone de Hodgkin–Huxley (membrane en potentiel imposé spatialement)", "neuroscience", neuro.ENGINE_ID,
+    [param("current_ua_cm2", "number", unit="µA/cm^2", minimum=-100, maximum=200, default=10.0, description="Injected current density"),
+     param("current_onset_ms", "number", unit="ms", minimum=0, maximum=5000, default=0.0),
+     param("duration_ms", "number", unit="ms", minimum=0, exclusive_minimum=True, maximum=5000, default=100.0),
+     param("dt_ms", "number", unit="ms", minimum=0, exclusive_minimum=True, maximum=0.05, default=0.01),
+     param("initial_voltage_mv", "number", unit="mV", minimum=-120, maximum=60, default=-65.0)],
+    [output("spike_count", "spike_count", "1"), output("firing_rate", "firing_rate_hz", "Hz"), output("final_voltage", "final_voltage_mv", "mV")],
+    ["Space-clamped patch of squid giant axon membrane", "Hodgkin–Huxley 1952 rate functions, resting potential −65 mV", "Constant current"],
+    ["Explicit RK4 with dt ≤ 0.05 ms", "Not a model of mammalian or human neurons"], ["invalid_parameter", "invalid_step", "numerical_instability"],
+    ["Hodgkin & Huxley (1952)"],
+    ["C·dV/dt = I − g_Na·m³h(V − E_Na) − g_K·n⁴(V − E_K) − g_L(V − E_L)", "dx/dt = α_x(V)(1 − x) − β_x(V)·x, x ∈ {m, h, n}"]),
+    neuro.hodgkin_huxley, {"current_ua_cm2": 10.0, "duration_ms": 50.0})
+
+register(_contract(
+    "fitzhugh_nagumo", neuro.ENGINE_VERSION, "Modèle d'excitabilité de FitzHugh–Nagumo", "neuroscience", neuro.ENGINE_ID,
+    [param("current", "number", unit="a.u.", minimum=-5, maximum=5, default=0.5), param("a", "number", unit="a.u.", minimum=-5, maximum=5, default=0.7),
+     param("b", "number", unit="a.u.", minimum=0, exclusive_minimum=True, maximum=0.999, default=0.8),
+     param("epsilon", "number", unit="a.u.", minimum=0, exclusive_minimum=True, maximum=1, default=0.08),
+     param("duration", "number", unit="a.u.", minimum=0, exclusive_minimum=True, maximum=10000, default=200.0),
+     param("dt", "number", unit="a.u.", minimum=0, exclusive_minimum=True, maximum=0.1, default=0.01),
+     param("initial_v", "number", unit="a.u.", minimum=-10, maximum=10, default=-1.2), param("initial_w", "number", unit="a.u.", minimum=-10, maximum=10, default=-0.6)],
+    [output("late_amplitude", "late_amplitude", "a.u."), output("equilibrium_v", "equilibrium.v", "a.u.")],
+    ["Dimensionless two-variable reduction of excitability"], ["0 < b < 1 (single equilibrium)", "Qualitative only"], ["invalid_parameter", "invalid_step"],
+    ["FitzHugh (1961); Nagumo et al. (1962)"],
+    ["dv/dt = v − v³/3 − w + I", "dw/dt = ε(v + a − b·w)", "Hopf: 1 − v*² − ε·b = 0"]),
+    neuro.fitzhugh_nagumo, {"current": 0.5, "duration": 100.0})
 
 # ---- catalogue models (models.py) -----------------------------------------------------------
 

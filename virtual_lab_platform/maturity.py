@@ -96,6 +96,13 @@ MATURITY: dict[str, dict[str, Any]] = {
         _ev("conserved_quantity", "tests/test_v72_acid_base.py::test_charge_and_mass_balances_hold", "Bilans de charges et de matière", "1e-12")]},
     "aqueous_titration": {"level": "verified", "evidence": [
         _ev("analytical", "tests/test_v72_acid_base.py::test_titration_landmarks", "Volume d'équivalence C·V/Cb ; pH à la demi-équivalence ≈ pKa", "1e-12 mL / 0,01 pH")]},
+    "hodgkin_huxley": {"level": "verified", "evidence": [
+        _ev("independent_solver", "tests/test_v74_neuro.py::test_spike_times_against_independent_fine_step_integration", "Réimplémentation indépendante, pas 4 fois plus fin", "0,02 ms par potentiel d'action"),
+        _ev("analytical", "tests/test_v74_neuro.py::test_resting_potential_against_an_independent_steady_state_root", "Racine de I_ion(V) = 0 aux portes stationnaires", "1e-3 mV")],
+        "note": "Vérifie la résolution des équations de 1952 ; pas un modèle de neurone humain."},
+    "fitzhugh_nagumo": {"level": "verified", "evidence": [
+        _ev("analytical", "tests/test_v74_neuro.py::test_fhn_loses_stability_exactly_at_the_analytical_hopf_current", "Perte de stabilité au courant de Hopf analytique (trace du jacobien nulle)", "±0,02 en courant"),
+        _ev("analytical", "tests/test_v74_neuro.py::test_fhn_equilibrium_is_an_exact_root", "Équilibre racine exacte du système", "1e-12")]},
     "model_fit": {"level": "verified", "evidence": [
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_puromycin_fit_reproduces_bates_and_watts", "Estimations et erreurs types de Bates & Watts (1988), Puromycine", "5e-4 relatif"),
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_bod_fit_reproduces_the_published_estimates", "Estimations publiées, DBO", "2e-4 relatif"),

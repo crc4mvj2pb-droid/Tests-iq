@@ -299,6 +299,17 @@ def strong_base_ph():
     return d["ph"], 14.0 + math.log10(oh)
 
 
+def fhn_upper_hopf_current():
+    """Upper Hopf current of FitzHugh–Nagumo (a = 0.7, b = 0.8, ε = 0.08): v* = +√(1 − εb), I = (v* + a)/b − v* + v*³/3."""
+    v = math.sqrt(1 - 0.08 * 0.8)
+    d = _run("fitzhugh_nagumo", {"current": 1.0, "duration": 1.0})
+    return d["hopf_currents"][1], (v + 0.7) / 0.8 - v + v ** 3 / 3
+
+
+def hh_no_spike_without_current():
+    return _run("hodgkin_huxley", {"current_ua_cm2": 0.0, "duration_ms": 100.0})["spike_count"], 0
+
+
 # ---- units (SI Brochure, 9th edition, BIPM 2019; CODATA 2018) --------------------------------
 
 def unit_case(value, from_unit, to_unit, expected):
@@ -380,6 +391,10 @@ CASES = [
           basis="écart dû à [H⁺] ≪ 0,1 mol/L : |ΔpH| < 1e-3"),
     _case("strong_base_ph", "physicochimie", "aqueous_acid_base", "Base forte 1e-3 mol/L : pH = 11", strong_base_ph,
           kind="analytical", source="pH + pOH = pKw avec [OH⁻] = C + Kw/[OH⁻]", tol=1e-9, relative=False, basis="formule fermée (quadratique)"),
+    _case("fhn_upper_hopf_current", "neurosciences", "fitzhugh_nagumo", "FitzHugh–Nagumo : courant de Hopf supérieur", fhn_upper_hopf_current,
+          kind="analytical", source="Trace du jacobien nulle à l'équilibre (FitzHugh 1961)", tol=1e-12, basis="formule fermée"),
+    _case("hh_no_spike_without_current", "neurosciences", "hodgkin_huxley", "Hodgkin–Huxley au repos : aucun potentiel d'action sans courant", hh_no_spike_without_current,
+          kind="analytical", source="Équilibre stable au potentiel de repos (Hodgkin & Huxley 1952)", tol=0, relative=False, basis="exact"),
     _case("unit_atm", "unités", "units", "1 atm = 101 325 Pa", unit_case(1.0, "atm", "Pa", 101325.0), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),
     _case("unit_ev", "unités", "units", "1 eV = 1,602 176 634e-19 J", unit_case(1.0, "eV", "J", 1.602176634e-19), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.) : e exact", tol=1e-15, basis="définition exacte"),
     _case("unit_celsius", "unités", "units", "25 °C = 298,15 K (conversion affine)", unit_case(25.0, "degC", "K", 298.15), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),
