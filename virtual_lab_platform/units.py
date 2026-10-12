@@ -195,3 +195,40 @@ def contract_converter(value, from_unit, to_unit, name):
         return convert(value, from_unit, to_unit)
     except UnitError as exc:
         raise ContractError(f"{name}: {exc}", exc.code, name=name, **exc.params) from exc
+
+
+# v6.1: documented definition, source and exactness of every non-SI or special symbol accepted above.
+_SI = "bipm_si_brochure_2019"
+DEFINITIONS: dict[str, dict] = {
+    "1": {"definition": "quantity of dimension one", "source_id": _SI, "exact": True},
+    "%": {"definition": "0.01", "source_id": _SI, "exact": True},
+    "rad": {"definition": "m/m (SI coherent derived unit)", "source_id": _SI, "exact": True},
+    "sr": {"definition": "m²/m² (SI coherent derived unit)", "source_id": _SI, "exact": True},
+    "min": {"definition": "60 s", "source_id": _SI, "exact": True},
+    "h": {"definition": "3600 s", "source_id": _SI, "exact": True},
+    "d": {"definition": "86 400 s", "source_id": _SI, "exact": True},
+    "L": {"definition": "10⁻³ m³", "source_id": _SI, "exact": True},
+    "l": {"definition": "10⁻³ m³ (alternative symbol of the litre)", "source_id": _SI, "exact": True},
+    "eV": {"definition": "1.602 176 634 × 10⁻¹⁹ J (e × 1 V, e exact since 2019)", "source_id": _SI, "exact": True},
+    "Da": {"definition": "1.660 539 066 60 × 10⁻²⁷ kg", "source_id": "codata_2018", "exact": False, "relative_standard_uncertainty": 3.0e-10},
+    "°C": {"definition": "t/°C = T/K − 273.15", "source_id": _SI, "exact": True},
+    "degC": {"definition": "alias of °C", "source_id": _SI, "exact": True},
+    "atm": {"definition": "101 325 Pa (standard atmosphere)", "source_id": "cgpm_1954", "exact": True},
+    "bar": {"definition": "10⁵ Pa", "source_id": "bipm_si_brochure_2006", "exact": True},
+    "M": {"definition": "mol/L = 10³ mol/m³ (molar)", "source_id": "iupac_green_book_2007", "exact": True},
+    "ppm": {"definition": "10⁻⁶ (ratio of like quantities; which ones is stated by the data source)", "source_id": "iupac_green_book_2007", "exact": True,
+            "note": "Use is discouraged by the SI Brochure because it is ambiguous; kept to read published datasets as given."},
+    "ppb": {"definition": "10⁻⁹ (ratio of like quantities)", "source_id": "iupac_green_book_2007", "exact": True},
+    "count": {"definition": "number of entities or events, dimension one", "source_id": _SI, "exact": True},
+    "counts": {"definition": "alias of count", "source_id": _SI, "exact": True},
+    "ohm": {"definition": "alias of Ω", "source_id": _SI, "exact": True},
+    "Ohm": {"definition": "alias of Ω", "source_id": _SI, "exact": True},
+    "AU": {"definition": "legacy alias of 1 used by early model outputs (dimension one)", "source_id": None, "exact": True},
+    "a.u.": {"definition": "arbitrary or model units: not convertible to any physical unit", "source_id": None, "exact": True},
+}
+_SI_PREFIXABLE = {"m", "g", "s", "A", "K", "mol", "cd", "Hz", "N", "Pa", "J", "W", "C", "V", "Ω", "S", "F", "H"}
+
+
+def non_si_symbols() -> list[str]:
+    """Accepted symbols that are not SI base or SI coherent derived units with special names."""
+    return sorted(set(_PLAIN) | (set(_PREFIXABLE) - _SI_PREFIXABLE))

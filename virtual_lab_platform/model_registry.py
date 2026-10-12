@@ -18,6 +18,7 @@ import workbench_circuit
 import workbench_transient
 from contracts import CONTRACT_VERSION, ContractError, check_contract, output, param, resolve_path, validate_inputs
 from models import execute_model
+import references
 import units
 from version import APP_VERSION
 
@@ -37,7 +38,8 @@ REGISTRY: dict[str, dict[str, Any]] = {}
 
 
 def register(contract: dict[str, Any], runner: Callable[[dict], dict], example: dict | None) -> None:
-    REGISTRY[contract["id"]] = {"contract": contract, "runner": runner, "example": example}
+    # v6.1: reference ids (sources.json) and provenance labels of numeric defaults.
+    REGISTRY[contract["id"]] = {"contract": references.annotate_contract(contract), "runner": runner, "example": example}
 
 
 # ---- electrical -------------------------------------------------------------------------------

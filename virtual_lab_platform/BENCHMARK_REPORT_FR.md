@@ -1,6 +1,6 @@
-# Banc d'essai indépendant — Virtual Lab Platform v6.0
+# Banc d'essai indépendant — Virtual Lab Platform v6.1
 
-Généré par `python scripts/run_benchmarks.py` le 2026-10-12T20:37:18+00:00 (Python 3.13.16).
+Généré par `python scripts/run_benchmarks.py` le 2026-10-12T20:43:36+00:00 (Python 3.13.16).
 Les références sont calculées dans `benchmarks/independent_suite.py` : formule fermée, table publiée ou intégrateur écrit à part. Ce fichier n'est importé par aucun test unitaire de moteur. Les tolérances ont été fixées avant la première exécution, à partir de l'erreur connue de chaque méthode (colonne « Base de la tolérance »).
 
 ## Synthèse

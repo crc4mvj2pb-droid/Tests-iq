@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "note": "Source ids (data_catalog/sources.json) cited by each model contract (v6.1).",
+  "contracts": {
+    "dc_resistive_network": [
+      "kirchhoff_1845",
+      "nilsson_riedel_2015"
+    ],
+    "workbench_dc_circuit": [
+      "kirchhoff_1845",
+      "nilsson_riedel_2015"
+    ],
+    "rc_rl_step_response": [
+      "nilsson_riedel_2015"
+    ],
+    "series_rlc_ac": [
+      "nilsson_riedel_2015"
+    ],
+    "series_rlc_frequency_sweep": [
+      "nilsson_riedel_2015"
+    ],
+    "series_rlc_step_response": [
+      "nilsson_riedel_2015",
+      "ogata_2010"
+    ],
+    "workbench_rc_rl_transient": [
+      "thevenin_1883",
+      "nilsson_riedel_2015"
+    ],
+    "mass_action_kinetics": [
+      "guldberg_waage_1864",
+      "arrhenius_1889",
+      "butcher_2016",
+      "dormand_prince_1980",
+      "hairer_wanner_1996",
+      "hindmarsh_1983"
+    ],
+    "stoichiometry": [
+      "iupac_red_book_2005"
+    ],
+    "enzyme_kinetics": [
+      "michaelis_menten_1913",
+      "johnson_goody_2011"
+    ],
+    "sir_epidemic": [
+      "kermack_mckendrick_1927"
+    ],
+    "heat_diffusion_1d": [
+      "fourier_1822",
+      "crank_1975",
+      "carslaw_jaeger_1959"
+    ],
+    "logistic_growth": [
+      "verhulst_1838"
+    ],
+    "first_order_reaction": [
+      "atkins_depaula_2014"
+    ],
+    "environmental_decay": [
+      "atkins_depaula_2014"
+    ],
+    "one_compartment_pk": [
+      "gibaldi_perrier_1982"
+    ],
+    "lotka_volterra": [
+      "lotka_1925",
+      "volterra_1926",
+      "murray_2002"
+    ],
+    "leaky_integrate_fire": [
+      "lapicque_1907",
+      "gerstner_2014"
+    ],
+    "arrhenius_reaction": [
+      "arrhenius_1889"
+    ]
+  }
+}

@@ -1,19 +1,300 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "title": "Bibliographic sources of the data catalogue",
-  "policy": "Every catalogue value cites one of these sources. A source records what was consulted (edition, version or access date) and the licence or usage terms as far as known; 'unknown' is stated explicitly rather than assumed.",
+  "policy": "Every catalogue value cites one of these sources. A source records what was consulted (edition, version or access date) and the licence or usage terms as far as known; 'unknown' is stated explicitly rather than assumed. Model equations and numerical methods cite their original or textbook source (v6.1).",
   "sources": [
-    {"id": "bipm_si_brochure_2019", "kind": "standard", "citation": "BIPM, The International System of Units (SI Brochure), 9th edition", "year": 2019,
-     "url": "https://www.bipm.org/en/publications/si-brochure", "version": "9th edition (2019), v1.08 or later", "license": "BIPM publication, free access; values are definitions"},
-    {"id": "codata_2018", "kind": "evaluated_data", "citation": "E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor, CODATA recommended values of the fundamental physical constants: 2018, Rev. Mod. Phys. 93, 025010 (2021)", "year": 2021,
-     "url": "https://physics.nist.gov/cuu/Constants/", "version": "CODATA 2018", "license": "NIST data, public; factual values", "doi": "10.1103/RevModPhys.93.025010"},
-    {"id": "bates_watts_1988", "kind": "book", "citation": "D. M. Bates, D. G. Watts, Nonlinear Regression Analysis and Its Applications, Wiley, New York (1988), Appendix A1", "year": 1988,
-     "version": "1st edition", "license": "data reproduced for teaching in many packages; numerical facts", "doi": "10.1002/9780470316757"},
-    {"id": "treloar_1974", "kind": "thesis", "citation": "M. A. Treloar, Effects of Puromycin on Galactosyltransferase in Golgi Membranes, M.Sc. thesis, University of Toronto (1974)", "year": 1974,
-     "license": "original thesis; data as reproduced in Bates & Watts (1988) and in the R 'datasets' package (data frame Puromycin)"},
-    {"id": "marske_1967", "kind": "thesis", "citation": "D. Marske, Biochemical Oxygen Demand Data Interpretation Using Sum of Squares Surface, M.Sc. thesis, University of Wisconsin (1967)", "year": 1967,
-     "license": "original thesis; data as reproduced in Bates & Watts (1988) and in the R 'datasets' package (data frame BOD)"},
-    {"id": "r_datasets_package", "kind": "software", "citation": "R Core Team, R: A Language and Environment for Statistical Computing, package 'datasets'", "year": 2024,
-     "url": "https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/00Index.html", "version": "R 4.x", "license": "GPL-2 | GPL-3 (software); the numerical data are factual"}
+    {
+      "id": "bipm_si_brochure_2019",
+      "kind": "standard",
+      "citation": "BIPM, The International System of Units (SI Brochure), 9th edition",
+      "year": 2019,
+      "url": "https://www.bipm.org/en/publications/si-brochure",
+      "version": "9th edition (2019), v1.08 or later",
+      "license": "BIPM publication, free access; values are definitions"
+    },
+    {
+      "id": "codata_2018",
+      "kind": "evaluated_data",
+      "citation": "E. Tiesinga, P. J. Mohr, D. B. Newell, B. N. Taylor, CODATA recommended values of the fundamental physical constants: 2018, Rev. Mod. Phys. 93, 025010 (2021)",
+      "year": 2021,
+      "url": "https://physics.nist.gov/cuu/Constants/",
+      "version": "CODATA 2018",
+      "license": "NIST data, public; factual values",
+      "doi": "10.1103/RevModPhys.93.025010"
+    },
+    {
+      "id": "bates_watts_1988",
+      "kind": "book",
+      "citation": "D. M. Bates, D. G. Watts, Nonlinear Regression Analysis and Its Applications, Wiley, New York (1988), Appendix A1",
+      "year": 1988,
+      "version": "1st edition",
+      "license": "data reproduced for teaching in many packages; numerical facts",
+      "doi": "10.1002/9780470316757"
+    },
+    {
+      "id": "treloar_1974",
+      "kind": "thesis",
+      "citation": "M. A. Treloar, Effects of Puromycin on Galactosyltransferase in Golgi Membranes, M.Sc. thesis, University of Toronto (1974)",
+      "year": 1974,
+      "license": "original thesis; data as reproduced in Bates & Watts (1988) and in the R 'datasets' package (data frame Puromycin)",
+      "version": "original thesis not consulted; values taken as reproduced in Bates & Watts (1988) and R datasets"
+    },
+    {
+      "id": "marske_1967",
+      "kind": "thesis",
+      "citation": "D. Marske, Biochemical Oxygen Demand Data Interpretation Using Sum of Squares Surface, M.Sc. thesis, University of Wisconsin (1967)",
+      "year": 1967,
+      "license": "original thesis; data as reproduced in Bates & Watts (1988) and in the R 'datasets' package (data frame BOD)",
+      "version": "original thesis not consulted; values taken as reproduced in Bates & Watts (1988) and R datasets"
+    },
+    {
+      "id": "r_datasets_package",
+      "kind": "software",
+      "citation": "R Core Team, R: A Language and Environment for Statistical Computing, package 'datasets'",
+      "year": 2024,
+      "url": "https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/00Index.html",
+      "version": "R 4.x",
+      "license": "GPL-2 | GPL-3 (software); the numerical data are factual"
+    },
+    {
+      "id": "kirchhoff_1845",
+      "kind": "article",
+      "citation": "G. Kirchhoff, Ueber den Durchgang eines elektrischen Stromes durch eine Ebene, insbesondere durch eine kreisförmige, Annalen der Physik 140, 497–514 (1845)",
+      "year": 1845,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "thevenin_1883",
+      "kind": "article",
+      "citation": "L. Thévenin, Sur un nouveau théorème d'électricité dynamique, Comptes rendus de l'Académie des sciences 97, 159–161 (1883)",
+      "year": 1883,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "nilsson_riedel_2015",
+      "kind": "book",
+      "citation": "J. W. Nilsson, S. A. Riedel, Electric Circuits, 10th edition, Pearson (2015)",
+      "year": 2015,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "ogata_2010",
+      "kind": "book",
+      "citation": "K. Ogata, Modern Control Engineering, 5th edition, Prentice Hall (2010)",
+      "year": 2010,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "guldberg_waage_1864",
+      "kind": "article",
+      "citation": "C. M. Guldberg, P. Waage, Studier over Affiniteten, Forhandlinger i Videnskabs-Selskabet i Christiania (1864)",
+      "year": 1864,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "arrhenius_1889",
+      "kind": "article",
+      "citation": "S. Arrhenius, Über die Reaktionsgeschwindigkeit bei der Inversion von Rohrzucker durch Säuren, Zeitschrift für physikalische Chemie 4, 226–248 (1889)",
+      "year": 1889,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "butcher_2016",
+      "kind": "book",
+      "citation": "J. C. Butcher, Numerical Methods for Ordinary Differential Equations, 3rd edition, Wiley (2016)",
+      "year": 2016,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "dormand_prince_1980",
+      "kind": "article",
+      "citation": "J. R. Dormand, P. J. Prince, A family of embedded Runge–Kutta formulae, Journal of Computational and Applied Mathematics 6, 19–26 (1980)",
+      "year": 1980,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "hairer_wanner_1996",
+      "kind": "book",
+      "citation": "E. Hairer, G. Wanner, Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd edition, Springer (1996)",
+      "year": 1996,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "hindmarsh_1983",
+      "kind": "chapter",
+      "citation": "A. C. Hindmarsh, ODEPACK, a systematized collection of ODE solvers, in R. S. Stepleman et al. (eds.), Scientific Computing, North-Holland, 55–64 (1983)",
+      "year": 1983,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "iupac_red_book_2005",
+      "kind": "standard",
+      "citation": "IUPAC, Nomenclature of Inorganic Chemistry — IUPAC Recommendations 2005 (Red Book), RSC Publishing (2005)",
+      "year": 2005,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "michaelis_menten_1913",
+      "kind": "article",
+      "citation": "L. Michaelis, M. L. Menten, Die Kinetik der Invertinwirkung, Biochemische Zeitschrift 49, 333–369 (1913)",
+      "year": 1913,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "johnson_goody_2011",
+      "kind": "article",
+      "citation": "K. A. Johnson, R. S. Goody, The original Michaelis constant: translation of the 1913 Michaelis–Menten paper, Biochemistry 50, 8264–8269 (2011)",
+      "year": 2011,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "kermack_mckendrick_1927",
+      "kind": "article",
+      "citation": "W. O. Kermack, A. G. McKendrick, A contribution to the mathematical theory of epidemics, Proceedings of the Royal Society of London A 115, 700–721 (1927)",
+      "year": 1927,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "fourier_1822",
+      "kind": "book",
+      "citation": "J. Fourier, Théorie analytique de la chaleur, Firmin Didot, Paris (1822)",
+      "year": 1822,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "crank_1975",
+      "kind": "book",
+      "citation": "J. Crank, The Mathematics of Diffusion, 2nd edition, Oxford University Press (1975)",
+      "year": 1975,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "carslaw_jaeger_1959",
+      "kind": "book",
+      "citation": "H. S. Carslaw, J. C. Jaeger, Conduction of Heat in Solids, 2nd edition, Oxford University Press (1959)",
+      "year": 1959,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "incropera_2007",
+      "kind": "book",
+      "citation": "F. P. Incropera, D. P. DeWitt, T. L. Bergman, A. S. Lavine, Fundamentals of Heat and Mass Transfer, 6th edition, Wiley (2007)",
+      "year": 2007,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "verhulst_1838",
+      "kind": "article",
+      "citation": "P.-F. Verhulst, Notice sur la loi que la population suit dans son accroissement, Correspondance mathématique et physique 10, 113–121 (1838)",
+      "year": 1838,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "atkins_depaula_2014",
+      "kind": "book",
+      "citation": "P. Atkins, J. de Paula, Atkins' Physical Chemistry, 10th edition, Oxford University Press (2014)",
+      "year": 2014,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "gibaldi_perrier_1982",
+      "kind": "book",
+      "citation": "M. Gibaldi, D. Perrier, Pharmacokinetics, 2nd edition, Marcel Dekker (1982)",
+      "year": 1982,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "lotka_1925",
+      "kind": "book",
+      "citation": "A. J. Lotka, Elements of Physical Biology, Williams & Wilkins (1925)",
+      "year": 1925,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "volterra_1926",
+      "kind": "article",
+      "citation": "V. Volterra, Variazioni e fluttuazioni del numero d'individui in specie animali conviventi, Memorie della R. Accademia Nazionale dei Lincei 2, 31–113 (1926)",
+      "year": 1926,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "murray_2002",
+      "kind": "book",
+      "citation": "J. D. Murray, Mathematical Biology I: An Introduction, 3rd edition, Springer (2002)",
+      "year": 2002,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "lapicque_1907",
+      "kind": "article",
+      "citation": "L. Lapicque, Recherches quantitatives sur l'excitation électrique des nerfs traitée comme une polarisation, Journal de physiologie et de pathologie générale 9, 620–635 (1907)",
+      "year": 1907,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "gerstner_2014",
+      "kind": "book",
+      "citation": "W. Gerstner, W. M. Kistler, R. Naud, L. Paninski, Neuronal Dynamics, Cambridge University Press (2014)",
+      "year": 2014,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "beer_1852",
+      "kind": "article",
+      "citation": "A. Beer, Bestimmung der Absorption des rothen Lichts in farbigen Flüssigkeiten, Annalen der Physik 162, 78–88 (1852)",
+      "year": 1852,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "bipm_si_brochure_2006",
+      "kind": "standard",
+      "citation": "BIPM, The International System of Units (SI Brochure), 8th edition, Table 8 (non-SI units such as the bar)",
+      "year": 2006,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "iupac_green_book_2007",
+      "kind": "standard",
+      "citation": "E. R. Cohen et al., Quantities, Units and Symbols in Physical Chemistry (IUPAC Green Book), 3rd edition, RSC Publishing (2007)",
+      "year": 2007,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    },
+    {
+      "id": "cgpm_1954",
+      "kind": "standard",
+      "citation": "10th General Conference on Weights and Measures (CGPM), Resolution 4: definition of the standard atmosphere (101 325 Pa) (1954)",
+      "year": 1954,
+      "version": "as cited",
+      "license": "bibliographic reference (equations and methods are cited, no text or data copied)"
+    }
   ]
 }

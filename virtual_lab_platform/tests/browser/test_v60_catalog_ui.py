@@ -22,3 +22,15 @@ def test_search_filter_and_export(page, evidence):
     assert kinds == ["reference"]
     evidence("Catalogue de données", "Rechercher « oxygen demand », exporter le CSV, filtrer par nature", "Entrée sourcée, nature affichée, CSV avec unités, filtre strict",
              f"{row.splitlines()[0]} ; CSV {len(lines)} lignes ; filtre référence : {kinds}")
+
+
+def test_bibliography_lists_what_cites_each_source(page, evidence):
+    """v6.1: every source with the items citing it."""
+    page.click("#dcSources summary")
+    page.wait_for_selector('#dcSourcesList [data-source="michaelis_menten_1913"]')
+    row = page.inner_text('#dcSourcesList [data-source="michaelis_menten_1913"]')
+    assert "1913" in row and "modèle enzyme_kinetics" in row
+    assert page.locator('#dcSourcesList [role="alert"]').count() == 0
+    count = page.locator("#dcSourcesList [data-source]").count()
+    evidence("Bibliographie reliée", "Ouvrir « Bibliographie » dans le catalogue", "Chaque source avec les modèles, constantes, données et unités qui la citent",
+             f"{count} sources ; {row[:120]}")

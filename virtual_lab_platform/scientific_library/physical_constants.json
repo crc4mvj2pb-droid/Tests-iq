@@ -14,7 +14,8 @@
       "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
       "reference_date": "2019-05-20",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "planck_constant",
@@ -26,7 +27,8 @@
       "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
       "reference_date": "2019-05-20",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "elementary_charge",
@@ -38,7 +40,8 @@
       "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
       "reference_date": "2019-05-20",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "boltzmann_constant",
@@ -50,7 +53,8 @@
       "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
       "reference_date": "2019-05-20",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "avogadro_constant",
@@ -62,7 +66,8 @@
       "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
       "reference_date": "2019-05-20",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "gas_constant",
@@ -78,7 +83,8 @@
       "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
       "reference_date": "2019-05-20",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "faraday_constant",
@@ -94,7 +100,8 @@
       "source": "BIPM, The International System of Units (SI Brochure), 9th edition, 2019",
       "reference_date": "2019-05-20",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "standard_gravity",
@@ -106,7 +113,8 @@
       "source": "3rd CGPM (1901), conventional standard value; restated in the SI Brochure, 9th edition",
       "reference_date": "1901-10-22",
       "exact": true,
-      "relative_standard_uncertainty": 0.0
+      "relative_standard_uncertainty": 0.0,
+      "source_id": "bipm_si_brochure_2019"
     },
     {
       "id": "vacuum_electric_permittivity",
@@ -118,7 +126,8 @@
       "exact": false,
       "relative_standard_uncertainty": 1.5e-10,
       "source": "CODATA 2018 recommended values — E. Tiesinga et al., Rev. Mod. Phys. 93, 025010 (2021); NIST https://physics.nist.gov/cuu/Constants/",
-      "reference_date": "2019-05-20"
+      "reference_date": "2019-05-20",
+      "source_id": "codata_2018"
     }
   ]
 }

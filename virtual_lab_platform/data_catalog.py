@@ -109,7 +109,7 @@ def _constant_entries() -> list[dict[str, Any]]:
     """The physical constants file expressed as catalogue property records (kind 'reference')."""
     out = []
     for c in constants.all_constants():
-        source = "bipm_si_brochure_2019" if c.get("exact") else "codata_2018"
+        source = c["source_id"]  # v6.1: explicit in physical_constants.json
         out.append({"id": f"constant_{c['id']}", "record_type": "property", "property": c["name"], "symbol": c.get("symbol"), "value": c["value"],
                     "unit": c["unit"], "uncertainty": {"kind": "relative_standard", "value": c["relative_standard_uncertainty"]},
                     "exact": bool(c.get("exact")), "approximate": False, "conditions": {}, "source_ids": [source], "date": c["reference_date"],
