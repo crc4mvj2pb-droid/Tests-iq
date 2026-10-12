@@ -232,7 +232,7 @@ def answer(question: str) -> dict[str, Any]:
         rec = trace.call("run_model", {"model_id": model_id, "inputs": inputs})
         if rec["status"] != "ok":
             status = "tool_failed"
-            statements.append({"kind": "limitation", "text": f"L'outil {model_id} a refusé ou échoué : {rec['error']['message']}. Aucune valeur n'est donnée.", "sources": [rec["id"]]})
+            statements.append({"kind": "limitation", "text": f"L'outil {model_id} a refusé ou échoué : {rec['error']['message'].rstrip('.')}. Aucune valeur n'est donnée.", "sources": [rec["id"]]})
         else:
             o = rec["outputs"]
             values = [{"name": k, "value": v["value"], "unit": v["unit"], "source": rec["id"]} for k, v in o["outputs"].items() if isinstance(v.get("value"), (int, float))]
@@ -257,7 +257,8 @@ def _result(question, plan, trace, statements, status):
 def untraced_numbers(result: dict[str, Any]) -> list[str]:
     """Numbers written in the answer that appear in no tool output or question (hallucination check)."""
     import json
-    haystack = json.dumps([c.get("outputs") for c in result["tool_calls"]], ensure_ascii=False) + " " + result["question"]
+    # v8.6: tool error messages are tool outputs too (e.g. a contract bound quoted in a refusal).
+    haystack = json.dumps([[c.get("outputs"), c.get("error")] for c in result["tool_calls"]], ensure_ascii=False) + " " + result["question"]
     known = set(re.findall(r"-?\d+(?:\.\d+)?(?:e[-+]?\d+)?", haystack))
     known_formatted = set()
     for token in known:
