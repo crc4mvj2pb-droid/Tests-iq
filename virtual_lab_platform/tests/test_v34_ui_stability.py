@@ -35,4 +35,4 @@ def test_catalogue_core_interactions_are_wired():
 
 
 def test_api_version_is_bumped():
-    assert '"version": "4.1"' in APP
+    assert '"version": APP_VERSION' in APP

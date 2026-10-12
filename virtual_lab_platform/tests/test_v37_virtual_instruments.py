@@ -53,7 +53,7 @@ def test_api_and_ui_expose_virtual_instrument_measurement_feature():
     root = Path(__file__).resolve().parents[1]
     app = (root / "app.py").read_text(encoding="utf-8")
     html = (root / "static" / "index.html").read_text(encoding="utf-8")
-    assert '"version": "4.1"' in app
+    assert '"version": APP_VERSION' in app
     assert '"/api/instruments/measure"' in app
     assert "fetch('/api/instruments/measure'" in html
     assert "mesure simulée" in html.lower()

@@ -81,5 +81,5 @@ def test_workbench_reaction_ui_calls_server_engine_and_does_not_mutate_on_error(
 def test_api_exposes_v36_stoichiometry_route():
     from pathlib import Path
     app = (Path(__file__).resolve().parents[1] / "app.py").read_text(encoding="utf-8")
-    assert '"version": "4.1"' in app
+    assert '"version": APP_VERSION' in app
     assert '"/api/chemistry/stoichiometry"' in app

@@ -9,13 +9,14 @@ HTML = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
 
 
 def test_api_exposes_v40_and_documented_lifecycle_feature():
-    assert '"version": "4.1"' in APP
+    assert '"version": APP_VERSION' in APP
     assert "v4.0 experiment lifecycle" in APP
     assert '"/api/electrical/workbench-run"' in APP
 
 
 def test_circuit_workbench_uses_persisting_run_endpoint():
-    assert "fetch('/api/electrical/workbench-run'" in HTML
+    # v4.2: the call goes through wbFetchJson, which adds network/non-JSON error handling.
+    assert "wbFetchJson('/api/electrical/workbench-run'" in HTML
     assert "history_record?.id" in HTML
     assert "configuration_hash" in HTML
 
@@ -23,7 +24,9 @@ def test_circuit_workbench_uses_persisting_run_endpoint():
 def test_endpoint_creates_reproducible_configuration_hash_and_saves_history():
     start = APP.index('elif parsed.path in ("/api/electrical/workbench-solve", "/api/electrical/workbench-run")')
     block = APP[start:start + 1600]
-    for required in ("configuration", "sort_keys=True", "configuration_hash(configuration)", 'result["status"] = "completed"', 'result["data_status"] = "simulated_calculation"', 'result["history_record"] = save_experiment(result)'):
+    # v4.2: the unused local sort_keys serialization was removed; canonical hashing lives in experiment_lifecycle.
+    assert "sort_keys=True" in (ROOT / "experiment_lifecycle.py").read_text(encoding="utf-8")
+    for required in ("configuration", "configuration_hash(configuration)", 'result["status"] = "completed"', 'result["data_status"] = "simulated_calculation"', 'result["history_record"] = save_experiment(result)'):
         assert required in block
 
 

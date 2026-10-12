@@ -8,8 +8,9 @@ from protocol_engine import validate_protocol, execute_protocol
 from equipment_models import apply_material_flow_model, apply_equipment_operating_effects
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
-import json, mimetypes, urllib.parse, hashlib, re
+import json, mimetypes, urllib.parse, hashlib, re, sys, traceback
 from engine import run_experiment
+from version import APP_VERSION
 from models import MODEL_CATALOG
 from validation import compare_to_reference
 from planner import plan_enzyme_sweep
@@ -51,11 +52,11 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/models":
             return self._send(200, {"models": MODEL_CATALOG})
         if parsed.path == "/api/health":
-            return self._send(200, {"status": "ok", "mode": "local-only", "version": "4.1"})
+            return self._send(200, {"status": "ok", "mode": "local-only", "version": APP_VERSION})
         if parsed.path == "/api/scientific-ai/capabilities":
             return self._send(200, {"mode":"local_expert_router", "generative_model_connected":False, "supported_models":[m["id"] for m in MODEL_CATALOG if m["status"] == "implemented_demo"], "disclosure":"Deterministic local research copilot; no generative foundation model or live literature retrieval connected."})
         if parsed.path == "/api/version":
-            return self._send(200, {"version": "4.1", "features": ["v4.1 reproducibility: verify saved configuration hashes and replay supported saved DC workbench circuits into new dossiers" , "v4.0 experiment lifecycle: workbench circuit runs are saved as traceable SQLite experiment dossiers with configuration hashes, results, assumptions, limitations and history IDs", "v3.9 accessibility: keyboard-operable workbench items, visible focus, category state announcements and live updates for library and properties", "v3.8 interface reliability: visible local API connection status, actionable offline guidance, explicit workspace restore and robust save errors", "v3.7 virtual instruments: seeded simulated readings, calibration correction, display resolution, uncertainty budget and comparison with theory; explicit non-experimental status", "v3.2 expanded multidisciplinary catalog: 18 disciplines, 58 components, 70 equipment entries, 42 experiment workflows, 43 model entries including 30 L0 templates; sequential A-to-B-to-C kinetics remains available", "v2.7 graphical pin-to-pin circuit connections translated into a netlist and solved by the DC nodal engine","analytical RC/RL step response", "series RLC AC phasor analysis", "logarithmic RLC frequency sweep", "bounded multi-parameter least-squares fitting with residual diagnostics", "cross-model software sanity validation suite", "seven additional numerical solvers", "generic multi-model parameter sweeps", "generic seeded Monte Carlo parameter uncertainty", "reference comparison with model output column mapping", "ten-stage scientific development roadmap", "interactive multilingual workbench, categorized draggable catalog and local JSON export", "v3.5 kinetic engine bridge: abstract A/B/C species concentrations can be loaded from the workbench into the RK4 reaction-network simulator; local request cancellation and result export", "v3.6 server-side stoichiometric batch solver with formula parsing, limiting-reactant calculation, atom-balance rejection and auditable material balance", "v2.6 sample containment inside equipment, equipment operation panel, thermal setpoint transfer, conceptual microscopy/PCR checks, Beer-Lambert absorbance with user-supplied parameters, and stoichiometric reactions inside a reactor", "ideal dilution balance in the new workbench", "DC resistive circuit solver using nodal analysis with node voltages, branch currents, equivalent resistance, power and numerical KCL/power-balance checks", "visual virtual-bench workspace and protocol designer", "equipment-aware material-flow calculations and instrument uncertainty models", "descriptive CSV profiling and exploratory correlations", "bounded global-parameter sweeps for supported SBML models", "heat diffusion and SIR solvers connected to virtual-lab workflows", "equipment compatibility checks", "solution dilution calculator", "enzyme assay workflow", "solver registry", "parameter sweeps", "reference-data comparison", "traceable experiment dossiers", "SQLite experiment history", "uncertainty propagation", "local sensitivity", "provenance records", "scientific library catalog", "expanded multidomain scientific knowledge base", "SI unit and dimension reference", "selected physical constants", "local SBML model intake", "CSV reference dataset registry with provenance", "SBML subset simulator using fixed-step RK4"]})
+            return self._send(200, {"version": APP_VERSION, "features": ["v4.2 browser-verified workbench path: Playwright end-to-end tests, single-submission solve, coded and translated circuit errors, robust JSON body handling and logged internal errors", "v4.1 reproducibility: verify saved configuration hashes and replay supported saved DC workbench circuits into new dossiers" , "v4.0 experiment lifecycle: workbench circuit runs are saved as traceable SQLite experiment dossiers with configuration hashes, results, assumptions, limitations and history IDs", "v3.9 accessibility: keyboard-operable workbench items, visible focus, category state announcements and live updates for library and properties", "v3.8 interface reliability: visible local API connection status, actionable offline guidance, explicit workspace restore and robust save errors", "v3.7 virtual instruments: seeded simulated readings, calibration correction, display resolution, uncertainty budget and comparison with theory; explicit non-experimental status", "v3.2 expanded multidisciplinary catalog: 18 disciplines, 58 components, 70 equipment entries, 42 experiment workflows, 43 model entries including 30 L0 templates; sequential A-to-B-to-C kinetics remains available", "v2.7 graphical pin-to-pin circuit connections translated into a netlist and solved by the DC nodal engine","analytical RC/RL step response", "series RLC AC phasor analysis", "logarithmic RLC frequency sweep", "bounded multi-parameter least-squares fitting with residual diagnostics", "cross-model software sanity validation suite", "seven additional numerical solvers", "generic multi-model parameter sweeps", "generic seeded Monte Carlo parameter uncertainty", "reference comparison with model output column mapping", "ten-stage scientific development roadmap", "interactive multilingual workbench, categorized draggable catalog and local JSON export", "v3.5 kinetic engine bridge: abstract A/B/C species concentrations can be loaded from the workbench into the RK4 reaction-network simulator; local request cancellation and result export", "v3.6 server-side stoichiometric batch solver with formula parsing, limiting-reactant calculation, atom-balance rejection and auditable material balance", "v2.6 sample containment inside equipment, equipment operation panel, thermal setpoint transfer, conceptual microscopy/PCR checks, Beer-Lambert absorbance with user-supplied parameters, and stoichiometric reactions inside a reactor", "ideal dilution balance in the new workbench", "DC resistive circuit solver using nodal analysis with node voltages, branch currents, equivalent resistance, power and numerical KCL/power-balance checks", "visual virtual-bench workspace and protocol designer", "equipment-aware material-flow calculations and instrument uncertainty models", "descriptive CSV profiling and exploratory correlations", "bounded global-parameter sweeps for supported SBML models", "heat diffusion and SIR solvers connected to virtual-lab workflows", "equipment compatibility checks", "solution dilution calculator", "enzyme assay workflow", "solver registry", "parameter sweeps", "reference-data comparison", "traceable experiment dossiers", "SQLite experiment history", "uncertainty propagation", "local sensitivity", "provenance records", "scientific library catalog", "expanded multidomain scientific knowledge base", "SI unit and dimension reference", "selected physical constants", "local SBML model intake", "CSV reference dataset registry with provenance", "SBML subset simulator using fixed-step RK4"]})
         if parsed.path == "/api/research/validation-suite":
             return self._send(200, run_software_validation_suite())
         if parsed.path == "/api/research/roadmap":
@@ -121,9 +122,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": "Not found"})
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if length <= 0 or length > 1_000_000:
-                return self._send(413, {"error": "Request body missing or too large"})
-            request = json.loads(self.rfile.read(length).decode("utf-8"))
+            if length > 1_000_000:
+                return self._send(413, {"error": "Request body too large (maximum 1,000,000 bytes)."})
+            if length <= 0:
+                # Replay needs no parameters; every other endpoint requires a JSON object.
+                if not is_replay_path:
+                    return self._send(400, {"error": "Request body missing: send a JSON object."})
+                request = {}
+            else:
+                request = json.loads(self.rfile.read(length).decode("utf-8"))
+            if not isinstance(request, dict):
+                return self._send(400, {"error": "Request body must be a JSON object."})
             if is_replay_path:
                 experiment_id = int(parsed.path.split("/")[3])
                 original = get_experiment(experiment_id)
@@ -161,7 +170,6 @@ class Handler(BaseHTTPRequestHandler):
                         "components": request.get("components", []),
                         "connections": request.get("connections", []),
                     }
-                    canonical_config = json.dumps(configuration, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
                     result["model_id"] = "electrical_workbench_dc"
                     result["title"] = str(request.get("name") or "Circuit CC — paillasse virtuelle")[:200]
                     result["question"] = str(request.get("question") or "")[:4000]
@@ -210,8 +218,8 @@ class Handler(BaseHTTPRequestHandler):
                 result["protocol_trace"] = execute_protocol(request, result.get("results"))
                 result["model_id"] = result.get("workflow_id", "virtual_lab_workflow")
                 result["title"] = result.get("name", "Virtual lab experiment")
-                canonical_config = json.dumps(result.get("configuration", {}), sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-                result["configuration_hash"] = configuration_hash(configuration)
+                result["configuration"] = {**result.get("configuration", {}), "workflow_id": result.get("workflow_id")}
+                result["configuration_hash"] = configuration_hash(result["configuration"])
                 result["status"] = "completed" if result.get("results", {}).get("computed_scientific_result") is not False else "workflow_only"
                 result["history_record"] = save_experiment(result)
             elif parsed.path == "/api/experiments":
@@ -264,17 +272,25 @@ class Handler(BaseHTTPRequestHandler):
                 result = plan_enzyme_sweep(request.get("parameters", {}), request.get("parameter", ""), request.get("values", []))
             return self._send(200, result)
         except (ValueError, json.JSONDecodeError, UnicodeDecodeError, SBMLSimulationError, CircuitError, ElectricalModelError, WorkbenchCircuitError, ChemicalKineticsError, StoichiometryError) as exc:
-            return self._send(400, {"error": str(exc)})
+            body = {"error": str(exc)}
+            if getattr(exc, "code", None):
+                body["error_code"] = exc.code
+                body["error_params"] = getattr(exc, "params", {})
+            return self._send(400, body)
         except Exception:
-            # Do not expose internal exception details through the HTTP API.
+            # Do not expose internal exception details through the HTTP API, but keep them in the terminal log.
+            print(f"[VirtualLab] Internal error on POST {parsed.path}", file=sys.stderr)
+            traceback.print_exc()
             return self._send(500, {"error": "Internal error. Check the local terminal logs."})
 
     def log_message(self, fmt, *args):
         print("[VirtualLab]", fmt % args)
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
-    print("Virtual Lab Platform running locally at http://127.0.0.1:8765")
+    import os
+    port = int(os.environ.get("VIRTUAL_LAB_PORT", "8765"))
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    print(f"Virtual Lab Platform running locally at http://127.0.0.1:{port}")
     print("Local-only server. Do not expose this prototype to the public internet.")
     try:
         server.serve_forever()

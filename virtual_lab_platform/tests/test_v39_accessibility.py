@@ -15,7 +15,7 @@ class IdParser(HTMLParser):
         if a.get("data-cat"): self.categories.append((a["data-cat"],a.get("aria-pressed")))
 
 def test_api_reports_v39():
-    assert '"version": "4.1"' in APP
+    assert '"version": APP_VERSION' in APP
     assert 'v3.9 accessibility' in APP
 
 def test_all_library_categories_have_explicit_initial_pressed_state():

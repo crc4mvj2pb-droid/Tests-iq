@@ -1,11 +1,10 @@
-# Virtual Lab Platform v3.4
+# Virtual Lab Platform
 
-**Laboratoire scientifique virtuel local, multidisciplinaire et extensible.** Le projet réunit une paillasse interactive, des bibliothèques par domaine, des modèles numériques explicites, des outils d'analyse et un historique expérimental local. Il s'agit d'un prototype de recherche : une entrée de catalogue ne signifie pas qu'une simulation correspondante existe.
+**Laboratoire scientifique virtuel local, multidisciplinaire et extensible.** Prototype de recherche : une entrée de catalogue ne signifie pas qu'une simulation correspondante existe. Les résultats calculés ne sont pas des mesures expérimentales.
 
+## Version actuelle
 
-## Dernière version — v3.4
-
-La v3.4 stabilise la bibliothèque visuelle : cartes plus grandes, mise en page responsive et repères textuels sans emojis dans les catalogues. Les interactions principales (recherche, catégories, ajout, glisser-déposer, édition et suppression) ont été vérifiées dans Chromium. Voir `README_v3.4_FR.md` et `RELEASE_NOTES_v3.4_FR.md`.
+La version actuelle est définie dans `version.py`. Pour chaque version, consulter `README_v<version>_FR.md`, `RELEASE_NOTES_v<version>_FR.md` et la matrice générée `VALIDATION_MATRIX_v<version>.md`. Les documents des versions précédentes sont conservés.
 
 ## Démarrage rapide
 

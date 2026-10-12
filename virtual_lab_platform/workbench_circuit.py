@@ -6,11 +6,36 @@ analysis to electrical_circuits.solve_dc_circuit and does not pretend to be SPIC
 """
 from __future__ import annotations
 
+import math
+
 from electrical_circuits import solve_dc_circuit
 
 
 class WorkbenchCircuitError(ValueError):
-    """Invalid or unsupported topology assembled in the graphical workbench."""
+    """Invalid or unsupported topology assembled in the graphical workbench.
+
+    `code` and `params` let the interface show a translated message; the English
+    text remains the API's default explanation.
+    """
+
+    def __init__(self, message: str, code: str = "invalid_circuit", **params):
+        super().__init__(message)
+        self.code = code
+        self.params = params
+
+
+def _label(item: dict) -> str:
+    return str(item.get("displayName") or item.get("id") or "component")
+
+
+def _number(value, label: str, quantity: str, code: str) -> float:
+    if isinstance(value, bool) or value is None or (isinstance(value, str) and not value.strip()):
+        raise WorkbenchCircuitError(f"Enter a numeric {quantity} for '{label}'.", code, name=label)
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise WorkbenchCircuitError(f"Enter a numeric {quantity} for '{label}'.", code, name=label)
+    return number
 
 
 PINS: dict[str, tuple[str, ...]] = {
@@ -56,22 +81,22 @@ def solve_workbench_circuit(request: dict) -> dict:
     components = request.get("components")
     connections = request.get("connections")
     if not isinstance(components, list) or len(components) > 150:
-        raise WorkbenchCircuitError("The workbench must provide a component list (maximum 150 items).")
+        raise WorkbenchCircuitError("The workbench must provide a component list (maximum 150 items).", "invalid_request")
     if not isinstance(connections, list) or len(connections) > 500:
-        raise WorkbenchCircuitError("The workbench must provide a wire list (maximum 500 connections).")
+        raise WorkbenchCircuitError("The workbench must provide a wire list (maximum 500 connections).", "invalid_request")
     if not components:
-        raise WorkbenchCircuitError("Add a DC source, at least one resistor, and a ground/reference symbol to the workbench.")
+        raise WorkbenchCircuitError("Add a DC source, at least one resistor, and a ground/reference symbol to the workbench.", "empty_bench")
 
     by_instance: dict[str, dict] = {}
     for item in components:
         if not isinstance(item, dict):
-            raise WorkbenchCircuitError("One of the workbench components is invalid.")
+            raise WorkbenchCircuitError("One of the workbench components is invalid.", "invalid_request")
         instance_id = str(item.get("instanceId", ""))
         item_id = str(item.get("id", ""))
         if not instance_id or instance_id in by_instance:
-            raise WorkbenchCircuitError("Component instance IDs must be present and unique.")
+            raise WorkbenchCircuitError("Component instance IDs must be present and unique.", "duplicate_instance")
         if item_id not in PINS:
-            raise WorkbenchCircuitError(f"Unsupported electrical item '{item_id or 'unknown'}': terminal definitions are missing.")
+            raise WorkbenchCircuitError(f"Unsupported electrical item '{item_id or 'unknown'}': terminal definitions are missing.", "unknown_item", name=item_id or "unknown")
         by_instance[instance_id] = {**item, "instanceId": instance_id, "id": item_id}
 
     parent: dict[tuple[str, str], tuple[str, str]] = {}
@@ -96,17 +121,17 @@ def solve_workbench_circuit(request: dict) -> dict:
     normalized_connections = []
     for index, edge in enumerate(connections, start=1):
         if not isinstance(edge, dict):
-            raise WorkbenchCircuitError(f"Wire {index} is invalid.")
+            raise WorkbenchCircuitError(f"Wire {index} is invalid.", "invalid_wire", index=index)
         a, b = str(edge.get("a", "")), str(edge.get("b", ""))
         pin_a, pin_b = str(edge.get("pinA", "")), str(edge.get("pinB", ""))
         if not a or not b or a not in by_instance or b not in by_instance:
-            raise WorkbenchCircuitError(f"Wire {index} refers to a component that is no longer on the workbench.")
+            raise WorkbenchCircuitError(f"Wire {index} refers to a component that is no longer on the workbench.", "orphan_wire", index=index)
         if a == b:
-            raise WorkbenchCircuitError(f"Wire {index} must connect two different component terminals.")
+            raise WorkbenchCircuitError(f"Wire {index} must connect two different component terminals.", "self_wire", index=index)
         if not pin_a or pin_a not in PINS[by_instance[a]["id"]]:
-            raise WorkbenchCircuitError(f"Wire {index}: invalid terminal '{pin_a}' on {by_instance[a]['displayName'] or by_instance[a]['id']}.")
+            raise WorkbenchCircuitError(f"Wire {index}: invalid terminal '{pin_a}' on {_label(by_instance[a])}.", "invalid_terminal", index=index, pin=pin_a, name=_label(by_instance[a]))
         if not pin_b or pin_b not in PINS[by_instance[b]["id"]]:
-            raise WorkbenchCircuitError(f"Wire {index}: invalid terminal '{pin_b}' on {by_instance[b]['displayName'] or by_instance[b]['id']}.")
+            raise WorkbenchCircuitError(f"Wire {index}: invalid terminal '{pin_b}' on {_label(by_instance[b])}.", "invalid_terminal", index=index, pin=pin_b, name=_label(by_instance[b]))
         na, nb = (a, pin_a), (b, pin_b)
         union(na, nb)
         connected_pins.update((na, nb))
@@ -125,7 +150,8 @@ def solve_workbench_circuit(request: dict) -> dict:
         names = ", ".join(str(x.get("displayName") or x["id"]) for x in active_unsupported[:5])
         raise WorkbenchCircuitError(
             f"The connected component(s) {names} are not yet supported by the workbench DC solver. "
-            "For now use only a DC source, resistors, ideal wire segments, and ground."
+            "For now use only a DC source, resistors, ideal wire segments, and ground.",
+            "unsupported_connected", names=names,
         )
 
     solver_items = [x for x in by_instance.values() if x["id"] in SOLVER_IDS]
@@ -133,11 +159,11 @@ def solve_workbench_circuit(request: dict) -> dict:
     grounds = [x for x in solver_items if x["id"] == "ground"]
     resistors = [x for x in solver_items if x["id"] in RESISTOR_IDS]
     if len(sources) != 1:
-        raise WorkbenchCircuitError("The supported DC workbench solver requires exactly one DC source (dc-source or battery).")
+        raise WorkbenchCircuitError("The supported DC workbench solver requires exactly one DC source (dc-source or battery).", "source_count", count=len(sources))
     if len(grounds) != 1:
-        raise WorkbenchCircuitError("Place exactly one ground/reference symbol and connect it to the circuit.")
+        raise WorkbenchCircuitError("Place exactly one ground/reference symbol and connect it to the circuit.", "ground_count", count=len(grounds))
     if not resistors:
-        raise WorkbenchCircuitError("Place and wire at least one resistor. Capacitors, inductors and nonlinear devices are not solved by this DC network engine.")
+        raise WorkbenchCircuitError("Place and wire at least one resistor. Capacitors, inductors and nonlinear devices are not solved by this DC network engine.", "no_resistor")
 
     # All terminals of each supported component must be connected deliberately.
     for item in solver_items:
@@ -145,16 +171,16 @@ def solve_workbench_circuit(request: dict) -> dict:
             if (item["instanceId"], pin) not in connected_pins:
                 label = item.get("displayName") or item["id"]
                 pretty_pin = {"P": "+", "N": "−", "GND": "GND"}.get(pin, pin)
-                raise WorkbenchCircuitError(f"Terminal {pretty_pin} of '{label}' is not wired. Connect every terminal before solving.")
+                raise WorkbenchCircuitError(f"Terminal {pretty_pin} of '{label}' is not wired. Connect every terminal before solving.", "terminal_unwired", pin=pretty_pin, name=label)
 
     source, ground = sources[0], grounds[0]
     source_pos = find((source["instanceId"], "P"))
     source_neg = find((source["instanceId"], "N"))
     ground_net = find((ground["instanceId"], "GND"))
     if source_pos == source_neg:
-        raise WorkbenchCircuitError("The source's + and − terminals are short-circuited by the wires.")
+        raise WorkbenchCircuitError("The source's + and − terminals are short-circuited by the wires.", "source_short", name=_label(source))
     if source_neg != ground_net:
-        raise WorkbenchCircuitError("Connect the source's negative (−) terminal to the ground/reference node before solving.")
+        raise WorkbenchCircuitError("Connect the source's negative (−) terminal to the ground/reference node before solving.", "source_not_grounded", name=_label(source))
 
     # Name the source and reference nets as required by the nodal solver.
     source_node, ground_node = "SOURCE_PLUS", "0"
@@ -172,21 +198,20 @@ def solve_workbench_circuit(request: dict) -> dict:
         a_root, b_root = find((item["instanceId"], "A")), find((item["instanceId"], "B"))
         a_node, b_node = root_to_node.get(a_root), root_to_node.get(b_root)
         if a_node is None or b_node is None:
-            raise WorkbenchCircuitError(f"Could not map the terminals of '{item.get('displayName') or item['id']}' to circuit nodes.")
+            raise WorkbenchCircuitError(f"Could not map the terminals of '{_label(item)}' to circuit nodes.", "unmapped_terminal", name=_label(item))
         if a_root == b_root:
             raise WorkbenchCircuitError(
-                f"Both terminals of '{item.get('displayName') or item['id']}' are on the same node: it is bypassed by an ideal wire. Rewire the circuit."
+                f"Both terminals of '{_label(item)}' are on the same node: it is bypassed by an ideal wire. Rewire the circuit.",
+                "resistor_bypassed", name=_label(item),
             )
-        try:
-            ohms = float(item.get("qty"))
-        except (TypeError, ValueError):
-            raise WorkbenchCircuitError(f"Enter a numeric resistance in ohms for '{item.get('displayName') or item['id']}'.")
+        ohms = _number(item.get("qty"), _label(item), "resistance in ohms", "invalid_resistance")
+        if not math.isfinite(ohms) or ohms <= 0 or ohms > 1e15:
+            raise WorkbenchCircuitError(f"The resistance of '{_label(item)}' must be a finite value > 0 Ω and ≤ 1e15 Ω.", "invalid_resistance", name=_label(item))
         resistor_netlist.append({"id": f"{item['id']}:{item['instanceId']}", "display_name": str(item.get("displayName") or item["id"]), "a": a_node, "b": b_node, "resistance_ohm": ohms})
 
-    try:
-        source_voltage = float(source.get("qty"))
-    except (TypeError, ValueError):
-        raise WorkbenchCircuitError("Enter a numeric DC source voltage in volts.")
+    source_voltage = _number(source.get("qty"), _label(source), "DC source voltage in volts", "invalid_voltage")
+    if not math.isfinite(source_voltage) or abs(source_voltage) > 1e6:
+        raise WorkbenchCircuitError(f"The voltage of '{_label(source)}' must be finite and within ±1,000,000 V.", "invalid_voltage", name=_label(source))
 
     result = solve_dc_circuit({
         "source_voltage": source_voltage,

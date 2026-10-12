@@ -1,12 +1,14 @@
 from __future__ import annotations
 import json
+import os
 import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-DB_PATH = Path(__file__).resolve().parent / "virtual_lab_history.sqlite3"
+# VIRTUAL_LAB_DB lets tests and clean-environment checks use an isolated database.
+DB_PATH = Path(os.environ.get("VIRTUAL_LAB_DB") or Path(__file__).resolve().parent / "virtual_lab_history.sqlite3")
 
 def _connect():
     conn = sqlite3.connect(DB_PATH)

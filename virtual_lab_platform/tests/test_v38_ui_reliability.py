@@ -43,5 +43,5 @@ def test_html_ids_are_unique():
     assert not duplicates, f"Duplicate HTML ids: {duplicates}"
 
 def test_api_version_is_38():
-    assert '"version": "4.1"' in APP
+    assert '"version": APP_VERSION' in APP
     assert "v3.8 interface reliability" in APP
