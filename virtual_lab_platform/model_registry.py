@@ -68,7 +68,8 @@ register(_contract(
     ["Graphical wires are ideal conductors", "One ideal DC source, one ground, linear resistors"],
     ["Capacitors, inductors and nonlinear devices are refused when wired"],
     ["invalid_resistance", "invalid_voltage", "terminal_unwired", "source_short", "resistor_bypassed", "floating_network", "unsupported_connected", "source_count", "ground_count"],
-    ["Union-find net extraction + nodal analysis"]),
+    ["Union-find net extraction + nodal analysis"],
+    ["Wires merge terminals into nets (union-find)", "G·v = i on the nets, ground at 0 V, source + at V", "I = (Va − Vb)/R, P = V·I"]),
     lambda p: workbench_circuit.solve_workbench_circuit(p),
     {"components": [{"instanceId": "s", "id": "dc-source", "displayName": "S", "qty": 9}, {"instanceId": "r", "id": "resistor", "displayName": "R", "qty": 1000},
                     {"instanceId": "g", "id": "ground", "displayName": "G", "qty": 0}],
@@ -109,7 +110,8 @@ register(_contract(
                    param("stop_frequency_hz", "number", unit="Hz", minimum=1e-9, maximum=1e12, default=1e6),
                    param("points", "integer", unit="1", minimum=2, maximum=2001, default=101)],
     [output("first_frequency", "points[0].frequency_hz", "Hz"), output("peak_current_sampled", "peak_current_sampled.current_rms_a", "A")],
-    ["Each point is an independent steady-state solve"], ["Logarithmic spacing"], ["invalid_parameter"], ["Phasor analysis"]),
+    ["Each point is an independent steady-state solve"], ["Logarithmic spacing"], ["invalid_parameter"], ["Phasor analysis"],
+    ["f_k = f_start·(f_stop/f_start)^(k/(n−1))", "I(f) = V/|R + j(2πfL − 1/(2πfC))|", "f0 = 1/(2π√(LC))"]),
     lambda p: electrical_advanced.sweep_series_rlc_frequency(p), {})
 
 register(_contract(
@@ -259,6 +261,12 @@ _catalogue("arrhenius_reaction", "Réaction du premier ordre avec loi d'Arrheniu
 
 
 # ---- standard execution ---------------------------------------------------------------------
+
+import maturity  # noqa: E402  (after the registrations above)
+
+for _mid, _entry in REGISTRY.items():
+    _entry["contract"]["maturity"] = maturity.maturity_of(_mid)
+
 
 def list_contracts() -> list[dict[str, Any]]:
     return [entry["contract"] for entry in REGISTRY.values()]

@@ -78,13 +78,26 @@ def main() -> int:
     (ROOT / f"VALIDATION_MATRIX_v{APP_VERSION}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     failed = [f"{c.get('classname')}::{c.get('name')}" for c in cases if _status(c) == "échoué"]
+    # v5.7: every test cited as evidence of a maturity level must exist in this run and have passed.
+    import maturity
+    outcome = {}
+    for c in cases:
+        key = (c.get("classname", "").replace(".", "/") + ".py::" + c.get("name", "").split("[")[0])
+        outcome.setdefault(key, []).append(_status(c))
+    evidence = sorted({ev["test"] for entry in maturity.MATURITY.values() for ev in entry.get("evidence", [])})
+    evidence_bad = [t for t in evidence if not outcome.get(t) or any(st != "passé" for st in outcome[t])]
+    evidence_line = f"Preuves de maturité : {len(evidence) - len(evidence_bad)}/{len(evidence)} tests cités passés" + (f" ; en défaut : {', '.join(evidence_bad)}" if evidence_bad else "")
     skipped = [f"{c.get('classname')}::{c.get('name')} — {c.find('skipped').get('message', '')}" for c in cases if _status(c) == "ignoré"]
     report = [f"Virtual Lab Platform v{APP_VERSION} — rapport de tests généré", f"Date : {now}", f"Environnement : {env}",
-              f"Commande : {' '.join(['python'] + cmd[1:])}", f"Résultat : {summary} ; code de sortie {proc.returncode}", "",
+              f"Commande : {' '.join(['python'] + cmd[1:])}", f"Résultat : {summary} ; code de sortie {proc.returncode}", evidence_line, "",
               "Échecs :"] + ([f"- {x}" for x in failed] or ["- aucun"]) + ["", "Ignorés :"] + ([f"- {x}" for x in skipped] or ["- aucun"]) + \
              ["", "Non couvert :"] + [f"- {x}" for x in NOT_COVERED]
     (ROOT / f"TEST_RESULTS_v{APP_VERSION}.txt").write_text("\n".join(report) + "\n", encoding="utf-8")
-    print(f"Matrix: VALIDATION_MATRIX_v{APP_VERSION}.md — {summary}")
+    lines_matrix = (ROOT / f"VALIDATION_MATRIX_v{APP_VERSION}.md").read_text(encoding="utf-8")
+    (ROOT / f"VALIDATION_MATRIX_v{APP_VERSION}.md").write_text(lines_matrix.replace("| Fonctionnalité |", f"{evidence_line}.\n\n| Fonctionnalité |", 1), encoding="utf-8")
+    print(f"Matrix: VALIDATION_MATRIX_v{APP_VERSION}.md — {summary} — {evidence_line}")
+    if evidence_bad and not proc.returncode:
+        return 1  # a maturity claim without passing evidence fails the validation
     return proc.returncode
 
 
