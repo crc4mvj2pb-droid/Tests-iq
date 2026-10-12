@@ -1,0 +1,160 @@
+{
+  "version": "1.7",
+  "title": "Ten-stage scientific platform roadmap",
+  "status": "Partially implemented; v1.7 adds bounded parameter fitting and software sanity checks; not a claim of complete research-grade validation",
+  "principles": [
+    "No AI planner is included in this release; scientific engines come first.",
+    "Only models marked implemented are executable.",
+    "L1 means numerical computation and software checks, not empirical validation.",
+    "External sources listed are pointers; this release does not automatically download or validate their datasets.",
+    "Medical, cosmetic safety, clinical and regulatory decisions are out of scope.",
+    "Parameter fitting is exploratory and reports objective diagnostics without confidence intervals or identifiability claims.",
+    "The built-in validation suite is software-level sanity checking, not empirical model validation."
+  ],
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Executable experiment engine",
+      "status": "expanded",
+      "delivered": [
+        "Existing protocol graph and material transfers retained",
+        "Model executions produce structured rows, checks, limitations and provenance",
+        "Generic experiment API and saved history retained"
+      ],
+      "remaining": [
+        "Fully couple every protocol step to stateful sample composition and reagent inventories",
+        "Physical hardware control and a full 3D digital twin are not implemented"
+      ]
+    },
+    {
+      "stage": 2,
+      "name": "Scientific numerical solvers",
+      "status": "expanded",
+      "delivered": [
+        "Michaelis–Menten enzyme kinetics",
+        "SIR compartment model",
+        "1D heat diffusion",
+        "Analytical logistic growth",
+        "Analytical first-order A→B reaction",
+        "Analytical first-order environmental decay",
+        "One-compartment concentration-decay teaching model",
+        "RK4 Lotka–Volterra predator–prey model",
+        "Limited SBML RK4 subset retained",
+        "Leaky integrate-and-fire neuron teaching model",
+        "Arrhenius temperature-dependent first-order reaction coupling temperature and chemistry",
+        "Leaky integrate-and-fire neuron teaching model",
+        "Arrhenius temperature-dependent first-order reaction"
+      ],
+      "remaining": [
+        "More stiff solvers, reaction networks, PDEs, model coupling and convergence studies"
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Equipment-aware virtual lab",
+      "status": "partial",
+      "delivered": [
+        "Capacity/range validation",
+        "Illustrative pipette transfer uncertainty",
+        "Thermal-chamber perturbations",
+        "Synthetic instrument measurement uncertainty"
+      ],
+      "remaining": [
+        "Vendor-verified equipment data, calibration curves, maintenance and validated instrument-specific error models"
+      ]
+    },
+    {
+      "stage": 4,
+      "name": "Uncertainty and statistics",
+      "status": "expanded",
+      "delivered": [
+        "Existing dataset profiling and enzyme uncertainty/sensitivity",
+        "Generic deterministic Monte Carlo parameter uncertainty for implemented solvers",
+        "Generic parameter sweeps",
+        "Reference-data comparison with selected model columns",
+        "Bounded deterministic least-squares parameter fitting against user-supplied x/y observations",
+        "Residual diagnostics (SSE, RMSE, MAE, descriptive R²) and explicit optimizer limitations"
+      ],
+      "remaining": [
+        "Correlated distributions, model discrepancy, parameter inference and formal identifiability analysis",
+        "Weighted fitting with measurement uncertainty",
+        "Parameter confidence intervals, correlated errors, model discrepancy and formal identifiability"
+      ]
+    },
+    {
+      "stage": 5,
+      "name": "Traceable scientific library",
+      "status": "expanded_metadata_only",
+      "delivered": [
+        "Five additional model records with assumptions and limitations",
+        "Official scientific-source pointers for BioModels, SBML, SED-ML, NIST Chemistry WebBook, EPA ECOTOX and PubMed"
+      ],
+      "remaining": [
+        "Sourced data/model ingestion with per-record license checks, bibliographic validation and independent benchmarks"
+      ]
+    },
+    {
+      "stage": 6,
+      "name": "Biology and biochemistry",
+      "status": "partial",
+      "delivered": [
+        "Enzyme kinetics and logistic population dynamics; imported SBML subset can represent supported reaction networks"
+      ],
+      "remaining": [
+        "Cellular regulation, metabolic networks, growth models calibrated to published data"
+      ]
+    },
+    {
+      "stage": 7,
+      "name": "Medicine and neuroscience",
+      "status": "early",
+      "delivered": [
+        "Simple SIR dynamics and clearly labelled one-compartment pharmacokinetics teaching equation",
+        "Leaky integrate-and-fire neuron teaching model for basic excitability dynamics"
+      ],
+      "remaining": [
+        "Validated cancer, Alzheimer’s, electrophysiology or patient-specific models; no diagnosis or treatment claims"
+      ]
+    },
+    {
+      "stage": 8,
+      "name": "Interdisciplinary domains",
+      "status": "partial",
+      "delivered": [
+        "Chemistry reaction, environmental decay, heat transfer, ecology predator–prey, biology and medicine teaching models",
+        "One-compartment concentration decay teaching equation only; not a clinical model"
+      ],
+      "remaining": [
+        "Coupled multiphysics and chemistry/environment models with units and validated parameter sources",
+        "No disease-specific cancer or Alzheimer model has been implemented"
+      ]
+    },
+    {
+      "stage": 9,
+      "name": "Research workflow and reporting",
+      "status": "partial",
+      "delivered": [
+        "Local history, CSV profiling, JSON dossiers, sweeps, comparisons, protocol traces and report schema",
+        "Arrhenius model explicitly couples temperature to reaction kinetics at constant temperature"
+      ],
+      "remaining": [
+        "Publication-ready report generation, scalable job queue, richer plots and team collaboration"
+      ]
+    },
+    {
+      "stage": 10,
+      "name": "Independent validation, then AI",
+      "status": "validation_foundations_only",
+      "delivered": [
+        "Automated mathematical invariants and regression tests; reproducible seeded analyses",
+        "Repeatable software sanity suite covering ten executable solver models"
+      ],
+      "remaining": [
+        "Independent published benchmark suites and empirical validation; only after this should an AI planner be added",
+        "Independent reference benchmarks with traceable source data",
+        "External scientific review, convergence studies and domain-specific validation",
+        "AI integration remains deferred until scientific validation foundations are stronger"
+      ]
+    }
+  ]
+}

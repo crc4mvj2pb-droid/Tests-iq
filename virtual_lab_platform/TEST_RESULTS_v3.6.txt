@@ -1,0 +1,25 @@
+Virtual Lab Platform v3.6 — validation report
+
+Automated test suite:
+- pytest: 137 passed in 0.23s
+- Python bytecode compilation: PASS
+- JavaScript inline syntax check: PASS
+
+API smoke checks:
+- /api/health: HTTP 200, version 3.6
+- /api/version: version 3.6
+- /api/chemistry/stoichiometry: HTTP 200 for HCl + NaOH -> NaCl + H2O, theoretical extent 0.15 mol, limiting reactant NaOH, atom balance balanced
+- /api/chemistry/stoichiometry: HTTP 400 for an unbalanced equation H2 -> H2O
+- All eight built-in workbench reaction equations were checked against the formula map and passed the atom-balance check.
+
+v3.6 changes:
+- Added server-side stoichiometric batch solver.
+- Added molecular-formula parser supporting parenthesized groups and integer subscripts.
+- The solver returns theoretical extent, limiting reactants, remaining reactants, theoretical products, atom-balance status, checks, assumptions and limitations.
+- Workbench reaction execution now calls the API. Quantities are updated only after the server validates and returns a successful calculation.
+- Formula-complete but atom-unbalanced equations are rejected; missing formulas are labelled not checked (L0).
+
+Limitations:
+- This is an ideal stoichiometric material balance, not a kinetic, equilibrium, yield, or process-safety model.
+- A balanced equation does not establish that the reaction is feasible under specific conditions.
+- A real-browser click-through/layout test was not performed; static UI integration checks, JS syntax check, Python tests and API smoke checks were run.

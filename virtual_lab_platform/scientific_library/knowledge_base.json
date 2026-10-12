@@ -1,0 +1,3587 @@
+{
+  "schema_version": "1.1",
+  "library_name": "Virtual Lab Scientific Knowledge Base",
+  "scope": "Expanded curated foundational library across disciplines. It is not exhaustive; entries are machine-readable reference knowledge, not automatically executable models or proof of empirical validity. Bibliographic review and application-specific verification remain required.",
+  "entries": [
+    {
+      "id": "math.linear_equation",
+      "title": "Linear equation",
+      "domain": "mathematics",
+      "kind": "equation",
+      "formula_or_rule": "ax + b = 0",
+      "units_or_output": "x = -b/a",
+      "meaning": "Solve for x when a is nonzero.",
+      "epistemic_status": "Exact algebraic identity",
+      "applicability_conditions": "a != 0",
+      "limitations": "Symbolic; numeric values require units if representing physical quantities.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "equation"
+      ]
+    },
+    {
+      "id": "math.quadratic",
+      "title": "Quadratic equation",
+      "domain": "mathematics",
+      "kind": "equation",
+      "formula_or_rule": "ax^2 + bx + c = 0",
+      "units_or_output": "x = (-b ± sqrt(b^2 - 4ac))/(2a)",
+      "meaning": "Roots depend on the discriminant and the number system.",
+      "epistemic_status": "Exact algebraic identity",
+      "applicability_conditions": "a != 0",
+      "limitations": "Numerical implementations should handle near-zero discriminants carefully.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "equation"
+      ]
+    },
+    {
+      "id": "math.derivative",
+      "title": "Derivative definition",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "f'(x) = lim(h→0) [f(x+h)-f(x)]/h",
+      "units_or_output": "Limit, when it exists",
+      "meaning": "Local rate of change of a function.",
+      "epistemic_status": "Definition",
+      "applicability_conditions": "Limit exists",
+      "limitations": "A numerical finite difference is an approximation, not the definition itself.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition"
+      ]
+    },
+    {
+      "id": "math.integral",
+      "title": "Definite integral",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "∫[a,b] f(x) dx",
+      "units_or_output": "Accumulated signed quantity",
+      "meaning": "Integral interpretation depends on the function and measure.",
+      "epistemic_status": "Definition",
+      "applicability_conditions": "Integrability conditions apply",
+      "limitations": "Numerical quadrature introduces discretization error.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition"
+      ]
+    },
+    {
+      "id": "math.ode",
+      "title": "Ordinary differential equation",
+      "domain": "mathematics",
+      "kind": "model_class",
+      "formula_or_rule": "dy/dt = f(t,y,θ)",
+      "units_or_output": "Initial-value or boundary-value problem",
+      "meaning": "Represents evolving state under a specified dynamical law.",
+      "epistemic_status": "Model class",
+      "applicability_conditions": "Initial/boundary conditions and well-posedness required",
+      "limitations": "A solver cannot compensate for an invalid model or missing parameters.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "model_class"
+      ]
+    },
+    {
+      "id": "math.bayes",
+      "title": "Bayes theorem",
+      "domain": "mathematics",
+      "kind": "equation",
+      "formula_or_rule": "P(H|D) = P(D|H)P(H)/P(D)",
+      "units_or_output": "Posterior from prior and likelihood",
+      "meaning": "Updates belief in a hypothesis using observed data.",
+      "epistemic_status": "Exact probability identity",
+      "applicability_conditions": "P(D) > 0",
+      "limitations": "Results depend on the model, prior and data quality.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "equation"
+      ]
+    },
+    {
+      "id": "math.least_squares",
+      "title": "Least squares",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "θ* = argminθ Σᵢ (yᵢ - f(xᵢ;θ))²",
+      "units_or_output": "Optimization objective",
+      "meaning": "Fits model parameters by minimizing squared residuals.",
+      "epistemic_status": "Standard method",
+      "applicability_conditions": "Objective and parameters must be defined",
+      "limitations": "Outliers and model misspecification can distort fits.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method"
+      ]
+    },
+    {
+      "id": "math.entropy",
+      "title": "Shannon entropy",
+      "domain": "mathematics",
+      "kind": "equation",
+      "formula_or_rule": "H(X) = -Σᵢ pᵢ log₂(pᵢ)",
+      "units_or_output": "bits",
+      "meaning": "Measures uncertainty of a discrete probability distribution.",
+      "epistemic_status": "Definition",
+      "applicability_conditions": "pᵢ ≥ 0 and Σpᵢ=1",
+      "limitations": "Continuous differential entropy is a different quantity.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "equation"
+      ]
+    },
+    {
+      "id": "physics.newton2",
+      "title": "Newton second law",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "ΣF = m a",
+      "units_or_output": "Net force equals mass times acceleration",
+      "meaning": "Classical mechanics relation for inertial frames and appropriate mass assumptions.",
+      "epistemic_status": "Established physical law",
+      "applicability_conditions": "Classical regime; consistent units",
+      "limitations": "Relativistic or quantum regimes require other formulations.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law"
+      ]
+    },
+    {
+      "id": "physics.energy",
+      "title": "Kinetic energy",
+      "domain": "physics",
+      "kind": "equation",
+      "formula_or_rule": "Eₖ = ½ m v²",
+      "units_or_output": "joules",
+      "meaning": "Translational kinetic energy in the non-relativistic regime.",
+      "epistemic_status": "Established equation",
+      "applicability_conditions": "m ≥ 0; v much less than speed of light",
+      "limitations": "Not the relativistic energy formula.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "equation"
+      ]
+    },
+    {
+      "id": "physics.ideal_gas",
+      "title": "Ideal gas law",
+      "domain": "physics_chemistry",
+      "kind": "equation",
+      "formula_or_rule": "pV = nRT",
+      "units_or_output": "Pa·m³ = mol·J·mol⁻¹·K⁻¹",
+      "meaning": "Relates pressure, volume, amount and temperature for an ideal gas.",
+      "epistemic_status": "Approximation",
+      "applicability_conditions": "Absolute temperature; ideal-gas regime",
+      "limitations": "Real gases can deviate, especially at high pressure/low temperature.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics_chemistry",
+        "equation"
+      ]
+    },
+    {
+      "id": "physics.heat_diffusion",
+      "title": "Heat equation",
+      "domain": "physics",
+      "kind": "partial_differential_equation",
+      "formula_or_rule": "∂T/∂t = α∇²T",
+      "units_or_output": "temperature field over time",
+      "meaning": "Diffusion model for heat conduction under simplified material assumptions.",
+      "epistemic_status": "Model equation",
+      "applicability_conditions": "α > 0 and boundary/initial conditions",
+      "limitations": "Properties and geometry may vary; interfaces and convection need extra terms.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "partial_differential_equation"
+      ]
+    },
+    {
+      "id": "physics.wave",
+      "title": "Wave equation",
+      "domain": "physics",
+      "kind": "partial_differential_equation",
+      "formula_or_rule": "∂²u/∂t² = c²∇²u",
+      "units_or_output": "wave field",
+      "meaning": "Idealized propagation model.",
+      "epistemic_status": "Model equation",
+      "applicability_conditions": "c > 0 and boundary/initial conditions",
+      "limitations": "Medium dispersion, damping and nonlinear effects may be absent.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "partial_differential_equation"
+      ]
+    },
+    {
+      "id": "physics.diffusion",
+      "title": "Fick first law",
+      "domain": "physics_chemistry",
+      "kind": "law",
+      "formula_or_rule": "J = -D ∇c",
+      "units_or_output": "flux density",
+      "meaning": "Diffusive flux down a concentration gradient in a simple isotropic medium.",
+      "epistemic_status": "Established constitutive law",
+      "applicability_conditions": "D > 0 in the model",
+      "limitations": "Complex media may require anisotropic or non-Fickian models.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics_chemistry",
+        "law"
+      ]
+    },
+    {
+      "id": "chemistry.mass_action",
+      "title": "Law of mass action",
+      "domain": "chemistry",
+      "kind": "law",
+      "formula_or_rule": "For aA+bB ⇌ cC+dD: K = a_C^c a_D^d/(a_A^a a_B^b)",
+      "units_or_output": "dimensionless when activities are defined conventionally",
+      "meaning": "Equilibrium relation in terms of activities.",
+      "epistemic_status": "Established thermodynamic relation",
+      "applicability_conditions": "Specified reaction and standard states",
+      "limitations": "Concentration-only approximations may fail for non-ideal systems.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "law"
+      ]
+    },
+    {
+      "id": "chemistry.ph",
+      "title": "pH definition",
+      "domain": "chemistry",
+      "kind": "definition",
+      "formula_or_rule": "pH = -log₁₀(a_H⁺)",
+      "units_or_output": "dimensionless",
+      "meaning": "pH is defined through hydrogen-ion activity.",
+      "epistemic_status": "Definition",
+      "applicability_conditions": "Activity convention and measurement conditions specified",
+      "limitations": "Using concentration directly is an approximation in non-ideal solutions.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "definition"
+      ]
+    },
+    {
+      "id": "chemistry.arrhenius",
+      "title": "Arrhenius equation",
+      "domain": "chemistry",
+      "kind": "equation",
+      "formula_or_rule": "k = A exp(-Eₐ/(RT))",
+      "units_or_output": "rate constant depends on reaction order/units",
+      "meaning": "Empirical temperature dependence of many rate constants.",
+      "epistemic_status": "Empirical model",
+      "applicability_conditions": "T > 0 K; parameters calibrated for reaction",
+      "limitations": "Mechanistic changes can invalidate extrapolation.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "equation"
+      ]
+    },
+    {
+      "id": "chemistry.stoichiometry",
+      "title": "Stoichiometric balance",
+      "domain": "chemistry",
+      "kind": "constraint",
+      "formula_or_rule": "Σ reactant atoms = Σ product atoms for each element",
+      "units_or_output": "elemental conservation",
+      "meaning": "Chemical equations must conserve each element and charge where applicable.",
+      "epistemic_status": "Conservation constraint",
+      "applicability_conditions": "Correct species and charges specified",
+      "limitations": "Does not by itself predict reaction rates or equilibrium.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "constraint"
+      ]
+    },
+    {
+      "id": "biology.michaelis_menten",
+      "title": "Michaelis–Menten kinetics",
+      "domain": "biology_biochemistry",
+      "kind": "equation",
+      "formula_or_rule": "v = Vmax[S]/(Km+[S])",
+      "units_or_output": "rate units follow Vmax",
+      "meaning": "Classical enzyme rate approximation.",
+      "epistemic_status": "Approximate kinetic model",
+      "applicability_conditions": "Steady-state approximation and suitable substrate/enzyme conditions",
+      "limitations": "Not universal; inhibition, cooperativity and mechanisms can require other models.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology_biochemistry",
+        "equation"
+      ]
+    },
+    {
+      "id": "biology.logistic",
+      "title": "Logistic growth",
+      "domain": "biology_ecology",
+      "kind": "equation",
+      "formula_or_rule": "dN/dt = rN(1-N/K)",
+      "units_or_output": "population per time",
+      "meaning": "Growth with a fixed carrying capacity.",
+      "epistemic_status": "Simplified model",
+      "applicability_conditions": "r > 0, K > 0",
+      "limitations": "Assumes constant carrying capacity and ignores age/space structure.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology_ecology",
+        "equation"
+      ]
+    },
+    {
+      "id": "biology.sir",
+      "title": "SIR epidemic model",
+      "domain": "biology_medicine",
+      "kind": "ode_model",
+      "formula_or_rule": "dS/dt=-βSI/N; dI/dt=βSI/N-γI; dR/dt=γI",
+      "units_or_output": "population compartments",
+      "meaning": "Simplified susceptible-infected-removed dynamics.",
+      "epistemic_status": "Simplified compartment model",
+      "applicability_conditions": "Nonnegative compartments and explicit epidemiological assumptions",
+      "limitations": "Not for clinical or public-health decisions without calibration and validation.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology_medicine",
+        "ode_model"
+      ]
+    },
+    {
+      "id": "biology.population",
+      "title": "Exponential growth",
+      "domain": "biology_ecology",
+      "kind": "equation",
+      "formula_or_rule": "dN/dt = rN; N(t)=N₀e^(rt)",
+      "units_or_output": "population",
+      "meaning": "Growth or decay at a constant per-capita rate.",
+      "epistemic_status": "Simplified model",
+      "applicability_conditions": "Constant r",
+      "limitations": "Unbounded growth is unrealistic for many long-term populations.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology_ecology",
+        "equation"
+      ]
+    },
+    {
+      "id": "medicine.diagnostic_bayes",
+      "title": "Diagnostic predictive value",
+      "domain": "medicine_statistics",
+      "kind": "equation",
+      "formula_or_rule": "PPV = sensitivity·prevalence / [sensitivity·prevalence + (1-specificity)(1-prevalence)]",
+      "units_or_output": "probability",
+      "meaning": "Shows how prevalence affects positive predictive value.",
+      "epistemic_status": "Probability identity under definitions",
+      "applicability_conditions": "Sensitivity, specificity and prevalence appropriate to target population",
+      "limitations": "Not a diagnostic tool by itself; estimates may not transport between populations.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine_statistics",
+        "equation"
+      ]
+    },
+    {
+      "id": "environment.mass_balance",
+      "title": "Mass balance",
+      "domain": "environment_engineering",
+      "kind": "conservation_law",
+      "formula_or_rule": "Accumulation = inflow - outflow + generation - consumption",
+      "units_or_output": "quantity per time",
+      "meaning": "Bookkeeping principle for conserved quantities in a defined system.",
+      "epistemic_status": "Conservation principle",
+      "applicability_conditions": "Control volume and all fluxes/reactions defined",
+      "limitations": "Missing pathways create biased predictions.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment_engineering",
+        "conservation_law"
+      ]
+    },
+    {
+      "id": "environment.first_order_decay",
+      "title": "First-order decay",
+      "domain": "environment_chemistry",
+      "kind": "equation",
+      "formula_or_rule": "dC/dt = -kC; C(t)=C₀e^(-kt)",
+      "units_or_output": "concentration",
+      "meaning": "Idealized decay or removal process.",
+      "epistemic_status": "Simplified kinetic model",
+      "applicability_conditions": "k ≥ 0; constant first-order rate",
+      "limitations": "Multiple compartments and nonlinear removal need expanded models.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment_chemistry",
+        "equation"
+      ]
+    },
+    {
+      "id": "statistics.mean",
+      "title": "Arithmetic mean",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "x̄ = (1/n)Σxᵢ",
+      "units_or_output": "same units as data",
+      "meaning": "Central summary of numeric observations.",
+      "epistemic_status": "Definition",
+      "applicability_conditions": "Finite numeric sample",
+      "limitations": "Sensitive to extreme values and skew.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition"
+      ]
+    },
+    {
+      "id": "statistics.variance",
+      "title": "Sample variance",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "s² = Σ(xᵢ-x̄)²/(n-1)",
+      "units_or_output": "squared data units",
+      "meaning": "Unbiased estimator of population variance under standard iid assumptions.",
+      "epistemic_status": "Estimator",
+      "applicability_conditions": "n ≥ 2; assumptions matter",
+      "limitations": "Correlated or weighted observations need different treatment.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition"
+      ]
+    },
+    {
+      "id": "statistics.rmse",
+      "title": "Root mean squared error",
+      "domain": "statistics_model_validation",
+      "kind": "metric",
+      "formula_or_rule": "RMSE = sqrt(mean((prediction-observation)²))",
+      "units_or_output": "same units as target",
+      "meaning": "Summarizes prediction error magnitude with stronger penalty on large errors.",
+      "epistemic_status": "Metric",
+      "applicability_conditions": "Paired observations on comparable scales",
+      "limitations": "Does not alone establish scientific validity.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics_model_validation",
+        "metric"
+      ]
+    },
+    {
+      "id": "statistics.confidence_interval",
+      "title": "Confidence interval",
+      "domain": "statistics",
+      "kind": "concept",
+      "formula_or_rule": "Repeated-sampling coverage procedure",
+      "units_or_output": "same units as parameter",
+      "meaning": "A frequentist interval procedure with stated coverage properties.",
+      "epistemic_status": "Statistical concept",
+      "applicability_conditions": "Method assumptions and design must be stated",
+      "limitations": "Not generally the probability that a fixed parameter lies in this particular interval.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "concept"
+      ]
+    },
+    {
+      "id": "computing.floating_point",
+      "title": "Floating-point error",
+      "domain": "computer_science_numerics",
+      "kind": "concept",
+      "formula_or_rule": "Computed arithmetic may differ from exact real arithmetic",
+      "units_or_output": "depends on operation",
+      "meaning": "Finite precision can cause rounding, cancellation and overflow.",
+      "epistemic_status": "Numerical computing principle",
+      "applicability_conditions": "Numeric format and operations specified",
+      "limitations": "Tolerance should reflect scale, conditioning and purpose.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science_numerics",
+        "concept"
+      ]
+    },
+    {
+      "id": "computing.euler",
+      "title": "Explicit Euler method",
+      "domain": "computer_science_numerics",
+      "kind": "algorithm",
+      "formula_or_rule": "yₙ₊₁ = yₙ + h f(tₙ,yₙ)",
+      "units_or_output": "state units",
+      "meaning": "First-order numerical method for ODE initial-value problems.",
+      "epistemic_status": "Numerical method",
+      "applicability_conditions": "Step size h and ODE defined",
+      "limitations": "Can be inaccurate or unstable; convergence testing is required.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science_numerics",
+        "algorithm"
+      ]
+    },
+    {
+      "id": "computing.monte_carlo",
+      "title": "Monte Carlo estimation",
+      "domain": "computer_science_statistics",
+      "kind": "method",
+      "formula_or_rule": "Estimate quantity by sampling from a specified probability model",
+      "units_or_output": "depends on target",
+      "meaning": "Uses repeated random samples to estimate expectations or uncertainty.",
+      "epistemic_status": "Numerical/statistical method",
+      "applicability_conditions": "Sampling distribution and estimator specified",
+      "limitations": "Sampling error decreases slowly in many settings; model uncertainty remains.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science_statistics",
+        "method"
+      ]
+    },
+    {
+      "id": "computing.cross_validation",
+      "title": "Cross-validation",
+      "domain": "computer_science_statistics",
+      "kind": "method",
+      "formula_or_rule": "Repeated train/validation splits according to a defined scheme",
+      "units_or_output": "metric-specific",
+      "meaning": "Estimates generalization performance under a data-splitting design.",
+      "epistemic_status": "Evaluation method",
+      "applicability_conditions": "No leakage; split matches intended deployment",
+      "limitations": "Random splits may be invalid for temporal, grouped or spatial data.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science_statistics",
+        "method"
+      ]
+    },
+    {
+      "id": "engineering.dimensional_analysis",
+      "title": "Dimensional consistency",
+      "domain": "engineering_mathematics",
+      "kind": "constraint",
+      "formula_or_rule": "Both sides of a physical equation must have matching dimensions",
+      "units_or_output": "dimension system",
+      "meaning": "A necessary check for equations involving physical quantities.",
+      "epistemic_status": "Consistency principle",
+      "applicability_conditions": "Quantities carry correct dimensions",
+      "limitations": "Dimensional consistency does not prove an equation is correct.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering_mathematics",
+        "constraint"
+      ]
+    },
+    {
+      "id": "engineering.uncertainty",
+      "title": "Uncertainty propagation",
+      "domain": "engineering_statistics",
+      "kind": "method",
+      "formula_or_rule": "For small uncertainties: Var(f) ≈ ∇fᵀΣ∇f",
+      "units_or_output": "output variance",
+      "meaning": "First-order propagation of input covariance through a differentiable function.",
+      "epistemic_status": "Approximation",
+      "applicability_conditions": "Small uncertainties and local linearization",
+      "limitations": "Nonlinear or non-Gaussian cases may require Monte Carlo or other methods.",
+      "source_status": "foundational_reference_entry_needs_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering_statistics",
+        "method"
+      ]
+    },
+    {
+      "id": "mathematics.complex",
+      "title": "Complex numbers",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "z = a + ib; i² = −1",
+      "meaning": "Represent numbers with real and imaginary components.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "a,b are real numbers.",
+      "limitations": "A numerical implementation must define conventions for branches and floating-point errors.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition",
+        "algebra"
+      ]
+    },
+    {
+      "id": "mathematics.matrix_product",
+      "title": "Matrix multiplication",
+      "domain": "mathematics",
+      "kind": "operation",
+      "formula_or_rule": "Cᵢⱼ = Σₖ AᵢₖBₖⱼ",
+      "meaning": "Combines linear transformations when matrix dimensions are compatible.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Columns of A equal rows of B.",
+      "limitations": "Matrix multiplication is not generally commutative.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "operation",
+        "linear_algebra"
+      ]
+    },
+    {
+      "id": "mathematics.determinant",
+      "title": "Determinant",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "det(A)",
+      "meaning": "Scalar associated with a square matrix; nonzero determinant indicates invertibility.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "A is square.",
+      "limitations": "Numerical determinants can be ill-conditioned near singularity.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition",
+        "linear_algebra"
+      ]
+    },
+    {
+      "id": "mathematics.eigen",
+      "title": "Eigenvalue equation",
+      "domain": "mathematics",
+      "kind": "equation",
+      "formula_or_rule": "Av = λv",
+      "meaning": "Identifies directions scaled by a linear operator.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "v ≠ 0; A is square.",
+      "limitations": "Eigenvalues may be complex; numerical results depend on conditioning.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "equation",
+        "linear_algebra"
+      ]
+    },
+    {
+      "id": "mathematics.norm2",
+      "title": "Euclidean norm",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "||x||₂ = sqrt(Σᵢ xᵢ²)",
+      "meaning": "Measures vector magnitude in Euclidean space.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Finite-dimensional real or complex vector.",
+      "limitations": "Other norms may be more appropriate for a problem.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition",
+        "linear_algebra"
+      ]
+    },
+    {
+      "id": "mathematics.taylor",
+      "title": "Taylor expansion",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "f(x+h) ≈ Σₖ₌₀ⁿ f⁽ᵏ⁾(x)hᵏ/k!",
+      "meaning": "Approximates a sufficiently smooth function locally.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Required derivatives exist; h is in a useful local range.",
+      "limitations": "Truncation error may grow rapidly away from the expansion point.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method",
+        "calculus"
+      ]
+    },
+    {
+      "id": "mathematics.chain_rule",
+      "title": "Chain rule",
+      "domain": "mathematics",
+      "kind": "rule",
+      "formula_or_rule": "d f(g(x))/dx = f′(g(x))g′(x)",
+      "meaning": "Differentiates a composition of differentiable functions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Functions are differentiable at relevant points.",
+      "limitations": "Multivariable versions require Jacobians and consistent dimensions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "rule",
+        "calculus"
+      ]
+    },
+    {
+      "id": "mathematics.product_rule",
+      "title": "Product rule",
+      "domain": "mathematics",
+      "kind": "rule",
+      "formula_or_rule": "(fg)′ = f′g + fg′",
+      "meaning": "Derivative of a product.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "f and g differentiable.",
+      "limitations": "Does not replace checking differentiability at boundaries.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "rule",
+        "calculus"
+      ]
+    },
+    {
+      "id": "mathematics.integration_by_parts",
+      "title": "Integration by parts",
+      "domain": "mathematics",
+      "kind": "rule",
+      "formula_or_rule": "∫u dv = uv − ∫v du",
+      "meaning": "Transforms an integral into another integral.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Functions satisfy applicable differentiability/integrability conditions.",
+      "limitations": "A poor choice of u and dv may not simplify the integral.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "rule",
+        "calculus"
+      ]
+    },
+    {
+      "id": "mathematics.gradient",
+      "title": "Gradient",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "∇f = (∂f/∂x₁, …, ∂f/∂xₙ)",
+      "meaning": "Points in the direction of steepest local increase under the Euclidean metric.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "f is differentiable.",
+      "limitations": "Meaning depends on coordinates and metric.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition",
+        "multivariable"
+      ]
+    },
+    {
+      "id": "mathematics.jacobian",
+      "title": "Jacobian matrix",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "Jᵢⱼ = ∂fᵢ/∂xⱼ",
+      "meaning": "Describes local linearization of a vector-valued function.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Partial derivatives exist.",
+      "limitations": "A local linear approximation may be poor for large perturbations.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition",
+        "multivariable"
+      ]
+    },
+    {
+      "id": "mathematics.hessian",
+      "title": "Hessian matrix",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "Hᵢⱼ = ∂²f/∂xᵢ∂xⱼ",
+      "meaning": "Describes second-order local curvature.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Second derivatives exist.",
+      "limitations": "Classification at stationary points may be inconclusive when the Hessian is singular.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition",
+        "optimization"
+      ]
+    },
+    {
+      "id": "mathematics.lagrange",
+      "title": "Lagrange multipliers",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "∇f(x) = λ∇g(x)",
+      "meaning": "Finds candidates for constrained extrema.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Constraint regularity conditions apply.",
+      "limitations": "Necessary conditions do not alone guarantee a global optimum.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method",
+        "optimization"
+      ]
+    },
+    {
+      "id": "mathematics.gradient_descent",
+      "title": "Gradient descent",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "xₖ₊₁ = xₖ − α∇f(xₖ)",
+      "meaning": "Iteratively minimizes a differentiable objective.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Step size and gradient are defined.",
+      "limitations": "Can converge slowly, get stuck at non-global solutions, or diverge with poor step sizes.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method",
+        "optimization"
+      ]
+    },
+    {
+      "id": "mathematics.newton_method",
+      "title": "Newton method",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "xₖ₊₁ = xₖ − f(xₖ)/f′(xₖ)",
+      "meaning": "Iterative method for solving scalar equations.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Derivative exists and is not zero at the iterate.",
+      "limitations": "Sensitive to initial conditions and derivative quality.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method",
+        "numerical_methods"
+      ]
+    },
+    {
+      "id": "mathematics.bisection",
+      "title": "Bisection method",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "Choose subinterval with sign change repeatedly",
+      "meaning": "Brackets a root and halves the interval.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Continuous function and a valid sign-changing bracket.",
+      "limitations": "Finds a bracketed root, not all roots.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method",
+        "numerical_methods"
+      ]
+    },
+    {
+      "id": "mathematics.condition_number",
+      "title": "Condition number",
+      "domain": "mathematics",
+      "kind": "definition",
+      "formula_or_rule": "κ(A) = ||A|| ||A⁻¹||",
+      "meaning": "Measures sensitivity of a linear solve to perturbations.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "A is invertible for this expression.",
+      "limitations": "Depends on norm and scaling; high conditioning is not the same as algorithmic instability.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "definition",
+        "numerical_methods"
+      ]
+    },
+    {
+      "id": "mathematics.fourier",
+      "title": "Fourier transform",
+      "domain": "mathematics",
+      "kind": "transform",
+      "formula_or_rule": "F(ω) = ∫ f(t)e^(−iωt)dt",
+      "meaning": "Represents a signal in frequency space.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Integrability or a suitable generalized interpretation.",
+      "limitations": "Conventions differ by normalization and sign.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "transform",
+        "signals"
+      ]
+    },
+    {
+      "id": "mathematics.convolution",
+      "title": "Convolution",
+      "domain": "mathematics",
+      "kind": "operation",
+      "formula_or_rule": "(f*g)(t) = ∫ f(τ)g(t−τ)dτ",
+      "meaning": "Combines signals or kernels; appears in linear systems and probability.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Integral exists under suitable conditions.",
+      "limitations": "Discrete and circular convolutions use different boundary conventions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "operation",
+        "signals"
+      ]
+    },
+    {
+      "id": "mathematics.sampling",
+      "title": "Nyquist sampling condition",
+      "domain": "mathematics",
+      "kind": "rule",
+      "formula_or_rule": "fₛ > 2 f_max",
+      "meaning": "Ideal band-limited signal reconstruction requires sampling above twice the maximum frequency.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Signal is band-limited and anti-alias filtering is appropriate.",
+      "limitations": "Real signals and finite windows need practical margins; it is not a universal guarantee.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "rule",
+        "signals"
+      ]
+    },
+    {
+      "id": "mathematics.pde",
+      "title": "Partial differential equation",
+      "domain": "mathematics",
+      "kind": "model_class",
+      "formula_or_rule": "F(x,u,∂u,∂²u,…) = 0",
+      "meaning": "Models fields varying over space and/or time.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Domain, boundary conditions and well-posedness must be specified.",
+      "limitations": "A numerical solver cannot repair invalid assumptions or missing boundary data.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "model_class",
+        "differential_equations"
+      ]
+    },
+    {
+      "id": "mathematics.stability",
+      "title": "Linear stability of a fixed point",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "Eigenvalues of the Jacobian determine local linear stability",
+      "meaning": "Uses local dynamics near an equilibrium.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Smooth dynamical system and equilibrium identified.",
+      "limitations": "Nonlinear behavior beyond the local neighborhood may differ.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method",
+        "dynamical_systems"
+      ]
+    },
+    {
+      "id": "mathematics.dimensional_analysis",
+      "title": "Dimensional analysis",
+      "domain": "mathematics",
+      "kind": "method",
+      "formula_or_rule": "Physically valid equations must be dimensionally consistent",
+      "meaning": "Checks compatibility of units and can reduce parameters.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "All quantities have correctly assigned dimensions.",
+      "limitations": "Dimensional consistency is necessary, not sufficient, for correctness.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "method",
+        "units"
+      ]
+    },
+    {
+      "id": "mathematics.conservation",
+      "title": "Conservation law",
+      "domain": "mathematics",
+      "kind": "principle",
+      "formula_or_rule": "dQ/dt = 0 for a closed isolated system",
+      "meaning": "A conserved quantity remains constant under specified assumptions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "System boundary and isolation assumptions are explicit.",
+      "limitations": "Open systems require flux/source terms.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "mathematics",
+        "principle",
+        "modeling"
+      ]
+    },
+    {
+      "id": "statistics.stddev",
+      "title": "Standard deviation",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "s = sqrt(s²)",
+      "meaning": "Expresses dispersion in the original units.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Variance is defined.",
+      "limitations": "Does not describe all distribution shapes.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition",
+        "descriptive"
+      ]
+    },
+    {
+      "id": "statistics.standard_error",
+      "title": "Standard error of mean",
+      "domain": "statistics",
+      "kind": "equation",
+      "formula_or_rule": "SE(x̄) = s/sqrt(n)",
+      "meaning": "Quantifies estimated sampling variability of the sample mean.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Independent observations and suitable sampling assumptions.",
+      "limitations": "Not the same as standard deviation or an individual prediction interval.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "equation",
+        "inference"
+      ]
+    },
+    {
+      "id": "statistics.pvalue",
+      "title": "P-value",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "P(test statistic at least as extreme | null hypothesis)",
+      "meaning": "Measures compatibility of data with a specified null model.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Test and null hypothesis are defined in advance.",
+      "limitations": "Not the probability that the null hypothesis is true; affected by multiplicity and design.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition",
+        "inference"
+      ]
+    },
+    {
+      "id": "statistics.bayes",
+      "title": "Bayes theorem",
+      "domain": "statistics",
+      "kind": "equation",
+      "formula_or_rule": "P(H|D) = P(D|H)P(H)/P(D)",
+      "meaning": "Updates a hypothesis probability using data and a likelihood model.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "P(D) > 0 and probabilities are coherent.",
+      "limitations": "Depends on the model and prior; posterior is not automatically causal.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "equation",
+        "bayesian"
+      ]
+    },
+    {
+      "id": "statistics.likelihood",
+      "title": "Likelihood",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "L(θ|D) ∝ P(D|θ)",
+      "meaning": "Scores parameter values by the probability of observed data under a model.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "A sampling model is specified.",
+      "limitations": "Likelihood values are not themselves parameter probabilities.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition",
+        "inference"
+      ]
+    },
+    {
+      "id": "statistics.mle",
+      "title": "Maximum likelihood estimation",
+      "domain": "statistics",
+      "kind": "method",
+      "formula_or_rule": "θ̂ = argmaxθ L(θ|D)",
+      "meaning": "Chooses parameters maximizing likelihood.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Optimization problem is well-defined.",
+      "limitations": "May have multiple maxima, boundary solutions or small-sample bias.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "method",
+        "inference"
+      ]
+    },
+    {
+      "id": "statistics.ols",
+      "title": "Ordinary least squares",
+      "domain": "statistics",
+      "kind": "method",
+      "formula_or_rule": "β̂ = argminβ ||y−Xβ||²",
+      "meaning": "Fits a linear predictor by minimizing squared residuals.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Design matrix and outcomes are defined.",
+      "limitations": "Inference needs additional assumptions; outliers can dominate.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "method",
+        "regression"
+      ]
+    },
+    {
+      "id": "statistics.correlation",
+      "title": "Pearson correlation",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "r = cov(X,Y)/(sₓsᵧ)",
+      "meaning": "Measures linear association between variables.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Nonzero variances and paired observations.",
+      "limitations": "Correlation does not establish causation and can miss nonlinear association.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition",
+        "association"
+      ]
+    },
+    {
+      "id": "statistics.spearman",
+      "title": "Spearman rank correlation",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "Correlation of ranks",
+      "meaning": "Measures monotonic rank association.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Paired observations with rank handling defined.",
+      "limitations": "Ties and small samples affect inference.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition",
+        "association"
+      ]
+    },
+    {
+      "id": "statistics.bootstrap",
+      "title": "Bootstrap resampling",
+      "domain": "statistics",
+      "kind": "method",
+      "formula_or_rule": "Resample observations and recompute statistic",
+      "meaning": "Approximates sampling uncertainty using repeated resampling.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Resampling scheme reflects the sampling design.",
+      "limitations": "Naive resampling fails for dependent data or unrepresentative samples.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "method",
+        "uncertainty"
+      ]
+    },
+    {
+      "id": "statistics.permutation",
+      "title": "Permutation test",
+      "domain": "statistics",
+      "kind": "method",
+      "formula_or_rule": "Compare observed statistic to label/assignment permutations",
+      "meaning": "Builds a null distribution under exchangeability assumptions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Valid permutation scheme and exchangeability.",
+      "limitations": "Permutations cannot fix confounding or biased sampling.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "method",
+        "hypothesis_testing"
+      ]
+    },
+    {
+      "id": "statistics.power",
+      "title": "Statistical power",
+      "domain": "statistics",
+      "kind": "definition",
+      "formula_or_rule": "1 − β",
+      "meaning": "Probability a test rejects the null under a specified alternative.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Effect size, sample size, variance, alpha and test are specified.",
+      "limitations": "Power is scenario-specific and depends on assumptions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "definition",
+        "study_design"
+      ]
+    },
+    {
+      "id": "statistics.multiple_testing",
+      "title": "Multiple-testing correction",
+      "domain": "statistics",
+      "kind": "method",
+      "formula_or_rule": "Control family-wise error or false discovery rate",
+      "meaning": "Adjusts interpretation when many hypotheses are tested.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Testing family and chosen error criterion are defined.",
+      "limitations": "Different procedures trade power and error control differently.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "method",
+        "study_design"
+      ]
+    },
+    {
+      "id": "statistics.missing_data",
+      "title": "Missing-data mechanisms",
+      "domain": "statistics",
+      "kind": "classification",
+      "formula_or_rule": "MCAR / MAR / MNAR",
+      "meaning": "Distinguishes mechanisms that affect missing-data handling.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Mechanism assumptions are assessed.",
+      "limitations": "Mechanisms are often not identifiable from observed data alone.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "classification",
+        "data_quality"
+      ]
+    },
+    {
+      "id": "statistics.cross_validation",
+      "title": "Cross-validation",
+      "domain": "statistics",
+      "kind": "method",
+      "formula_or_rule": "Train on folds; evaluate on held-out folds",
+      "meaning": "Estimates out-of-sample predictive performance.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Splits respect groups, time and data dependencies.",
+      "limitations": "Data leakage produces overly optimistic estimates.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "method",
+        "machine_learning"
+      ]
+    },
+    {
+      "id": "statistics.roc_auc",
+      "title": "ROC AUC",
+      "domain": "statistics",
+      "kind": "metric",
+      "formula_or_rule": "Area under true-positive-rate vs false-positive-rate curve",
+      "meaning": "Measures ranking discrimination across thresholds.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Binary outcomes and scores are defined.",
+      "limitations": "Does not assess calibration or decision utility; prevalence matters for related metrics.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "metric",
+        "classification"
+      ]
+    },
+    {
+      "id": "statistics.calibration",
+      "title": "Probability calibration",
+      "domain": "statistics",
+      "kind": "method",
+      "formula_or_rule": "Predicted probabilities should match observed frequencies",
+      "meaning": "Checks reliability of probabilistic predictions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Sufficient representative evaluation data.",
+      "limitations": "Good calibration does not imply good discrimination or causal validity.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "statistics",
+        "method",
+        "machine_learning"
+      ]
+    },
+    {
+      "id": "physics.kinetic_energy",
+      "title": "Kinetic energy",
+      "domain": "physics",
+      "kind": "equation",
+      "formula_or_rule": "Eₖ = ½mv²",
+      "meaning": "Translational kinetic energy in the nonrelativistic regime.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Point mass or center-of-mass translational motion; v ≪ c.",
+      "limitations": "Rotational/internal energy may need additional terms.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "equation",
+        "energy"
+      ]
+    },
+    {
+      "id": "physics.potential_energy",
+      "title": "Near-Earth gravitational potential energy",
+      "domain": "physics",
+      "kind": "equation",
+      "formula_or_rule": "ΔU = mgΔh",
+      "meaning": "Approximate gravitational energy change near Earth's surface.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Nearly constant gravitational acceleration.",
+      "limitations": "Large altitude changes need gravitational potential model.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "equation",
+        "energy"
+      ]
+    },
+    {
+      "id": "physics.momentum",
+      "title": "Linear momentum",
+      "domain": "physics",
+      "kind": "definition",
+      "formula_or_rule": "p = mv",
+      "meaning": "Mass times velocity in classical mechanics.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Nonrelativistic regime.",
+      "limitations": "Relativistic momentum differs.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "definition",
+        "mechanics"
+      ]
+    },
+    {
+      "id": "physics.work",
+      "title": "Mechanical work",
+      "domain": "physics",
+      "kind": "equation",
+      "formula_or_rule": "W = ∫ F·dr",
+      "meaning": "Energy transferred by a force along a path.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Force and path are defined.",
+      "limitations": "Nonconservative forces may require path-dependent treatment.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "equation",
+        "energy"
+      ]
+    },
+    {
+      "id": "physics.power",
+      "title": "Power",
+      "domain": "physics",
+      "kind": "definition",
+      "formula_or_rule": "P = dW/dt",
+      "meaning": "Rate of energy transfer.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Differentiable work/energy history.",
+      "limitations": "Instantaneous and average power differ.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "definition",
+        "energy"
+      ]
+    },
+    {
+      "id": "physics.first_law",
+      "title": "First law of thermodynamics",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "ΔU = Q − W (work done by system convention)",
+      "meaning": "Energy conservation for thermodynamic systems.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Sign convention and system boundary stated.",
+      "limitations": "Chemical, kinetic and potential energy bookkeeping may be needed.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "thermodynamics"
+      ]
+    },
+    {
+      "id": "physics.entropy_boltzmann",
+      "title": "Boltzmann entropy",
+      "domain": "physics",
+      "kind": "equation",
+      "formula_or_rule": "S = k_B ln Ω",
+      "meaning": "Relates entropy to accessible microstates in statistical mechanics.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Microstate count and ensemble interpretation specified.",
+      "limitations": "Requires careful treatment of constraints and statistical ensemble.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "equation",
+        "statistical_mechanics"
+      ]
+    },
+    {
+      "id": "physics.coulomb",
+      "title": "Coulomb's law",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "F = kₑ |q₁q₂|/r²",
+      "meaning": "Electrostatic force magnitude between point charges.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Point charges or suitable far-field approximation in a medium.",
+      "limitations": "Boundaries and dielectric media modify the interaction.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "electromagnetism"
+      ]
+    },
+    {
+      "id": "physics.ohm",
+      "title": "Ohm's law",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "V = IR",
+      "meaning": "Relates voltage, current and resistance for an ohmic element.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Linear operating regime and defined measurement conditions.",
+      "limitations": "Many devices are nonlinear or temperature-dependent.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "circuits"
+      ]
+    },
+    {
+      "id": "physics.kirchhoff_current",
+      "title": "Kirchhoff current law",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "ΣI entering node = ΣI leaving node",
+      "meaning": "Expresses charge conservation at an electrical node.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Lumped-circuit approximation.",
+      "limitations": "High-frequency distributed effects can require field models.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "circuits"
+      ]
+    },
+    {
+      "id": "physics.kirchhoff_voltage",
+      "title": "Kirchhoff voltage law",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "ΣΔV around a loop = 0",
+      "meaning": "Expresses energy conservation in lumped circuits.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Quasi-static lumped circuit with consistent voltage convention.",
+      "limitations": "Time-varying magnetic flux linkage may need explicit induced emf.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "circuits"
+      ]
+    },
+    {
+      "id": "physics.fourier_heat",
+      "title": "Fourier's law of heat conduction",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "q = −k∇T",
+      "meaning": "Heat flux follows the negative temperature gradient in a conductive medium.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Continuum local-equilibrium regime.",
+      "limitations": "Nanoscale or ultrafast transport may violate classical assumptions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "heat"
+      ]
+    },
+    {
+      "id": "physics.snell",
+      "title": "Snell's law",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "n₁ sin θ₁ = n₂ sin θ₂",
+      "meaning": "Relates refraction angles across an interface.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Planar interface and isotropic media.",
+      "limitations": "Anisotropic and nonlinear optical media need more general models.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "optics"
+      ]
+    },
+    {
+      "id": "physics.photoelectric",
+      "title": "Photoelectric energy relation",
+      "domain": "physics",
+      "kind": "equation",
+      "formula_or_rule": "K_max = hν − φ",
+      "meaning": "Relates photon energy to maximum emitted electron kinetic energy.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Photon energy exceeds work function; suitable idealized surface.",
+      "limitations": "Real surfaces have losses and material-dependent effects.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "equation",
+        "quantum"
+      ]
+    },
+    {
+      "id": "physics.decay",
+      "title": "Radioactive decay",
+      "domain": "physics",
+      "kind": "equation",
+      "formula_or_rule": "N(t) = N₀e^(−λt)",
+      "meaning": "Models exponential decay for a population of unstable nuclei.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Constant decay rate and no relevant production term.",
+      "limitations": "Mixtures of isotopes require multiple components.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "equation",
+        "nuclear"
+      ]
+    },
+    {
+      "id": "physics.reynolds",
+      "title": "Reynolds number",
+      "domain": "physics",
+      "kind": "dimensionless_group",
+      "formula_or_rule": "Re = ρvL/μ",
+      "meaning": "Compares inertial and viscous effects in fluid flow.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Characteristic length and velocity are defined.",
+      "limitations": "Transition thresholds depend on geometry and flow conditions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "dimensionless_group",
+        "fluid_mechanics"
+      ]
+    },
+    {
+      "id": "physics.bernoulli",
+      "title": "Bernoulli equation",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "p + ½ρv² + ρgh = constant",
+      "meaning": "Relates pressure, kinetic and gravitational terms along ideal streamline.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Steady, incompressible, inviscid flow along a streamline without shaft work.",
+      "limitations": "Losses and pumps/turbines require additional terms.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "fluid_mechanics"
+      ]
+    },
+    {
+      "id": "physics.maxwell",
+      "title": "Maxwell equations",
+      "domain": "physics",
+      "kind": "law",
+      "formula_or_rule": "∇·E=ρ/ε₀; ∇·B=0; ∇×E=−∂B/∂t; ∇×B=μ₀J+μ₀ε₀∂E/∂t",
+      "meaning": "Describe classical electromagnetic fields and their sources.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Classical field theory; SI convention shown.",
+      "limitations": "Material media require constitutive relations.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "physics",
+        "law",
+        "electromagnetism"
+      ]
+    },
+    {
+      "id": "chemistry.molarity",
+      "title": "Molar concentration",
+      "domain": "chemistry",
+      "kind": "definition",
+      "formula_or_rule": "c = n/V",
+      "meaning": "Amount of solute per solution volume.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Volume and amount units are consistent.",
+      "limitations": "Volume depends on temperature and mixing.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "definition",
+        "solutions"
+      ]
+    },
+    {
+      "id": "chemistry.ideal_ph",
+      "title": "pH definition",
+      "domain": "chemistry",
+      "kind": "definition",
+      "formula_or_rule": "pH = −log₁₀(a_H⁺)",
+      "meaning": "Negative logarithm of hydrogen-ion activity.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Activity is dimensionless relative to its standard state.",
+      "limitations": "Using concentration instead of activity is an approximation.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "definition",
+        "acid_base"
+      ]
+    },
+    {
+      "id": "chemistry.henderson_hasselbalch",
+      "title": "Henderson–Hasselbalch equation",
+      "domain": "chemistry",
+      "kind": "equation",
+      "formula_or_rule": "pH = pKₐ + log₁₀([A⁻]/[HA])",
+      "meaning": "Approximates buffer pH from conjugate-base/acid ratio.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Suitable acid-base equilibrium and activity approximations.",
+      "limitations": "Less reliable at extreme concentrations or ionic strengths.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "equation",
+        "acid_base"
+      ]
+    },
+    {
+      "id": "chemistry.rate_law",
+      "title": "Chemical rate law",
+      "domain": "chemistry",
+      "kind": "model_class",
+      "formula_or_rule": "v = k[A]^m[B]^n",
+      "meaning": "Empirical or mechanistically derived rate dependence.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Orders determined from data or mechanism.",
+      "limitations": "Orders cannot generally be inferred from balanced stoichiometry alone.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "model_class",
+        "kinetics"
+      ]
+    },
+    {
+      "id": "chemistry.equilibrium",
+      "title": "Reaction quotient and equilibrium constant",
+      "domain": "chemistry",
+      "kind": "equation",
+      "formula_or_rule": "K = Π a_products^ν / Π a_reactants^ν",
+      "meaning": "At equilibrium, reaction quotient equals the equilibrium constant.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Activities and stoichiometric coefficients are defined.",
+      "limitations": "Concentration substitutions are approximations when non-ideal.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "equation",
+        "thermodynamics"
+      ]
+    },
+    {
+      "id": "chemistry.gibbs",
+      "title": "Gibbs free energy",
+      "domain": "chemistry",
+      "kind": "equation",
+      "formula_or_rule": "ΔG = ΔH − TΔS",
+      "meaning": "Relates enthalpy and entropy changes at specified temperature.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Consistent state and temperature; common form assumes relevant conditions.",
+      "limitations": "Spontaneity interpretation depends on constraints and whether ΔG is for the process.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "equation",
+        "thermodynamics"
+      ]
+    },
+    {
+      "id": "chemistry.nernst",
+      "title": "Nernst equation",
+      "domain": "chemistry",
+      "kind": "equation",
+      "formula_or_rule": "E = E° − (RT/nF) ln Q",
+      "meaning": "Relates electrode potential to reaction quotient.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Electrochemical reaction and activities specified.",
+      "limitations": "Reference states, junction potentials and kinetic overpotentials may matter.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "equation",
+        "electrochemistry"
+      ]
+    },
+    {
+      "id": "chemistry.beer_lambert",
+      "title": "Beer–Lambert law",
+      "domain": "chemistry",
+      "kind": "law",
+      "formula_or_rule": "A = εlc",
+      "meaning": "Relates absorbance to concentration and path length.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Monochromatic light, appropriate dilute solution and defined ε.",
+      "limitations": "Scattering, stray light and high concentration can cause deviations.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "law",
+        "analytical_chemistry"
+      ]
+    },
+    {
+      "id": "chemistry.arrhenius_acid",
+      "title": "Arrhenius acid-base definition",
+      "domain": "chemistry",
+      "kind": "definition",
+      "formula_or_rule": "Acid increases H⁺ in aqueous solution; base increases OH⁻",
+      "meaning": "Classifies acids and bases in the Arrhenius framework.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Aqueous context.",
+      "limitations": "Brønsted–Lowry and Lewis definitions are broader.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "definition",
+        "acid_base"
+      ]
+    },
+    {
+      "id": "chemistry.osmotic_pressure",
+      "title": "Van't Hoff osmotic pressure",
+      "domain": "chemistry",
+      "kind": "equation",
+      "formula_or_rule": "π ≈ i c R T",
+      "meaning": "Approximate osmotic pressure of dilute solutions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Dilute solution and suitable van't Hoff factor.",
+      "limitations": "Non-ideal interactions alter effective behavior.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "equation",
+        "solutions"
+      ]
+    },
+    {
+      "id": "chemistry.diffusion_fick",
+      "title": "Fick's first law",
+      "domain": "chemistry",
+      "kind": "law",
+      "formula_or_rule": "J = −D∇c",
+      "meaning": "Diffusive flux follows a concentration gradient.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Continuum approximation and defined diffusivity.",
+      "limitations": "Multicomponent systems may require coupled transport equations.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "law",
+        "transport"
+      ]
+    },
+    {
+      "id": "chemistry.partition",
+      "title": "Partition coefficient",
+      "domain": "chemistry",
+      "kind": "definition",
+      "formula_or_rule": "P = concentration in phase 1 / concentration in phase 2 at equilibrium",
+      "meaning": "Describes distribution between two phases under defined conditions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Same chemical species and specified phases, pH and temperature.",
+      "limitations": "LogP/logD differ; ionization and formulation affect apparent partitioning.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "chemistry",
+        "definition",
+        "physical_chemistry"
+      ]
+    },
+    {
+      "id": "biology.hill",
+      "title": "Hill equation",
+      "domain": "biology",
+      "kind": "model",
+      "formula_or_rule": "θ = [L]^n/(K_d^n + [L]^n)",
+      "meaning": "Phenomenological ligand-binding/cooperativity curve.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Defined ligand concentration and fitted parameters.",
+      "limitations": "Hill coefficient is not generally a literal count of binding sites.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "model",
+        "biochemistry"
+      ]
+    },
+    {
+      "id": "biology.exponential_growth",
+      "title": "Exponential growth",
+      "domain": "biology",
+      "kind": "model",
+      "formula_or_rule": "N(t)=N₀e^(rt)",
+      "meaning": "Models proportional growth at constant per-capita rate.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Constant rate and no limiting resources.",
+      "limitations": "Only appropriate over a limited regime in many biological systems.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "model",
+        "population"
+      ]
+    },
+    {
+      "id": "biology.lotka_volterra",
+      "title": "Lotka–Volterra predator-prey model",
+      "domain": "biology",
+      "kind": "model",
+      "formula_or_rule": "dx/dt = αx−βxy; dy/dt = δxy−γy",
+      "meaning": "Idealized coupled predator-prey dynamics.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Constant coefficients and simplified interactions.",
+      "limitations": "Real ecosystems include resource limits and complex food webs.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "model",
+        "ecology"
+      ]
+    },
+    {
+      "id": "biology.mendel",
+      "title": "Mendelian segregation",
+      "domain": "biology",
+      "kind": "principle",
+      "formula_or_rule": "Alleles segregate into gametes under the model's assumptions",
+      "meaning": "Predicts inheritance ratios for simple genetic crosses.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Loci and mating assumptions fit the case.",
+      "limitations": "Linkage, penetrance, epistasis and population structure alter outcomes.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "principle",
+        "genetics"
+      ]
+    },
+    {
+      "id": "biology.central_dogma",
+      "title": "Central dogma overview",
+      "domain": "biology",
+      "kind": "principle",
+      "formula_or_rule": "DNA → RNA → protein (with important exceptions and extensions)",
+      "meaning": "Summarizes a major information-flow pathway in molecular biology.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Applies to canonical gene expression contexts.",
+      "limitations": "Not a complete model of regulation; reverse transcription and noncoding RNAs exist.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "principle",
+        "molecular_biology"
+      ]
+    },
+    {
+      "id": "biology.population_genetics",
+      "title": "Hardy–Weinberg equilibrium",
+      "domain": "biology",
+      "kind": "equation",
+      "formula_or_rule": "p² + 2pq + q² = 1; p+q=1",
+      "meaning": "Allele and genotype frequencies under idealized assumptions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Random mating, large population, no selection, migration or mutation.",
+      "limitations": "Departures may reflect several causes, not one unique mechanism.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "equation",
+        "genetics"
+      ]
+    },
+    {
+      "id": "biology.membrane_diffusion",
+      "title": "Fickian membrane transport",
+      "domain": "biology",
+      "kind": "model",
+      "formula_or_rule": "J ≈ P(C₁−C₂)",
+      "meaning": "Approximates passive transport across a membrane using permeability P.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Steady-state, specified membrane and concentration convention.",
+      "limitations": "Active transport, binding, ionization and unstirred layers can dominate.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "model",
+        "cell_biology"
+      ]
+    },
+    {
+      "id": "biology.enzyme_inhibition",
+      "title": "Competitive enzyme inhibition",
+      "domain": "biology",
+      "kind": "model",
+      "formula_or_rule": "v = Vmax[S]/(Km(1+[I]/Ki)+[S])",
+      "meaning": "Idealized competitive inhibition rate law.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Rapid-equilibrium/standard competitive model assumptions.",
+      "limitations": "Mixed, uncompetitive, irreversible and allosteric inhibition differ.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "model",
+        "biochemistry"
+      ]
+    },
+    {
+      "id": "biology.gene_expression",
+      "title": "Gene-expression dynamics",
+      "domain": "biology",
+      "kind": "model_class",
+      "formula_or_rule": "dM/dt = transcription − degradation",
+      "meaning": "Mass-balance framework for transcript abundance.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Production and degradation terms defined.",
+      "limitations": "Stochasticity, regulation and multiple molecular states may be needed.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "model_class",
+        "systems_biology"
+      ]
+    },
+    {
+      "id": "biology.allometry",
+      "title": "Allometric scaling",
+      "domain": "biology",
+      "kind": "model",
+      "formula_or_rule": "Y = a M^b",
+      "meaning": "Power-law scaling between a biological trait and body mass.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Comparable entities and fitted scaling range.",
+      "limitations": "Exponent depends on trait, taxa, ecology and measurement.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "biology",
+        "model",
+        "physiology"
+      ]
+    },
+    {
+      "id": "medicine.sensitivity_specificity",
+      "title": "Diagnostic sensitivity and specificity",
+      "domain": "medicine",
+      "kind": "metric",
+      "formula_or_rule": "Sensitivity = TP/(TP+FN); specificity = TN/(TN+FP)",
+      "meaning": "Measures test performance conditional on true disease status.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Reference standard and confusion-matrix counts defined.",
+      "limitations": "Do not directly give predictive values; spectrum and reference-standard bias matter.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "metric",
+        "diagnostics"
+      ]
+    },
+    {
+      "id": "medicine.ppv",
+      "title": "Positive predictive value",
+      "domain": "medicine",
+      "kind": "metric",
+      "formula_or_rule": "PPV = TP/(TP+FP)",
+      "meaning": "Probability of target condition among positive test results in the evaluated setting.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Representative population and outcome definition.",
+      "limitations": "Changes with prevalence and test context.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "metric",
+        "diagnostics"
+      ]
+    },
+    {
+      "id": "medicine.survival",
+      "title": "Kaplan–Meier survival estimate",
+      "domain": "medicine",
+      "kind": "method",
+      "formula_or_rule": "Ŝ(t)=Π_{tᵢ≤t}(1−dᵢ/nᵢ)",
+      "meaning": "Estimates survival function with right-censored observations.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Independent censoring and defined time origin.",
+      "limitations": "Does not adjust for covariates; informative censoring biases results.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "method",
+        "clinical_statistics"
+      ]
+    },
+    {
+      "id": "medicine.cox",
+      "title": "Cox proportional hazards model",
+      "domain": "medicine",
+      "kind": "model",
+      "formula_or_rule": "h(t|x)=h₀(t)exp(βᵀx)",
+      "meaning": "Relates covariates to hazard under proportional hazards.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Proportional-hazards assumption and appropriate censoring.",
+      "limitations": "Hazard ratios are not risk ratios and may be misleading under violations.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "model",
+        "clinical_statistics"
+      ]
+    },
+    {
+      "id": "medicine.pharmacokinetics",
+      "title": "One-compartment IV bolus pharmacokinetics",
+      "domain": "medicine",
+      "kind": "model",
+      "formula_or_rule": "C(t)=C₀e^(−kt)",
+      "meaning": "Idealized first-order elimination from one compartment.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Instantaneous IV input and first-order elimination approximation.",
+      "limitations": "Many drugs require multi-compartment, absorption and nonlinear models.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "model",
+        "pharmacology"
+      ]
+    },
+    {
+      "id": "medicine.clearance",
+      "title": "Systemic clearance",
+      "domain": "medicine",
+      "kind": "definition",
+      "formula_or_rule": "CL = rate of elimination / plasma concentration",
+      "meaning": "Volume of plasma cleared of drug per unit time under defined conditions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Steady-state or defined instantaneous rate and concentration.",
+      "limitations": "Clearance can vary with organ function, interactions and time.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "definition",
+        "pharmacology"
+      ]
+    },
+    {
+      "id": "medicine.half_life",
+      "title": "First-order elimination half-life",
+      "domain": "medicine",
+      "kind": "equation",
+      "formula_or_rule": "t½ = ln(2)/k",
+      "meaning": "Time for concentration to halve under first-order elimination.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Single exponential elimination.",
+      "limitations": "Half-life may change for nonlinear or multi-compartment kinetics.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "equation",
+        "pharmacology"
+      ]
+    },
+    {
+      "id": "medicine.dose_response",
+      "title": "Emax dose-response model",
+      "domain": "medicine",
+      "kind": "model",
+      "formula_or_rule": "E = E0 + Emax·C/(EC50+C)",
+      "meaning": "Describes a saturating concentration-response relation.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Suitable monotonic response and model assumptions.",
+      "limitations": "Not every response is monotonic or adequately described by this model.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "model",
+        "pharmacology"
+      ]
+    },
+    {
+      "id": "medicine.tumor_growth",
+      "title": "Exponential tumor-growth approximation",
+      "domain": "medicine",
+      "kind": "model",
+      "formula_or_rule": "V(t)=V₀e^(rt)",
+      "meaning": "Simple phenomenological growth curve over a restricted period.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Constant relative growth rate in the modeled interval.",
+      "limitations": "Tumor growth is heterogeneous; not suitable as a standalone clinical predictor.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "model",
+        "oncology"
+      ]
+    },
+    {
+      "id": "medicine.clinical_trial",
+      "title": "Randomized controlled trial principle",
+      "domain": "medicine",
+      "kind": "method",
+      "formula_or_rule": "Random assignment aims to balance confounders in expectation",
+      "meaning": "Compares interventions under a defined protocol.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Allocation, concealment, follow-up and analysis are appropriate.",
+      "limitations": "Randomization does not eliminate bias from attrition, nonadherence or measurement.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "method",
+        "evidence"
+      ]
+    },
+    {
+      "id": "medicine.causal_dag",
+      "title": "Directed acyclic graph for causal reasoning",
+      "domain": "medicine",
+      "kind": "method",
+      "formula_or_rule": "Encode assumed causal arrows in a DAG",
+      "meaning": "Makes causal assumptions and adjustment choices explicit.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Graph represents a defensible causal hypothesis.",
+      "limitations": "A graph does not discover causality automatically; unmeasured variables may remain.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "method",
+        "causal_inference"
+      ]
+    },
+    {
+      "id": "medicine.biomarker",
+      "title": "Biomarker validation dimensions",
+      "domain": "medicine",
+      "kind": "framework",
+      "formula_or_rule": "Analytical validity; clinical validity; clinical utility",
+      "meaning": "Separates measurement performance, association with outcomes and usefulness.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Intended use and context of use are specified.",
+      "limitations": "Evidence for one dimension does not establish the others.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "medicine",
+        "framework",
+        "biomarkers"
+      ]
+    },
+    {
+      "id": "neuroscience.nervous_membrane",
+      "title": "Nernst equilibrium potential",
+      "domain": "neuroscience",
+      "kind": "equation",
+      "formula_or_rule": "E_ion = (RT/zF) ln([ion]out/[ion]in)",
+      "meaning": "Equilibrium voltage for a permeant ion under ideal assumptions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Ion valence and concentrations defined; electrochemical equilibrium.",
+      "limitations": "Real membranes have multiple permeant ions and nonideal activities.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "neuroscience",
+        "equation",
+        "electrophysiology"
+      ]
+    },
+    {
+      "id": "neuroscience.goldman",
+      "title": "Goldman–Hodgkin–Katz voltage relation",
+      "domain": "neuroscience",
+      "kind": "model",
+      "formula_or_rule": "V_m ≈ (RT/F) ln((ΣP_i[i]out)/(ΣP_i[i]in)) for monovalent cations in a simplified form",
+      "meaning": "Approximates membrane potential using relative permeabilities.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Correct ion set, valence signs and concentration convention.",
+      "limitations": "Full forms differ for anions and multiple valences.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "neuroscience",
+        "model",
+        "electrophysiology"
+      ]
+    },
+    {
+      "id": "neuroscience.naka_rushton",
+      "title": "Naka–Rushton response",
+      "domain": "neuroscience",
+      "kind": "model",
+      "formula_or_rule": "R = Rmax I^n/(I^n + I50^n)",
+      "meaning": "Phenomenological saturating sensory-response model.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Positive stimulus intensity and fitted parameters.",
+      "limitations": "Descriptive curve; not a complete neural mechanism.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "neuroscience",
+        "model",
+        "sensory"
+      ]
+    },
+    {
+      "id": "neuroscience.leaky_integrate_fire",
+      "title": "Leaky integrate-and-fire neuron",
+      "domain": "neuroscience",
+      "kind": "model",
+      "formula_or_rule": "τm dV/dt = −(V−E_L)+R_m I",
+      "meaning": "Simplified subthreshold membrane model with threshold/reset.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Specified threshold, reset and input current.",
+      "limitations": "Omits detailed ion channels, dendrites and many spike dynamics.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "neuroscience",
+        "model",
+        "computational_neuroscience"
+      ]
+    },
+    {
+      "id": "neuroscience.hebb",
+      "title": "Hebbian learning rule",
+      "domain": "neuroscience",
+      "kind": "principle",
+      "formula_or_rule": "Δw ∝ pre × post activity (simplified)",
+      "meaning": "Describes a family of activity-dependent synaptic plasticity rules.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Pre/post activity representation defined.",
+      "limitations": "Unbounded simple Hebbian updates need normalization or constraints.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "neuroscience",
+        "principle",
+        "plasticity"
+      ]
+    },
+    {
+      "id": "environment.well_mixed_box",
+      "title": "Well-mixed box model",
+      "domain": "environment",
+      "kind": "model",
+      "formula_or_rule": "dC/dt = inputs/V − outputs/V − kC",
+      "meaning": "Models concentration dynamics in a uniformly mixed compartment.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Volume and flows are defined; mixing approximation appropriate.",
+      "limitations": "Spatial gradients are not represented.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment",
+        "model",
+        "environmental_modeling"
+      ]
+    },
+    {
+      "id": "environment.henry",
+      "title": "Henry's law",
+      "domain": "environment",
+      "kind": "law",
+      "formula_or_rule": "C = k_H p (convention-dependent)",
+      "meaning": "Relates dissolved gas concentration to gas partial pressure at equilibrium.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Dilute solution and specified temperature and constant convention.",
+      "limitations": "Henry constants use multiple conventions; always record units.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment",
+        "law",
+        "atmosphere"
+      ]
+    },
+    {
+      "id": "environment.arrhenius_temperature",
+      "title": "Q10 temperature coefficient",
+      "domain": "environment",
+      "kind": "metric",
+      "formula_or_rule": "Q10 = rate(T+10)/rate(T)",
+      "meaning": "Summarizes temperature sensitivity over a specified interval.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Rates measured under comparable conditions.",
+      "limitations": "Extrapolation across wide temperature ranges may fail.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment",
+        "metric",
+        "climate"
+      ]
+    },
+    {
+      "id": "environment.carbon_balance",
+      "title": "Carbon mass balance",
+      "domain": "environment",
+      "kind": "method",
+      "formula_or_rule": "Change in carbon stock = inputs − outputs",
+      "meaning": "Tracks carbon flows and stocks for a specified boundary and period.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Carbon pools, gases, area and timescale are consistently defined.",
+      "limitations": "Accounting boundaries and land-use changes can dominate uncertainty.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment",
+        "method",
+        "climate"
+      ]
+    },
+    {
+      "id": "environment.ecological_diversity",
+      "title": "Shannon diversity index",
+      "domain": "environment",
+      "kind": "metric",
+      "formula_or_rule": "H′ = −Σ pᵢ ln pᵢ",
+      "meaning": "Summarizes richness and evenness from category proportions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Sampling and taxonomic units are defined.",
+      "limitations": "Depends on sampling effort and does not capture all ecological structure.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment",
+        "metric",
+        "ecology"
+      ]
+    },
+    {
+      "id": "environment.species_richness",
+      "title": "Species richness",
+      "domain": "environment",
+      "kind": "metric",
+      "formula_or_rule": "S = number of species observed",
+      "meaning": "Counts distinct species in a sample or defined area.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Sampling scope and identification rules defined.",
+      "limitations": "Highly sensitive to sampling effort and detection probability.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "environment",
+        "metric",
+        "ecology"
+      ]
+    },
+    {
+      "id": "computer_science.big_o",
+      "title": "Big-O complexity",
+      "domain": "computer_science",
+      "kind": "definition",
+      "formula_or_rule": "f(n) ∈ O(g(n))",
+      "meaning": "Asymptotically bounds growth up to a constant factor.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Asymptotic input size and computational model stated.",
+      "limitations": "Does not by itself predict wall-clock runtime or memory constants.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "definition",
+        "algorithms"
+      ]
+    },
+    {
+      "id": "computer_science.binary_entropy",
+      "title": "Binary entropy",
+      "domain": "computer_science",
+      "kind": "equation",
+      "formula_or_rule": "H(p)=−p log₂p−(1−p)log₂(1−p)",
+      "meaning": "Entropy of a Bernoulli random variable.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "0≤p≤1 with 0 log 0 interpreted as 0.",
+      "limitations": "Entropy is not identical to information value in every task.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "equation",
+        "information_theory"
+      ]
+    },
+    {
+      "id": "computer_science.bayes_classifier",
+      "title": "Bayes classifier",
+      "domain": "computer_science",
+      "kind": "method",
+      "formula_or_rule": "Choose class maximizing posterior probability",
+      "meaning": "Minimizes expected classification error under zero-one loss when posterior is correct.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Class probabilities and likelihoods are specified.",
+      "limitations": "Other loss functions imply different decisions; estimated posteriors can be wrong.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "method",
+        "machine_learning"
+      ]
+    },
+    {
+      "id": "computer_science.regularization",
+      "title": "L2 regularization",
+      "domain": "computer_science",
+      "kind": "method",
+      "formula_or_rule": "Loss(θ)+λ||θ||₂²",
+      "meaning": "Penalizes large parameter magnitudes to control complexity.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Penalty and scale are appropriate for the model.",
+      "limitations": "Feature scaling and λ choice materially affect results.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "method",
+        "machine_learning"
+      ]
+    },
+    {
+      "id": "computer_science.gradient_chain",
+      "title": "Backpropagation",
+      "domain": "computer_science",
+      "kind": "method",
+      "formula_or_rule": "Apply chain rule through a computational graph",
+      "meaning": "Computes gradients of composed differentiable operations.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Computational graph and derivatives are valid.",
+      "limitations": "Discrete operations and numerical instability can impede gradients.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "method",
+        "machine_learning"
+      ]
+    },
+    {
+      "id": "computer_science.train_test_leakage",
+      "title": "Data leakage",
+      "domain": "computer_science",
+      "kind": "principle",
+      "formula_or_rule": "No test information may influence training or model selection",
+      "meaning": "Protects evaluation from optimistic bias.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Split strategy reflects intended deployment.",
+      "limitations": "Leakage can occur through preprocessing, time ordering or duplicated entities.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "principle",
+        "machine_learning"
+      ]
+    },
+    {
+      "id": "computer_science.hash",
+      "title": "Cryptographic hash",
+      "domain": "computer_science",
+      "kind": "definition",
+      "formula_or_rule": "h = H(data)",
+      "meaning": "Produces a fixed-length digest useful for integrity checks.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Cryptographic hash algorithm and byte encoding are specified.",
+      "limitations": "A hash proves identity of bytes, not truth, provenance or correctness.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "definition",
+        "security"
+      ]
+    },
+    {
+      "id": "computer_science.api_contract",
+      "title": "API contract",
+      "domain": "computer_science",
+      "kind": "method",
+      "formula_or_rule": "Define inputs, outputs, errors and versioning",
+      "meaning": "Makes software components interoperable.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Schemas and semantics are explicit.",
+      "limitations": "Syntactic schema validation does not guarantee scientific correctness.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "method",
+        "software_engineering"
+      ]
+    },
+    {
+      "id": "computer_science.reproducibility",
+      "title": "Computational reproducibility",
+      "domain": "computer_science",
+      "kind": "framework",
+      "formula_or_rule": "Record code, data, parameters, environment, seeds and provenance",
+      "meaning": "Enables rerunning and auditing computational work.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Artifacts and dependencies remain available.",
+      "limitations": "Exact bitwise reproduction may be limited by hardware and numerical libraries.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "framework",
+        "reproducible_research"
+      ]
+    },
+    {
+      "id": "computer_science.monte_carlo",
+      "title": "Monte Carlo estimation",
+      "domain": "computer_science",
+      "kind": "method",
+      "formula_or_rule": "Estimate E[f(X)] ≈ (1/N)Σf(Xᵢ)",
+      "meaning": "Approximates expectations using random samples.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Sampling distribution represents the target uncertainty.",
+      "limitations": "Convergence can be slow; sampling bias and model error remain.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "method",
+        "simulation"
+      ]
+    },
+    {
+      "id": "computer_science.sobol",
+      "title": "Sobol global sensitivity indices",
+      "domain": "computer_science",
+      "kind": "method",
+      "formula_or_rule": "Variance-based decomposition of output variance",
+      "meaning": "Attributes output variance to inputs and interactions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Independent inputs for standard formulations and sufficient samples.",
+      "limitations": "Correlated inputs require modified methods; estimates have sampling error.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "method",
+        "sensitivity"
+      ]
+    },
+    {
+      "id": "computer_science.fisher_information",
+      "title": "Fisher information",
+      "domain": "computer_science",
+      "kind": "definition",
+      "formula_or_rule": "I(θ)=E[(∂ log L/∂θ)(∂ log L/∂θ)ᵀ]",
+      "meaning": "Quantifies local information in a statistical model about parameters.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Likelihood differentiability and regularity conditions.",
+      "limitations": "Local asymptotic measure; singular or misspecified models need care.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "definition",
+        "experimental_design"
+      ]
+    },
+    {
+      "id": "computer_science.d_optimal",
+      "title": "D-optimal experimental design",
+      "domain": "computer_science",
+      "kind": "method",
+      "formula_or_rule": "Maximize det(Fisher information matrix)",
+      "meaning": "Selects experiments intended to reduce parameter uncertainty volume.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "A model, parameterization, noise model and candidate designs are specified.",
+      "limitations": "Design depends on model correctness and may be fragile under misspecification.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "method",
+        "experimental_design"
+      ]
+    },
+    {
+      "id": "computer_science.units_si",
+      "title": "SI unit discipline",
+      "domain": "computer_science",
+      "kind": "principle",
+      "formula_or_rule": "Record quantity, unit, scale and conversions explicitly",
+      "meaning": "Reduces errors when combining measurements and models.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Units follow a declared standard and quantities are dimensionally checked.",
+      "limitations": "Dimensionless quantities and conventions still need semantic definitions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "computer_science",
+        "principle",
+        "units"
+      ]
+    },
+    {
+      "id": "engineering.stress",
+      "title": "Normal stress",
+      "domain": "engineering",
+      "kind": "equation",
+      "formula_or_rule": "σ = F/A",
+      "meaning": "Average normal force per area in a simple loading case.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Uniform load distribution approximation and defined cross-section.",
+      "limitations": "Local stress concentrations require mechanics analysis.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "equation",
+        "mechanics"
+      ]
+    },
+    {
+      "id": "engineering.hooke",
+      "title": "Hooke's law",
+      "domain": "engineering",
+      "kind": "law",
+      "formula_or_rule": "σ = Eε",
+      "meaning": "Linear elastic relation between stress and strain.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Small strain and linear elastic material regime.",
+      "limitations": "Plasticity, viscoelasticity and anisotropy need other constitutive laws.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "law",
+        "materials"
+      ]
+    },
+    {
+      "id": "engineering.beam_bending",
+      "title": "Euler–Bernoulli beam relation",
+      "domain": "engineering",
+      "kind": "model",
+      "formula_or_rule": "EI d⁴w/dx⁴ = q(x)",
+      "meaning": "Models slender beam deflection under classical assumptions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Slender beam, small deflection and appropriate supports.",
+      "limitations": "Shear deformation and large deflections require alternatives.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "model",
+        "structures"
+      ]
+    },
+    {
+      "id": "engineering.buckling",
+      "title": "Euler critical buckling load",
+      "domain": "engineering",
+      "kind": "equation",
+      "formula_or_rule": "P_cr = π²EI/(KL)²",
+      "meaning": "Idealized elastic buckling load for a slender column.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Straight ideal column, elastic behavior and specified end-condition factor K.",
+      "limitations": "Imperfections and material yielding reduce real capacity.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "equation",
+        "structures"
+      ]
+    },
+    {
+      "id": "engineering.pump_power",
+      "title": "Hydraulic power",
+      "domain": "engineering",
+      "kind": "equation",
+      "formula_or_rule": "P = ρgQH/η",
+      "meaning": "Estimates input power for a pump delivering flow against head.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Flow Q, head H and efficiency η defined.",
+      "limitations": "Transient behavior and detailed pump curves are omitted.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "equation",
+        "fluids"
+      ]
+    },
+    {
+      "id": "engineering.heat_capacity",
+      "title": "Sensible heat",
+      "domain": "engineering",
+      "kind": "equation",
+      "formula_or_rule": "Q = mc_pΔT",
+      "meaning": "Estimates heat for a temperature change with approximately constant specific heat.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "No phase change; c_p approximately constant.",
+      "limitations": "Phase transitions and temperature-dependent heat capacity need integration.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "equation",
+        "thermal"
+      ]
+    },
+    {
+      "id": "engineering.reliability_series",
+      "title": "Series-system reliability",
+      "domain": "engineering",
+      "kind": "equation",
+      "formula_or_rule": "R_sys = Π Rᵢ for independent components",
+      "meaning": "Probability all components in a series system function.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Component failures independent and success requires all components.",
+      "limitations": "Common-cause failures violate independence.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "equation",
+        "reliability"
+      ]
+    },
+    {
+      "id": "engineering.reliability_parallel",
+      "title": "Parallel-system reliability",
+      "domain": "engineering",
+      "kind": "equation",
+      "formula_or_rule": "R_sys = 1 − Π(1−Rᵢ) for independent components",
+      "meaning": "Probability at least one parallel component functions.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Independent component failures and redundancy logic as specified.",
+      "limitations": "Common-cause failures and load sharing alter reliability.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "engineering",
+        "equation",
+        "reliability"
+      ]
+    },
+    {
+      "id": "materials_science.arrhenius_diffusion",
+      "title": "Arrhenius diffusivity",
+      "domain": "materials_science",
+      "kind": "equation",
+      "formula_or_rule": "D = D₀ exp(−Q/(RT))",
+      "meaning": "Models temperature dependence of diffusivity in many materials.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Mechanism and activation energy stable over range.",
+      "limitations": "Phase changes and multiple diffusion mechanisms alter behavior.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "materials_science",
+        "equation",
+        "diffusion"
+      ]
+    },
+    {
+      "id": "materials_science.young_modulus",
+      "title": "Young's modulus",
+      "domain": "materials_science",
+      "kind": "definition",
+      "formula_or_rule": "E = σ/ε in linear elastic uniaxial regime",
+      "meaning": "Measures stiffness as the stress-strain slope.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Small-strain linear elastic region.",
+      "limitations": "Anisotropic materials have direction-dependent moduli.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "materials_science",
+        "definition",
+        "mechanics"
+      ]
+    },
+    {
+      "id": "materials_science.thermal_expansion",
+      "title": "Linear thermal expansion",
+      "domain": "materials_science",
+      "kind": "equation",
+      "formula_or_rule": "ΔL ≈ αL₀ΔT",
+      "meaning": "Approximates length change due to temperature.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Small temperature interval and nearly constant α.",
+      "limitations": "Constraints cause thermal stress; α may depend on temperature.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "materials_science",
+        "equation",
+        "thermal"
+      ]
+    },
+    {
+      "id": "materials_science.phase_rule",
+      "title": "Gibbs phase rule",
+      "domain": "materials_science",
+      "kind": "equation",
+      "formula_or_rule": "F = C − P + 2",
+      "meaning": "Counts degrees of freedom in an equilibrium system.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Nonreactive system and standard thermodynamic phase-rule assumptions.",
+      "limitations": "Reactive systems and imposed constraints require modified forms.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "materials_science",
+        "equation",
+        "thermodynamics"
+      ]
+    },
+    {
+      "id": "cosmetics.diffusion_skin",
+      "title": "Fickian diffusion through skin (idealized)",
+      "domain": "cosmetics",
+      "kind": "model",
+      "formula_or_rule": "J ≈ D K ΔC / h",
+      "meaning": "Simplified steady flux across a homogeneous barrier layer.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Constant diffusivity D, partition coefficient K, thickness h and gradient.",
+      "limitations": "Real skin is layered, heterogeneous and variable; not a clinical safety predictor.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "cosmetics",
+        "model",
+        "formulation",
+        "permeation"
+      ]
+    },
+    {
+      "id": "cosmetics.emulsion_stability",
+      "title": "Emulsion stability framework",
+      "domain": "cosmetics",
+      "kind": "framework",
+      "formula_or_rule": "Stability depends on droplet size, interfacial properties, density contrast and rheology",
+      "meaning": "Frames physical instability mechanisms such as creaming, flocculation and coalescence.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Formulation, storage and measurement conditions are defined.",
+      "limitations": "No single equation predicts shelf life for all formulations.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "cosmetics",
+        "framework",
+        "formulation"
+      ]
+    },
+    {
+      "id": "cosmetics.stokes_creaming",
+      "title": "Stokes creaming velocity",
+      "domain": "cosmetics",
+      "kind": "equation",
+      "formula_or_rule": "v = 2r²(ρ_d−ρ_c)g/(9μ)",
+      "meaning": "Idealized settling/creaming speed of a small spherical droplet.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Dilute suspension, low Reynolds number, spherical isolated droplets.",
+      "limitations": "Concentrated emulsions, non-Newtonian fluids and interactions violate assumptions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "cosmetics",
+        "equation",
+        "formulation"
+      ]
+    },
+    {
+      "id": "cosmetics.arrhenius_shelf_life",
+      "title": "Arrhenius chemical degradation model",
+      "domain": "cosmetics",
+      "kind": "model",
+      "formula_or_rule": "k(T)=A exp(−Eₐ/RT)",
+      "meaning": "Can help model temperature dependence of a degradation rate.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Same degradation mechanism over tested temperature range.",
+      "limitations": "Accelerated stability extrapolation must be validated and is not guaranteed.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "cosmetics",
+        "model",
+        "stability"
+      ]
+    },
+    {
+      "id": "astronomy.kepler3",
+      "title": "Kepler's third law",
+      "domain": "astronomy",
+      "kind": "law",
+      "formula_or_rule": "T² ∝ a³ for a two-body orbit in the same central system",
+      "meaning": "Relates orbital period and semi-major axis.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Two-body approximation; units and central mass consistently handled.",
+      "limitations": "Perturbations and significant secondary masses require full dynamics.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "astronomy",
+        "law",
+        "orbital_mechanics"
+      ]
+    },
+    {
+      "id": "astronomy.inverse_square",
+      "title": "Inverse-square flux",
+      "domain": "astronomy",
+      "kind": "law",
+      "formula_or_rule": "F = L/(4πr²)",
+      "meaning": "Flux from an isotropic source decreases with distance squared.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Isotropic emission and negligible absorption/scattering.",
+      "limitations": "Anisotropic emission and intervening media modify observed flux.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "astronomy",
+        "law",
+        "astrophysics"
+      ]
+    },
+    {
+      "id": "astronomy.redshift",
+      "title": "Cosmological redshift relation",
+      "domain": "astronomy",
+      "kind": "definition",
+      "formula_or_rule": "1+z = a(t_observed)/a(t_emitted)",
+      "meaning": "Relates wavelength stretching to scale-factor evolution in cosmology.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Cosmological interpretation and metric framework specified.",
+      "limitations": "Observed redshift may include peculiar velocity and gravitational contributions.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "astronomy",
+        "definition",
+        "cosmology"
+      ]
+    },
+    {
+      "id": "earth_science.darcy",
+      "title": "Darcy's law",
+      "domain": "earth_science",
+      "kind": "law",
+      "formula_or_rule": "Q = −K A dh/dl",
+      "meaning": "Relates groundwater flow to hydraulic-head gradient in porous media.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Darcy regime and representative hydraulic conductivity.",
+      "limitations": "Fractures, anisotropy and non-Darcy flow may require richer models.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "earth_science",
+        "law",
+        "hydrology"
+      ]
+    },
+    {
+      "id": "earth_science.hydrostatic",
+      "title": "Hydrostatic pressure",
+      "domain": "earth_science",
+      "kind": "equation",
+      "formula_or_rule": "p = p₀ + ρgh",
+      "meaning": "Pressure increase with depth in a fluid at rest.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Density approximately constant and fluid at rest.",
+      "limitations": "Compressible fluids require integration of density with depth.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "earth_science",
+        "equation",
+        "fluid_mechanics"
+      ]
+    },
+    {
+      "id": "earth_science.richards",
+      "title": "Richards equation",
+      "domain": "earth_science",
+      "kind": "pde",
+      "formula_or_rule": "∂θ/∂t = ∇·[K(h)∇(h+z)]",
+      "meaning": "Models water flow in variably saturated porous media.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Constitutive soil-water and conductivity functions specified.",
+      "limitations": "Highly nonlinear; parameters and boundary conditions are difficult to identify.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "earth_science",
+        "pde",
+        "soil"
+      ]
+    },
+    {
+      "id": "earth_science.magnitude_distance",
+      "title": "Seismic magnitude-distance framework",
+      "domain": "earth_science",
+      "kind": "framework",
+      "formula_or_rule": "Magnitude scales derive from calibrated measures of seismic waves",
+      "meaning": "Describes earthquake size using defined seismological magnitude scales.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Scale type, instrument response and distance corrections specified.",
+      "limitations": "Different magnitude scales are not interchangeable in every range.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "earth_science",
+        "framework",
+        "seismology"
+      ]
+    },
+    {
+      "id": "economics_systems.exponential_discount",
+      "title": "Continuous discounting",
+      "domain": "economics_systems",
+      "kind": "equation",
+      "formula_or_rule": "PV = FV e^(−rt)",
+      "meaning": "Converts future value to present value under continuous discounting.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Rate and time basis are consistent.",
+      "limitations": "Choice of rate is an assumption, not a physical constant.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "economics_systems",
+        "equation",
+        "decision_analysis"
+      ]
+    },
+    {
+      "id": "economics_systems.queue_utilization",
+      "title": "Queue utilization",
+      "domain": "economics_systems",
+      "kind": "metric",
+      "formula_or_rule": "ρ = λ/μ for a simple single-server queue",
+      "meaning": "Traffic intensity for a basic queueing model.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "Arrival/service process assumptions and μ>λ for stable M/M/1 queue.",
+      "limitations": "Real systems may be nonstationary, multi-server or have priority classes.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "economics_systems",
+        "metric",
+        "operations_research"
+      ]
+    },
+    {
+      "id": "economics_systems.markov",
+      "title": "Markov property",
+      "domain": "economics_systems",
+      "kind": "definition",
+      "formula_or_rule": "P(Xₜ₊₁|Xₜ,…,X₀)=P(Xₜ₊₁|Xₜ)",
+      "meaning": "Future state depends on current state under the model.",
+      "units_or_output": "See variable definitions and unit conventions for the application.",
+      "applicability_conditions": "State representation captures relevant information.",
+      "limitations": "Apparent memorylessness can fail if important hidden states are omitted.",
+      "epistemic_status": "Foundational relationship or established model class; application-specific verification required",
+      "source_status": "foundational_entry_requiring_bibliographic_review",
+      "executable": false,
+      "validation_status": "not_individually_verified_in_software",
+      "tags": [
+        "economics_systems",
+        "definition",
+        "stochastic_processes"
+      ]
+    }
+  ],
+  "statistics": {
+    "entry_count": 179,
+    "domains": {
+      "astronomy": 3,
+      "biology": 10,
+      "biology_biochemistry": 1,
+      "biology_ecology": 2,
+      "biology_medicine": 1,
+      "chemistry": 16,
+      "computer_science": 14,
+      "computer_science_numerics": 2,
+      "computer_science_statistics": 2,
+      "cosmetics": 4,
+      "earth_science": 4,
+      "economics_systems": 3,
+      "engineering": 8,
+      "engineering_mathematics": 1,
+      "engineering_statistics": 1,
+      "environment": 6,
+      "environment_chemistry": 1,
+      "environment_engineering": 1,
+      "materials_science": 4,
+      "mathematics": 32,
+      "medicine": 12,
+      "medicine_statistics": 1,
+      "neuroscience": 5,
+      "physics": 22,
+      "physics_chemistry": 2,
+      "statistics": 20,
+      "statistics_model_validation": 1
+    },
+    "executable_entry_count": 0,
+    "note": "Counts describe catalog records only; they do not measure completeness of science."
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Virtual Lab Research Report",
+  "type": "object",
+  "required": [
+    "title",
+    "software_version",
+    "current_model",
+    "current_parameters",
+    "scientific_disclaimer",
+    "status"
+  ],
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "software_version": {
+      "type": "string"
+    },
+    "current_model": {
+      "type": "string"
+    },
+    "current_parameters": {
+      "type": "object"
+    },
+    "latest_outputs": {
+      "type": "object"
+    },
+    "scientific_disclaimer": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "exploratory_not_certified"
+      ]
+    }
+  }
+}

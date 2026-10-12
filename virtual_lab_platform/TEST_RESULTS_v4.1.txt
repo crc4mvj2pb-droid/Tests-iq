@@ -1,0 +1,24 @@
+Virtual Lab Platform v4.1 — rapport de validation
+Date: 2026-10-12
+
+Tests automatisés
+- Commande: python -m pytest -q
+- Résultat: 170 passed.
+- Couverture v4.1 : hash canonique indépendant de l'ordre des clés, rejet des valeurs non finies, détection de configuration modifiée, API de vérification, rejeu du circuit sauvegardé, rejet d'un modèle non pris en charge et présence des commandes d'interface.
+
+Syntaxe
+- python -m py_compile *.py: passed.
+- Extraction des 3 blocs JavaScript inline et `node --check`: passed pour les trois blocs.
+
+Intégration API
+- Les tests utilisent un serveur HTTP local éphémère et une base SQLite temporaire.
+- Circuit de contrôle : source idéale 9 V, résistance 1000 Ω et masse ; courant calculé 0.009 A (9 mA).
+- Dossier initial enregistré, hash vérifié, circuit rejoué depuis la configuration sauvegardée.
+- Le rejeu crée un nouvel identifiant, conserve la même empreinte de configuration et reproduit le courant à la tolérance numérique prévue.
+- Un modèle non circuit est refusé par l'endpoint de rejeu.
+
+Limites et interprétation
+- Le hash protège la comparaison de la configuration, pas tous les champs du dossier.
+- Le rejeu v4.1 est limité aux circuits CC résistifs de la paillasse.
+- Les résultats sont des calculs simulés et non des mesures physiques.
+- Les interactions complètes avec un navigateur réel n'ont pas été validées dans cet environnement.

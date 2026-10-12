@@ -1,0 +1,28 @@
+{
+  "id": "unique_slug",
+  "title": "Model or dataset title",
+  "discipline": "discipline_name",
+  "kind": "mathematical_model|reference_dataset|workflow",
+  "status": "unreviewed",
+  "source": {
+    "doi": null,
+    "url": null,
+    "citation": null,
+    "accessed_at": null
+  },
+  "license": "unknown_until_verified",
+  "version": "1.0",
+  "units": {},
+  "assumptions": [],
+  "parameters": [],
+  "outputs": [],
+  "reference_data": null,
+  "verification": [],
+  "validation_evidence": [],
+  "limitations": [],
+  "review": {
+    "reviewer": null,
+    "date": null,
+    "status": "not_reviewed"
+  }
+}

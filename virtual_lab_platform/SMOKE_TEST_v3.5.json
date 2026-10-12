@@ -1,0 +1,61 @@
+{
+  "/api/health": {
+    "status": "ok",
+    "mode": "local-only",
+    "version": "3.5"
+  },
+  "/api/version": {
+    "version": "3.5",
+    "features": [
+      "v3.2 expanded multidisciplinary catalog: 18 disciplines, 58 components, 70 equipment entries, 42 experiment workflows, 43 model entries including 30 L0 templates; sequential A-to-B-to-C kinetics remains available",
+      "v2.7 graphical pin-to-pin circuit connections translated into a netlist and solved by the DC nodal engine",
+      "analytical RC/RL step response",
+      "series RLC AC phasor analysis",
+      "logarithmic RLC frequency sweep",
+      "bounded multi-parameter least-squares fitting with residual diagnostics",
+      "cross-model software sanity validation suite",
+      "seven additional numerical solvers",
+      "generic multi-model parameter sweeps",
+      "generic seeded Monte Carlo parameter uncertainty",
+      "reference comparison with model output column mapping",
+      "ten-stage scientific development roadmap",
+      "interactive multilingual workbench, categorized draggable catalog and local JSON export",
+      "v3.5 kinetic engine bridge: abstract A/B/C species concentrations can be loaded from the workbench into the RK4 reaction-network simulator; local request cancellation and result export",
+      "v2.6 sample containment inside equipment, equipment operation panel, thermal setpoint transfer, conceptual microscopy/PCR checks, Beer-Lambert absorbance with user-supplied parameters, and stoichiometric reactions inside a reactor",
+      "ideal dilution balance in the new workbench",
+      "DC resistive circuit solver using nodal analysis with node voltages, branch currents, equivalent resistance, power and numerical KCL/power-balance checks",
+      "visual virtual-bench workspace and protocol designer",
+      "equipment-aware material-flow calculations and instrument uncertainty models",
+      "descriptive CSV profiling and exploratory correlations",
+      "bounded global-parameter sweeps for supported SBML models",
+      "heat diffusion and SIR solvers connected to virtual-lab workflows",
+      "equipment compatibility checks",
+      "solution dilution calculator",
+      "enzyme assay workflow",
+      "solver registry",
+      "parameter sweeps",
+      "reference-data comparison",
+      "traceable experiment dossiers",
+      "SQLite experiment history",
+      "uncertainty propagation",
+      "local sensitivity",
+      "provenance records",
+      "scientific library catalog",
+      "expanded multidomain scientific knowledge base",
+      "SI unit and dimension reference",
+      "selected physical constants",
+      "local SBML model intake",
+      "CSV reference dataset registry with provenance",
+      "SBML subset simulator using fixed-step RK4"
+    ]
+  },
+  "/api/chemistry/kinetics": {
+    "validation_level": "L1",
+    "method": "fixed_step_RK4",
+    "rows": 101,
+    "final_concentrations": {
+      "A": 0.6703200460362128,
+      "B": 0.3296799539637867
+    }
+  }
+}

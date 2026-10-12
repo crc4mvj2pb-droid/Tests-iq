@@ -1,0 +1,24 @@
+Virtual Lab Platform v3.4 — rapport de validation
+Date : 2026-10-12
+
+Tests automatisés Python
+- pytest : 126 passed
+- py_compile (app.py, models.py, lab_designer.py) : OK
+- node --check sur les scripts JavaScript intégrés : OK
+- API /api/health : status=ok, version=3.4
+- API /api/lab/catalog : 18 disciplines, 58 composants, 70 équipements, 42 workflows
+
+Tests navigateur Chromium (1440, 1024, 760 et 390 px de largeur)
+- Erreurs JavaScript : aucune observée dans le parcours de test.
+- Catégories : 8 disponibles.
+- Électricité & électronique : 26 cartes présentes.
+- Toutes les catégories : 23 machines, 14 substances, 14 molécules, 16 éléments de biologie, 6 éléments de physique, 26 éléments électriques, 8 réactions et 2 outils d’analyse.
+- Recherche : filtre les cartes comme attendu.
+- Ajout par bouton, édition d’une valeur, suppression et glisser-déposer : OK.
+- Nouvelle paillasse : vide la zone après confirmation.
+- Marques de catalogue : aucune emoji détectée dans les catégories testées.
+- Débordement horizontal du laboratoire : aucun aux quatre largeurs testées.
+- Débordement du texte des cartes et dépassement des limites du catalogue : aucun aux quatre largeurs testées.
+
+Portée et limites
+Ces tests valident les interactions d’interface et la structure de présentation. Ils ne valident pas scientifiquement tous les modèles, et ne transforment pas les fiches descriptives en simulateurs exécutables.

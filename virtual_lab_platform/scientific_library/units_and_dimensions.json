@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0",
+  "title": "SI unit and dimension reference",
+  "status": "reference catalogue; conversions and validation rules require implementation before use in calculations",
+  "base_units": [
+    {
+      "quantity": "time",
+      "unit": "second",
+      "symbol": "s",
+      "dimension": "T"
+    },
+    {
+      "quantity": "length",
+      "unit": "metre",
+      "symbol": "m",
+      "dimension": "L"
+    },
+    {
+      "quantity": "mass",
+      "unit": "kilogram",
+      "symbol": "kg",
+      "dimension": "M"
+    },
+    {
+      "quantity": "electric current",
+      "unit": "ampere",
+      "symbol": "A",
+      "dimension": "I"
+    },
+    {
+      "quantity": "thermodynamic temperature",
+      "unit": "kelvin",
+      "symbol": "K",
+      "dimension": "Θ"
+    },
+    {
+      "quantity": "amount of substance",
+      "unit": "mole",
+      "symbol": "mol",
+      "dimension": "N"
+    },
+    {
+      "quantity": "luminous intensity",
+      "unit": "candela",
+      "symbol": "cd",
+      "dimension": "J"
+    }
+  ],
+  "derived_units": [
+    {
+      "quantity": "frequency",
+      "unit": "hertz",
+      "symbol": "Hz",
+      "definition": "s⁻¹"
+    },
+    {
+      "quantity": "force",
+      "unit": "newton",
+      "symbol": "N",
+      "definition": "kg·m·s⁻²"
+    },
+    {
+      "quantity": "pressure",
+      "unit": "pascal",
+      "symbol": "Pa",
+      "definition": "N·m⁻²"
+    },
+    {
+      "quantity": "energy",
+      "unit": "joule",
+      "symbol": "J",
+      "definition": "N·m"
+    },
+    {
+      "quantity": "power",
+      "unit": "watt",
+      "symbol": "W",
+      "definition": "J·s⁻¹"
+    },
+    {
+      "quantity": "electric charge",
+      "unit": "coulomb",
+      "symbol": "C",
+      "definition": "A·s"
+    },
+    {
+      "quantity": "voltage",
+      "unit": "volt",
+      "symbol": "V",
+      "definition": "W·A⁻¹"
+    },
+    {
+      "quantity": "electrical resistance",
+      "unit": "ohm",
+      "symbol": "Ω",
+      "definition": "V·A⁻¹"
+    },
+    {
+      "quantity": "capacitance",
+      "unit": "farad",
+      "symbol": "F",
+      "definition": "C·V⁻¹"
+    },
+    {
+      "quantity": "magnetic flux",
+      "unit": "weber",
+      "symbol": "Wb",
+      "definition": "V·s"
+    },
+    {
+      "quantity": "magnetic flux density",
+      "unit": "tesla",
+      "symbol": "T",
+      "definition": "Wb·m⁻²"
+    },
+    {
+      "quantity": "catalytic activity",
+      "unit": "katal",
+      "symbol": "kat",
+      "definition": "mol·s⁻¹"
+    }
+  ],
+  "rules": [
+    "Store numerical value and unit separately; never silently assume a unit.",
+    "Use absolute temperature in thermodynamic equations unless the formula explicitly states otherwise.",
+    "Distinguish mass concentration, amount concentration, activity and dimensionless ratios.",
+    "Preserve original units and record every conversion in provenance.",
+    "Dimensionally consistent equations can still be scientifically wrong."
+  ]
+}

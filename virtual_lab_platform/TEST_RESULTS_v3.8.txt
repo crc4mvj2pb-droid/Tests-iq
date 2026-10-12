@@ -1,0 +1,33 @@
+Virtual Lab Platform v3.8 — rapport de validation
+Date: 2026-10-12
+
+Tests automatisés
+- Commande: python -m pytest -q
+- Résultat: 152 passed.
+
+Syntaxe Python
+- Commande: python -m py_compile *.py
+- Résultat: passed.
+
+Syntaxe JavaScript inline
+- Extraction des blocs <script> non vides de static/index.html puis vérification par node --check.
+- Résultat: 3 blocs vérifiés, tous passés.
+
+Vérifications API sur un port de test isolé
+- GET /api/health: HTTP 200, version 3.8.
+- GET /api/version: HTTP 200, version 3.8.
+- POST /api/instruments/measure: HTTP 200, status simulated_measurement, experimental_data=false.
+- Instrument non pris en charge: rejet attendu HTTP 400.
+- La suite de tests conserve les contrôles stœchiométriques et électriques des versions précédentes.
+
+Intégrité HTML
+- Identifiants HTML uniques: vérifiés par test automatisé.
+- Indicateur API, message hors ligne, stockage local protégé et restauration explicite: tests de non-régression ajoutés.
+
+Tests navigateur
+- Tentative avec Chromium/Playwright bloquée par l'environnement: ERR_BLOCKED_BY_ADMINISTRATOR lors de l'ouverture locale.
+- Aucun test navigateur interactif complet n'est revendiqué. Le comportement des clics dans un vrai navigateur reste à confirmer sur la machine de l'utilisateur.
+
+Limites scientifiques
+- Les mesures d'instruments restent des simulations pédagogiques.
+- Les tests logiciels ne remplacent pas une validation scientifique indépendante.

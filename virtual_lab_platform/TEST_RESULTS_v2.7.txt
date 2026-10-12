@@ -1,0 +1,28 @@
+Virtual Lab Platform v2.7 — résultats de vérification
+Date: 2026-10-11
+
+PASS — pytest -q
+112 passed (final suite run)
+
+PASS — python -m unittest discover -s tests -q
+101 tests passed
+
+PASS — python -m py_compile *.py tests/*.py
+
+PASS — node --check sur les blocs JavaScript extraits de static/index.html
+
+PASS — scripts/smoke_test.py
+Checks: model registry and solver contract; candidate experiment design ranking; enzyme simulation and parameter sweep; Monte Carlo uncertainty and local sensitivity; CSV import and reference comparison; provenance record; SIR and heat solver execution; seven added model families; generic multi-model parameter sweep and Monte Carlo uncertainty; bounded parameter fitting against synthetic reference data; ten-model software sanity validation suite.
+
+PASS — HTTP integration test for POST /api/electrical/workbench-solve
+A 9 V ideal source connected to a 1,000 Ω resistor and ground returned 0.009 A source current, 0.081 W resistor power, and a numerically consistent KCL/power-balance check.
+
+PASS — Chromium headless UI integration harness (with a test-only localStorage shim and API proxy, because this build environment blocks direct browser navigation to localhost)
+- Added a DC source, resistor and ground through the actual catalog UI.
+- Changed the source to 9 V and the resistor to 1,000 Ω through Properties.
+- Created three pin-to-pin wires through the actual terminal buttons.
+- Ran the actual workbench solve action and received 9 V, 1 kΩ, 9 mA and 81 mW.
+- Confirmed six SVG wire strokes (two per connection), saved three connections in the workbench JSON state, and observed no uncaught browser page errors.
+- Added glucose to the incubator by dragging it onto the machine, set the incubator to 37 °C, and verified that the machine operation updated the sample temperature without claiming biological growth.
+
+NOT PERFORMED — direct Safari validation on the user's Mac; physical/electrical validation with hardware; independent scientific validation of every model.

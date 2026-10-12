@@ -1,0 +1,51 @@
+{
+  "status": "passed",
+  "version": "1.7",
+  "unit_tests": 87,
+  "checks": [
+    "Python compilation passed",
+    "browser JavaScript syntax passed",
+    "GET /api/health returned version 1.7",
+    "flow-driven dilution used declared stock/diluent transfers",
+    "transfer-device uncertainty propagated into final concentration uncertainty",
+    "thermal chamber control uncertainty perturbed heat-solver boundary inputs reproducibly",
+    "thermometer generated a reproducible synthetic reading with explicit uncertainty",
+    "SQLite history saved API runs",
+    "release ZIP integrity passed",
+    "GET /api/research/roadmap returned 10 stages",
+    "generic sweep, Monte Carlo uncertainty and reference comparison API checks passed",
+    "seven additional solvers satisfy automated mathematical-invariant tests",
+    "bounded parameter fitting recovered a known synthetic rate parameter",
+    "software sanity validation suite passed for 10 executable models",
+    "GET /api/research/validation-suite returned 10/10 pass",
+    "POST /api/research/fit returned fitted parameters and residual diagnostics"
+  ],
+  "limits": [
+    "No physical instrument control",
+    "Illustrative equipment performance parameters",
+    "Synthetic readings are not empirical observations",
+    "Simplified Gaussian measurement model",
+    "Scientific models are not independently validated",
+    "Parameter fitting is an exploratory coordinate-search method without confidence intervals",
+    "Software sanity suite is not independent empirical validation"
+  ],
+  "release_version": "1.7",
+  "new_model_ids": [
+    "logistic_growth",
+    "first_order_reaction",
+    "environmental_decay",
+    "one_compartment_pk",
+    "lotka_volterra",
+    "leaky_integrate_fire",
+    "arrhenius_reaction"
+  ],
+  "new_api_routes": [
+    "POST /api/research/sweep",
+    "POST /api/research/uncertainty",
+    "POST /api/research/compare",
+    "GET /api/research/roadmap",
+    "POST /api/research/fit",
+    "GET /api/research/validation-suite"
+  ],
+  "notes": "v1.7 adds bounded parameter fitting and a ten-model software sanity suite. Automated checks do not constitute empirical validation."
+}

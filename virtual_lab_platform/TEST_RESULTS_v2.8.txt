@@ -1,0 +1,10 @@
+Virtual Lab Platform v2.8 — verification results
+
+Automated test suite: 117 passed
+Python compilation: app.py and chemical_kinetics.py passed
+Reaction network check: A -> B, k=0.4, A0=1, t=5 gives A=0.1353352832 and B=0.8646647168
+Atom-balance check for supplied X formulas: passed
+Arrhenius temperature-response test: passed
+Invalid species and unstable timestep rejection tests: passed
+
+Scope note: tests verify software and mathematical behaviour for specified examples. They do not constitute independent empirical validation of chemical parameters or universal scientific accuracy.

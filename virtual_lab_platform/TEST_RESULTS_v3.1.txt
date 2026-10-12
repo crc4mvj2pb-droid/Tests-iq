@@ -1,0 +1,31 @@
+Virtual Lab Platform v3.1 — rapport de validation
+Date: 2026-10-12
+
+Suite automatisée:
+- pytest: 118 tests réussis (117 existants + 1 test de régression A → B → C)
+- py_compile des modules Python à la racine: réussi
+- node --check du JavaScript intégré à l'interface: réussi
+
+Test ciblé du réseau séquentiel:
+- A0 = 1 mol/L, B0 = C0 = 0
+- A → B, k1 = 0,4 s^-1
+- B → C, k2 = 0,2 s^-1
+- durée = 5 s ; dt = 0,01 s ; T = 298,15 K
+- A final = 0,1353352832 mol/L
+- B final = 0,4650883159 mol/L
+- C final = 0,3995764009 mol/L
+- somme finale = 1,0000000000 mol/L (conservation numérique vérifiée)
+- bilan atomique des deux réactions: vrai
+
+HTTP smoke test:
+- GET /api/health: HTTP 200, version 3.1
+- POST /api/chemistry/kinetics pour A → B → C: HTTP 200, concentrations finales cohérentes
+
+Interface:
+- option B → C ajoutée;
+- graphiques, indicateurs et tableaux adaptés aux espèces actives;
+- export JSON et réinitialisation conservés.
+
+Limites:
+- le test du navigateur a été validé par vérification syntaxique JavaScript et test API, mais pas par une vérification manuelle sur le Mac de l'utilisatrice.
+- les paramètres cinétiques doivent être sourcés/calibrés; il s'agit d'un modèle simplifié, pas d'une prédiction expérimentale universelle.

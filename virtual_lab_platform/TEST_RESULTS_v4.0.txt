@@ -1,0 +1,26 @@
+Virtual Lab Platform v4.0 — rapport de validation
+Date: 2026-10-12
+
+Tests automatisés
+- Commande: python -m pytest -q
+- Résultat: 164 passed.
+
+Syntaxe
+- python -m py_compile *.py: passed.
+- Extraction et `node --check` des 3 blocs JavaScript inline: passed.
+
+Intégration API locale
+- GET /api/health: HTTP 200, version 4.0.
+- POST /api/electrical/workbench-run: circuit simple calculé, statut completed.
+- Cas de contrôle: source idéale 9 V, résistance 1000 Ω, masse ; courant 0.009 A (9 mA).
+- Empreinte SHA-256 de la configuration produite.
+- Dossier sauvegardé dans SQLite, retrouvé via GET /api/history, puis relu via GET /api/history/{id}.
+- Résultats du dossier relu : modèle electrical_workbench_dc, data_status=simulated_calculation, une branche résistive.
+
+Tests navigateur
+- Le lancement Chromium est disponible, mais les navigations vers localhost et les fichiers locaux sont bloquées par l'environnement avec ERR_BLOCKED_BY_ADMINISTRATOR. Les interactions complètes par clic ne sont donc pas revendiquées comme validées.
+
+Limites scientifiques
+- Solveur de paillasse : réseau résistif CC idéal.
+- Le statut simulé ne signifie pas qu'une mesure réelle a été effectuée.
+- La vérification du bilan de puissance/KCL et l'empreinte de configuration ne remplacent pas une validation scientifique indépendante.

@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Registry of candidate external scientific resources. This registry is metadata only; it does not mean their datasets have been downloaded or validated by Virtual Lab.",
+  "sources": [
+    {
+      "id": "biomodels",
+      "name": "BioModels",
+      "discipline": [
+        "systems biology",
+        "biochemistry",
+        "biomedicine"
+      ],
+      "url": "https://www.biomodels.org/",
+      "resource_type": "curated mathematical models",
+      "access": "public website and programmatic access options",
+      "license_policy": "Check the specific model record and current repository terms before importing. Historical BioModels records commonly use CC0, but do not assume this for every resource without checking.",
+      "planned_integration": "Model discovery, metadata capture, SBML/model file import, provenance and reproducibility checks",
+      "verification_status": "source identified; no model files imported yet"
+    },
+    {
+      "id": "sbml_test_suite",
+      "name": "SBML Test Suite",
+      "discipline": [
+        "systems biology",
+        "computational biology"
+      ],
+      "url": "https://sbml.org/software/sbml-test-suite/",
+      "repository_url": "https://github.com/sbmlteam/sbml-test-suite",
+      "resource_type": "model conformance tests and expected simulation results",
+      "access": "public downloads",
+      "license_policy": "The suite is distributed under LGPL v2.1 with components potentially under other open-source terms; review the exact release and file notices before redistribution.",
+      "planned_integration": "Import test cases and compare compatible solver outputs to expected results",
+      "verification_status": "source identified; no test case archives imported yet"
+    },
+    {
+      "id": "sedml",
+      "name": "Simulation Experiment Description Markup Language (SED-ML)",
+      "discipline": [
+        "computational biology",
+        "scientific workflows"
+      ],
+      "url": "https://sed-ml.org/",
+      "repository_url": "https://github.com/SED-ML/sed-ml",
+      "resource_type": "standard for describing reproducible simulation setups",
+      "access": "open specification and repository",
+      "license_policy": "Review license notices for the exact specification/repository version used.",
+      "planned_integration": "Represent model, simulation settings, tasks and outputs in portable experiment descriptions",
+      "verification_status": "standard identified; parser/executor not implemented"
+    },
+    {
+      "id": "nist_chemistry_webbook",
+      "name": "NIST Chemistry WebBook",
+      "discipline": [
+        "chemistry",
+        "thermochemistry",
+        "physical chemistry"
+      ],
+      "url": "https://webbook.nist.gov/chemistry/",
+      "resource_type": "reference thermochemical and spectroscopic data",
+      "access": "public website",
+      "license_policy": "Review each dataset and current terms before reuse or redistribution.",
+      "planned_integration": "Future sourced chemical-property import with units and substance identifiers.",
+      "verification_status": "source pointer recorded; no data imported or validated in this release"
+    },
+    {
+      "id": "epa_ecotox",
+      "name": "US EPA ECOTOX Knowledgebase",
+      "discipline": [
+        "environment",
+        "ecotoxicology"
+      ],
+      "url": "https://cfpub.epa.gov/ecotox/",
+      "resource_type": "ecotoxicity literature and data resource",
+      "access": "public resource",
+      "license_policy": "Check source study rights, database terms, and record metadata before reuse.",
+      "planned_integration": "Future traceable ecotoxicology dataset discovery; no automated ingestion implemented.",
+      "verification_status": "source pointer recorded; no data imported or validated in this release"
+    },
+    {
+      "id": "ncbi_pubmed",
+      "name": "PubMed",
+      "discipline": [
+        "biology",
+        "medicine",
+        "neuroscience"
+      ],
+      "url": "https://pubmed.ncbi.nlm.nih.gov/",
+      "resource_type": "bibliographic database",
+      "access": "public search and APIs subject to current NCBI policies",
+      "license_policy": "Bibliographic metadata and full-text rights vary; check each record and source.",
+      "planned_integration": "Future literature discovery and evidence links, not automatic proof of a model.",
+      "verification_status": "source pointer recorded; no literature retrieval implemented"
+    },
+    {
+      "id": "sbml_specification",
+      "name": "Systems Biology Markup Language (SBML)",
+      "discipline": [
+        "systems biology",
+        "computational biology"
+      ],
+      "url": "https://sbml.org/",
+      "resource_type": "model exchange standard and ecosystem",
+      "access": "public specification and tools",
+      "license_policy": "Review the exact specification, software and model-file licenses.",
+      "planned_integration": "Expand supported SBML features and add conformance tests against the official suite.",
+      "verification_status": "existing subset simulator only; full conformance not achieved"
+    }
+  ]
+}

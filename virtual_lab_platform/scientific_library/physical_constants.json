@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "title": "Selected physical constants",
+  "status": "Reference starter set; values and uncertainty must be verified against an authoritative current metrology source before high-precision use.",
+  "constants": [
+    {
+      "id": "speed_of_light_vacuum",
+      "name": "Speed of light in vacuum",
+      "symbol": "c",
+      "value": 299792458,
+      "unit": "m s^-1",
+      "status": "exact SI-defined value"
+    },
+    {
+      "id": "planck_constant",
+      "name": "Planck constant",
+      "symbol": "h",
+      "value": 6.62607015e-34,
+      "unit": "J s",
+      "status": "exact SI-defined value"
+    },
+    {
+      "id": "elementary_charge",
+      "name": "Elementary charge",
+      "symbol": "e",
+      "value": 1.602176634e-19,
+      "unit": "C",
+      "status": "exact SI-defined value"
+    },
+    {
+      "id": "boltzmann_constant",
+      "name": "Boltzmann constant",
+      "symbol": "k_B",
+      "value": 1.380649e-23,
+      "unit": "J K^-1",
+      "status": "exact SI-defined value"
+    },
+    {
+      "id": "avogadro_constant",
+      "name": "Avogadro constant",
+      "symbol": "N_A",
+      "value": 6.02214076e+23,
+      "unit": "mol^-1",
+      "status": "exact SI-defined value"
+    },
+    {
+      "id": "standard_gravity",
+      "name": "Standard acceleration of gravity",
+      "symbol": "g_n",
+      "value": 9.80665,
+      "unit": "m s^-2",
+      "status": "conventional standard value; local gravity varies"
+    },
+    {
+      "id": "gas_constant",
+      "name": "Molar gas constant",
+      "symbol": "R",
+      "value": 8.31446261815324,
+      "unit": "J mol^-1 K^-1",
+      "status": "derived from exact SI constants; displayed digits should be reviewed for application"
+    },
+    {
+      "id": "faraday_constant_approx",
+      "name": "Faraday constant (approximate)",
+      "symbol": "F",
+      "value": 96485.33212,
+      "unit": "C mol^-1",
+      "status": "derived value; verify precision needed"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+Virtual Lab Platform v2.0 test results
+======================================
+Automated unit tests: 92 passed
+Python compileall: passed
+JavaScript syntax check (Node): passed
+DC circuit solver API smoke test: passed
+DC examples: 10 V / 1 kΩ => 10 mA, 1 kΩ equivalent, 0.1 W; power balance consistent
+Series example: 9 V, 1 kΩ + 2 kΩ => 3 mA, 3 kΩ equivalent; internal node 6 V
+Parallel example: 9 V, 1 kΩ || 2.2 kΩ => 687.5 Ω equivalent
+ZIP integrity: verified at packaging
+Scope note: these tests establish software behavior for covered cases, not empirical validation of every scientific model.

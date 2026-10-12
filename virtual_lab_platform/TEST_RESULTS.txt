@@ -1,0 +1,20 @@
+Virtual Lab Platform v1.7 — verification results
+
+Automated unit tests:
+- 87 tests passed.
+
+Additional checks:
+- Python compileall passed.
+- Inline browser JavaScript syntax check (Node.js) passed.
+- JSON validation passed for scientific model catalog, source registry, roadmap, smoke-test manifest, and report schema.
+- Local HTTP API smoke tests passed for health, model registry, roadmap, parameter fitting, cross-model validation suite, generic parameter sweep, seeded Monte Carlo uncertainty, and model/reference comparison.
+- Ten executable numerical model demonstrations are covered by the software sanity suite; all ten passed their built-in mathematical invariants.
+- v1.6's seven additional solver families, equipment-aware workflows, protocol execution, SBML subset simulation, history, and dataset analysis remain covered by the existing tests.
+
+Scientific limits:
+- Software sanity checks are not empirical or independent scientific validation.
+- Parameter fitting uses bounded deterministic coordinate search and unweighted least squares; it does not calculate confidence intervals or prove identifiability.
+- No external model files or datasets were downloaded or independently validated in this release; source registry entries remain pointers unless otherwise documented.
+- Equipment performance values and synthetic readings remain illustrative.
+- No actual physical Mac/browser session was tested.
+- No complete cancer or Alzheimer model, clinical decision tool, cosmetic safety model, full SBML implementation, physical hardware control, or AI research agent is included.

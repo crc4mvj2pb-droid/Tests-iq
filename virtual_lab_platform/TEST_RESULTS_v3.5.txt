@@ -1,0 +1,22 @@
+Virtual Lab Platform v3.5 — validation report
+
+Automated tests:
+- pytest: 130 passed
+- Python bytecode compilation: passed (app.py, chemical_kinetics.py, models.py, lab_designer.py)
+- JavaScript syntax check (inline scripts): passed
+
+API smoke test:
+- /api/health: status ok, version 3.5
+- /api/version: version 3.5
+- /api/chemistry/kinetics: HTTP 200; model mass_action_reaction_network; validation level L1; numerical result returned with 101 rows for the smoke-test request.
+
+New coverage:
+- Workbench catalog contains explicit abstract kinetic species A/B/C.
+- Workbench concentration bridge reads concentrationM into the kinetics panel.
+- Existing RK4 engine returns expected first-order kinetics and conserves the abstract amount.
+
+Scientific scope and limitations:
+- The workbench-to-engine bridge is for generic abstract species A/B/C.
+- It does not infer real chemical mechanisms, molecular identities, rate constants, equilibrium, or experimental truth.
+- The cancellation button cancels the browser-side request/wait; the server does not guarantee interruption of a calculation already in progress.
+- Browser automation of physical layout and clicks was not performed; JavaScript syntax, static integration checks, automated Python tests and API smoke checks were performed.

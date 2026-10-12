@@ -1,0 +1,19 @@
+Virtual Lab Platform v3.0 — validation report
+Date: 2026-10-12
+
+Automated tests:
+- pytest -q: 117 passed
+- Python compilation (python -m py_compile *.py): passed
+- Inline JavaScript syntax check (node --check): passed
+
+Local HTTP smoke test:
+- GET /api/health: HTTP 200, status ok
+- GET /api/version: HTTP 200, version 3.0
+- POST /api/chemistry/kinetics: HTTP 200
+- A -> B example, A0=1, k=0.4 s^-1, t=5 s, dt=0.01 s:
+  A_final = 0.13533528323719196 mol/L
+  B_final = 0.8646647167628079 mol/L
+- Analytical first-order reference: exp(-0.4*5) = 0.1353352832366127; numerical error is approximately 5.8e-13.
+
+Scope note:
+These are software checks and a numerical benchmark, not an independent experimental validation of chemical models. The v3.0 interface uses the bounded reaction-network model from v2.8 and requires scientifically appropriate user-supplied parameters.

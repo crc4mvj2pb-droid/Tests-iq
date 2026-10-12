@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+virtual_lab_history.sqlite3
+test-artifacts/
+.pytest_cache/
+dist/

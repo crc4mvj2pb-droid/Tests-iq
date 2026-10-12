@@ -1,0 +1,284 @@
+from __future__ import annotations
+from scientific_imports import import_sbml, import_dataset, list_assets
+from sbml_engine import simulate_sbml, SBMLSimulationError
+from lab_designer import CATALOG as LAB_CATALOG, validate_experiment as validate_lab_experiment, run_lab_experiment
+from dataset_analysis import analyze_csv
+from sbml_sweeps import sweep_sbml
+from protocol_engine import validate_protocol, execute_protocol
+from equipment_models import apply_material_flow_model, apply_equipment_operating_effects
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from pathlib import Path
+import json, mimetypes, urllib.parse, hashlib, re
+from engine import run_experiment
+from models import MODEL_CATALOG
+from validation import compare_to_reference
+from planner import plan_enzyme_sweep
+from history import save_experiment, list_experiments, get_experiment
+from experiment_lifecycle import configuration_hash, verify_dossier_integrity
+from analysis_tools import enzyme_uncertainty, enzyme_local_sensitivity
+from models import get_solver_contract
+from provenance import parse_xy_csv, create_provenance_record
+from design import rank_enzyme_experiments
+from research_tools import parameter_sweep, monte_carlo_uncertainty, compare_model_output, fit_model_parameters, run_software_validation_suite
+from scientific_copilot import ask_scientific_copilot
+from electrical_circuits import solve_dc_circuit, CircuitError
+from electrical_advanced import simulate_first_order_step, solve_series_rlc_ac, sweep_series_rlc_frequency, ElectricalModelError
+from workbench_circuit import solve_workbench_circuit, WorkbenchCircuitError
+from chemical_kinetics import simulate_reaction_network, ChemicalKineticsError
+from reaction_stoichiometry import calculate_stoichiometry, StoichiometryError
+from virtual_instruments import simulate_instrument_measurement
+
+BASE = Path(__file__).resolve().parent
+STATIC = BASE / "static"
+
+class Handler(BaseHTTPRequestHandler):
+    def _send(self, code, body, content_type="application/json; charset=utf-8"):
+        if isinstance(body, str):
+            data = body.encode("utf-8")
+        else:
+            data = json.dumps(body, ensure_ascii=False, indent=2).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/api/lab/catalog":
+            return self._send(200, LAB_CATALOG)
+        if parsed.path == "/api/models":
+            return self._send(200, {"models": MODEL_CATALOG})
+        if parsed.path == "/api/health":
+            return self._send(200, {"status": "ok", "mode": "local-only", "version": "4.1"})
+        if parsed.path == "/api/scientific-ai/capabilities":
+            return self._send(200, {"mode":"local_expert_router", "generative_model_connected":False, "supported_models":[m["id"] for m in MODEL_CATALOG if m["status"] == "implemented_demo"], "disclosure":"Deterministic local research copilot; no generative foundation model or live literature retrieval connected."})
+        if parsed.path == "/api/version":
+            return self._send(200, {"version": "4.1", "features": ["v4.1 reproducibility: verify saved configuration hashes and replay supported saved DC workbench circuits into new dossiers" , "v4.0 experiment lifecycle: workbench circuit runs are saved as traceable SQLite experiment dossiers with configuration hashes, results, assumptions, limitations and history IDs", "v3.9 accessibility: keyboard-operable workbench items, visible focus, category state announcements and live updates for library and properties", "v3.8 interface reliability: visible local API connection status, actionable offline guidance, explicit workspace restore and robust save errors", "v3.7 virtual instruments: seeded simulated readings, calibration correction, display resolution, uncertainty budget and comparison with theory; explicit non-experimental status", "v3.2 expanded multidisciplinary catalog: 18 disciplines, 58 components, 70 equipment entries, 42 experiment workflows, 43 model entries including 30 L0 templates; sequential A-to-B-to-C kinetics remains available", "v2.7 graphical pin-to-pin circuit connections translated into a netlist and solved by the DC nodal engine","analytical RC/RL step response", "series RLC AC phasor analysis", "logarithmic RLC frequency sweep", "bounded multi-parameter least-squares fitting with residual diagnostics", "cross-model software sanity validation suite", "seven additional numerical solvers", "generic multi-model parameter sweeps", "generic seeded Monte Carlo parameter uncertainty", "reference comparison with model output column mapping", "ten-stage scientific development roadmap", "interactive multilingual workbench, categorized draggable catalog and local JSON export", "v3.5 kinetic engine bridge: abstract A/B/C species concentrations can be loaded from the workbench into the RK4 reaction-network simulator; local request cancellation and result export", "v3.6 server-side stoichiometric batch solver with formula parsing, limiting-reactant calculation, atom-balance rejection and auditable material balance", "v2.6 sample containment inside equipment, equipment operation panel, thermal setpoint transfer, conceptual microscopy/PCR checks, Beer-Lambert absorbance with user-supplied parameters, and stoichiometric reactions inside a reactor", "ideal dilution balance in the new workbench", "DC resistive circuit solver using nodal analysis with node voltages, branch currents, equivalent resistance, power and numerical KCL/power-balance checks", "visual virtual-bench workspace and protocol designer", "equipment-aware material-flow calculations and instrument uncertainty models", "descriptive CSV profiling and exploratory correlations", "bounded global-parameter sweeps for supported SBML models", "heat diffusion and SIR solvers connected to virtual-lab workflows", "equipment compatibility checks", "solution dilution calculator", "enzyme assay workflow", "solver registry", "parameter sweeps", "reference-data comparison", "traceable experiment dossiers", "SQLite experiment history", "uncertainty propagation", "local sensitivity", "provenance records", "scientific library catalog", "expanded multidomain scientific knowledge base", "SI unit and dimension reference", "selected physical constants", "local SBML model intake", "CSV reference dataset registry with provenance", "SBML subset simulator using fixed-step RK4"]})
+        if parsed.path == "/api/research/validation-suite":
+            return self._send(200, run_software_validation_suite())
+        if parsed.path == "/api/research/roadmap":
+            path = BASE / "scientific_library" / "roadmap.json"
+            return self._send(200, json.loads(path.read_text(encoding="utf-8")))
+        if parsed.path == "/api/contract":
+            return self._send(200, get_solver_contract())
+        if parsed.path == "/api/library":
+            catalog_path = BASE / "scientific_library" / "catalog.json"
+            return self._send(200, json.loads(catalog_path.read_text(encoding="utf-8")))
+        if parsed.path == "/api/units":
+            path = BASE / "scientific_library" / "units_and_dimensions.json"
+            return self._send(200, json.loads(path.read_text(encoding="utf-8")))
+        if parsed.path == "/api/constants":
+            path = BASE / "scientific_library" / "physical_constants.json"
+            return self._send(200, json.loads(path.read_text(encoding="utf-8")))
+        if parsed.path == "/api/imported-assets":
+            return self._send(200, list_assets())
+        if parsed.path == "/api/sources":
+            sources_path = BASE / "scientific_library" / "sources.json"
+            return self._send(200, json.loads(sources_path.read_text(encoding="utf-8")))
+        if parsed.path == "/api/knowledge":
+            knowledge_path = BASE / "scientific_library" / "knowledge_base.json"
+            knowledge = json.loads(knowledge_path.read_text(encoding="utf-8"))
+            query = urllib.parse.parse_qs(parsed.query).get("q", [""])[0].strip().casefold()
+            domain = urllib.parse.parse_qs(parsed.query).get("domain", [""])[0].strip().casefold()
+            entries = knowledge["entries"]
+            if query:
+                entries = [e for e in entries if query in " ".join(str(e.get(k, "")) for k in ("id", "title", "domain", "kind", "formula_or_rule", "meaning", "applicability_conditions", "limitations", "tags")).casefold()]
+            if domain:
+                entries = [e for e in entries if domain in e.get("domain", "").casefold() or any(domain in t.casefold() for t in e.get("tags", []))]
+            return self._send(200, {"schema_version": knowledge["schema_version"], "library_name": knowledge["library_name"], "scope": knowledge["scope"], "total_entries": len(knowledge["entries"]), "matched_entries": len(entries), "entries": entries})
+        if parsed.path.startswith("/api/library/"):
+            entry_id = parsed.path.rsplit("/", 1)[1]
+            catalog_path = BASE / "scientific_library" / "catalog.json"
+            catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+            for entry in catalog["entries"]:
+                if entry["id"] == entry_id:
+                    return self._send(200, entry)
+            return self._send(404, {"error": "Library entry not found"})
+        if parsed.path == "/api/history":
+            return self._send(200, {"experiments": list_experiments()})
+        if parsed.path.startswith("/api/history/"):
+            match = re.fullmatch(r"/api/history/(\d+)(?:/verify)?", parsed.path)
+            if not match:
+                return self._send(400, {"error": "Experiment ID must be an integer; optional suffix: /verify"})
+            experiment_id = int(match.group(1))
+            dossier = get_experiment(experiment_id)
+            if not dossier:
+                return self._send(404, {"error": "Experiment not found"})
+            if parsed.path.endswith("/verify"):
+                return self._send(200, {"experiment_id": experiment_id, **verify_dossier_integrity(dossier)})
+            return self._send(200, dossier)
+        if parsed.path in ("/", "/index.html"):
+            path = STATIC / "index.html"
+            return self._send(200, path.read_text(encoding="utf-8"), "text/html; charset=utf-8")
+        return self._send(404, {"error": "Not found"})
+
+    def do_POST(self):
+        parsed = urllib.parse.urlparse(self.path)
+        is_replay_path = re.fullmatch(r"/api/history/\d+/replay", parsed.path) is not None
+        if parsed.path not in ("/api/experiments", "/api/validate", "/api/sweeps", "/api/uncertainty", "/api/sensitivity", "/api/import-csv", "/api/design", "/api/import-sbml", "/api/import-dataset", "/api/simulate-sbml", "/api/lab/validate", "/api/lab/run", "/api/analyze-dataset", "/api/sweep-sbml", "/api/protocol/validate", "/api/protocol/run", "/api/research/sweep", "/api/research/uncertainty", "/api/research/compare", "/api/research/fit", "/api/scientific-ai/ask", "/api/electrical/dc-solve", "/api/electrical/workbench-solve", "/api/electrical/workbench-run", "/api/electrical/transient", "/api/electrical/ac", "/api/electrical/ac-sweep", "/api/chemistry/kinetics", "/api/chemistry/stoichiometry", "/api/instruments/measure") and not is_replay_path:
+            return self._send(404, {"error": "Not found"})
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > 1_000_000:
+                return self._send(413, {"error": "Request body missing or too large"})
+            request = json.loads(self.rfile.read(length).decode("utf-8"))
+            if is_replay_path:
+                experiment_id = int(parsed.path.split("/")[3])
+                original = get_experiment(experiment_id)
+                if not original:
+                    return self._send(404, {"error": "Experiment not found"})
+                if original.get("model_id") != "electrical_workbench_dc":
+                    return self._send(400, {"error": "Replay is currently supported only for saved DC workbench circuits."})
+                integrity = verify_dossier_integrity(original)
+                if not integrity["valid"]:
+                    return self._send(409, {"error": "Saved dossier integrity check failed; replay refused.", "integrity": integrity})
+                config = original.get("configuration", {})
+                replayed = solve_workbench_circuit({"components": config.get("components", []), "connections": config.get("connections", [])})
+                replayed["model_id"] = "electrical_workbench_dc"
+                replayed["title"] = str(original.get("title", "DC workbench circuit"))[:200] + " (replay)"
+                replayed["question"] = original.get("question", "")
+                replayed["status"] = "completed"
+                replayed["configuration"] = config
+                replayed["configuration_hash"] = configuration_hash(config)
+                replayed["data_status"] = "simulated_calculation"
+                replayed["replay_of"] = experiment_id
+                replayed["history_record"] = save_experiment(replayed)
+                result = replayed
+            elif parsed.path == "/api/instruments/measure":
+                result = simulate_instrument_measurement(request)
+            elif parsed.path == "/api/chemistry/kinetics":
+                result = simulate_reaction_network(request)
+            elif parsed.path == "/api/chemistry/stoichiometry":
+                result = calculate_stoichiometry(request)
+            elif parsed.path == "/api/electrical/dc-solve":
+                result = solve_dc_circuit(request)
+            elif parsed.path in ("/api/electrical/workbench-solve", "/api/electrical/workbench-run"):
+                result = solve_workbench_circuit(request)
+                if parsed.path == "/api/electrical/workbench-run":
+                    configuration = {
+                        "components": request.get("components", []),
+                        "connections": request.get("connections", []),
+                    }
+                    canonical_config = json.dumps(configuration, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+                    result["model_id"] = "electrical_workbench_dc"
+                    result["title"] = str(request.get("name") or "Circuit CC — paillasse virtuelle")[:200]
+                    result["question"] = str(request.get("question") or "")[:4000]
+                    result["status"] = "completed"
+                    result["configuration"] = configuration
+                    result["configuration_hash"] = configuration_hash(configuration)
+                    result["data_status"] = "simulated_calculation"
+                    result["history_record"] = save_experiment(result)
+            elif parsed.path == "/api/electrical/transient":
+                result = simulate_first_order_step(request)
+            elif parsed.path == "/api/electrical/ac":
+                result = solve_series_rlc_ac(request)
+            elif parsed.path == "/api/electrical/ac-sweep":
+                result = sweep_series_rlc_frequency(request)
+            elif parsed.path == "/api/scientific-ai/ask":
+                result = ask_scientific_copilot(request.get("question", ""), request.get("parameters", {}))
+            elif parsed.path == "/api/research/sweep":
+                result = parameter_sweep(request.get("model_id"), request.get("parameters", {}), request.get("parameter", ""), request.get("values", []), request.get("summary_key"))
+            elif parsed.path == "/api/research/uncertainty":
+                result = monte_carlo_uncertainty(request.get("model_id"), request.get("parameters", {}), request.get("uncertainty", {}), request.get("output_key", ""), request.get("samples", 300), request.get("seed", 7))
+            elif parsed.path == "/api/research/compare":
+                result = compare_model_output(request.get("model_id"), request.get("parameters", {}), request.get("reference", []), request.get("x_key", ""), request.get("y_key", ""))
+            elif parsed.path == "/api/research/fit":
+                result = fit_model_parameters(request.get("model_id"), request.get("parameters", {}), request.get("reference", []), request.get("x_key", ""), request.get("y_key", ""), request.get("bounds", {}), request.get("max_iterations", 120))
+            elif parsed.path == "/api/protocol/validate":
+                result = validate_protocol(request)
+            elif parsed.path == "/api/protocol/run":
+                result = execute_protocol(request)
+                result["model_id"] = "structured_protocol"
+                result["title"] = request.get("name", "Structured protocol")
+                result["configuration_hash"] = result["protocol_sha256"]
+                result["history_record"] = save_experiment(result)
+            elif parsed.path == "/api/analyze-dataset":
+                result = analyze_csv(request.get("content", ""), preview_rows=request.get("preview_rows", 12))
+            elif parsed.path == "/api/sweep-sbml":
+                result = sweep_sbml(request.get("asset_id"), request.get("duration"), request.get("dt"), request.get("parameter_id"), request.get("values"))
+            elif parsed.path == "/api/lab/validate":
+                result = validate_lab_experiment(request)
+            elif parsed.path == "/api/lab/run":
+                protocol_validation = validate_protocol(request)
+                if not protocol_validation["valid"]:
+                    return self._send(400, {"error":"Protocol validation failed. Resolve protocol issues before running.","validation":protocol_validation})
+                result = run_lab_experiment(request)
+                result["results"] = apply_material_flow_model(request, result.get("results", {}))
+                result["results"] = apply_equipment_operating_effects(request, result.get("results", {}))
+                result["protocol_trace"] = execute_protocol(request, result.get("results"))
+                result["model_id"] = result.get("workflow_id", "virtual_lab_workflow")
+                result["title"] = result.get("name", "Virtual lab experiment")
+                canonical_config = json.dumps(result.get("configuration", {}), sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+                result["configuration_hash"] = configuration_hash(configuration)
+                result["status"] = "completed" if result.get("results", {}).get("computed_scientific_result") is not False else "workflow_only"
+                result["history_record"] = save_experiment(result)
+            elif parsed.path == "/api/experiments":
+                result = run_experiment(request)
+                saved = save_experiment(result)
+                result["history_record"] = saved
+            elif parsed.path == "/api/uncertainty":
+                if request.get("model_id") != "enzyme_kinetics":
+                    return self._send(400, {"error": "Uncertainty analysis currently supports enzyme_kinetics only."})
+                result = enzyme_uncertainty(request.get("parameters", {}), request.get("uncertainty", {}), request.get("samples", 500), request.get("seed", 7))
+            elif parsed.path == "/api/sensitivity":
+                if request.get("model_id") != "enzyme_kinetics":
+                    return self._send(400, {"error": "Sensitivity analysis currently supports enzyme_kinetics only."})
+                result = enzyme_local_sensitivity(request.get("parameters", {}), request.get("relative_step", 0.01))
+            elif parsed.path == "/api/import-csv":
+                result = parse_xy_csv(request.get("csv", ""))
+            elif parsed.path == "/api/design":
+                if request.get("model_id") != "enzyme_kinetics":
+                    return self._send(400, {"error": "Experiment design ranking currently supports enzyme_kinetics only."})
+                result = rank_enzyme_experiments(
+                    request.get("parameters", {}),
+                    request.get("candidate_concentrations", []),
+                    request.get("experiments_per_design", 3),
+                    request.get("measurement_sd", 0.05),
+                    request.get("top_n", 5)
+                )
+            elif parsed.path == "/api/validate":
+                model_id = request.get("model_id")
+                if model_id != "enzyme_kinetics":
+                    return self._send(400, {"error": "Reference comparison currently supports enzyme_kinetics only."})
+                params = request.get("parameters", {})
+                from models import run_enzyme
+                prediction = run_enzyme(params)
+                reference = request.get("reference_data", [])
+                result = {
+                    "model_id": model_id,
+                    "model_configuration": params,
+                    "comparison": compare_to_reference(prediction["rows"], reference),
+                    "model_limitations": prediction["limitations"]
+                }
+            elif parsed.path == "/api/import-sbml":
+                result = import_sbml(request.get("filename"), request.get("content"), request.get("source_url", ""))
+            elif parsed.path == "/api/import-dataset":
+                result = import_dataset(request.get("filename"), request.get("content"), request.get("source_url", ""), request.get("description", ""))
+            elif parsed.path == "/api/simulate-sbml":
+                result = simulate_sbml(request.get("asset_id"), request.get("duration"), request.get("dt"), request.get("method", "rk4"))
+            else:
+                if request.get("model_id") != "enzyme_kinetics":
+                    return self._send(400, {"error": "Parameter sweep currently supports enzyme_kinetics only."})
+                result = plan_enzyme_sweep(request.get("parameters", {}), request.get("parameter", ""), request.get("values", []))
+            return self._send(200, result)
+        except (ValueError, json.JSONDecodeError, UnicodeDecodeError, SBMLSimulationError, CircuitError, ElectricalModelError, WorkbenchCircuitError, ChemicalKineticsError, StoichiometryError) as exc:
+            return self._send(400, {"error": str(exc)})
+        except Exception:
+            # Do not expose internal exception details through the HTTP API.
+            return self._send(500, {"error": "Internal error. Check the local terminal logs."})
+
+    def log_message(self, fmt, *args):
+        print("[VirtualLab]", fmt % args)
+
+if __name__ == "__main__":
+    server = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
+    print("Virtual Lab Platform running locally at http://127.0.0.1:8765")
+    print("Local-only server. Do not expose this prototype to the public internet.")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopping Virtual Lab.")
+    finally:
+        server.server_close()

@@ -1,0 +1,243 @@
+{
+  "schema_version": "1.0",
+  "library_name": "Virtual Lab Scientific Library",
+  "status": "expanded_local_catalog_demonstrations_not_empirically_validated",
+  "entries": [
+    {
+      "id": "enzyme_kinetics_michaelis_menten_demo",
+      "title": "Michaelis–Menten enzyme kinetics (demonstration)",
+      "discipline": "biochemistry",
+      "kind": "mathematical_model",
+      "status": "implemented_demonstration_not_empirically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype code; no external source data included",
+      "assumptions": [
+        "Classical steady-state Michaelis–Menten equation",
+        "Idealized parameter values supplied by the user",
+        "No measurement noise or biological variability unless separately modeled"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Output is non-negative for supported inputs",
+        "Rate is monotonic in substrate concentration for fixed positive parameters",
+        "Automated software tests cover expected qualitative behavior"
+      ],
+      "limitations": [
+        "Not fitted to a specific enzyme or experimental dataset",
+        "Not a validated prediction for a real biological system"
+      ]
+    },
+    {
+      "id": "sir_epidemic_demo",
+      "title": "SIR compartmental epidemic model (simplified demonstration)",
+      "discipline": "epidemiology",
+      "kind": "ode_model",
+      "status": "educational_simplified_not_for_public_health_decisions",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Closed population in the simplified formulation",
+        "Homogeneous mixing approximation",
+        "Fixed transmission and recovery parameters"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Automated test checks approximate population conservation"
+      ],
+      "limitations": [
+        "No age, geography, behavior, reporting delay or intervention structure",
+        "Not calibrated to a real outbreak"
+      ]
+    },
+    {
+      "id": "heat_diffusion_1d_demo",
+      "title": "One-dimensional heat diffusion (simplified numerical demonstration)",
+      "discipline": "physics",
+      "kind": "pde_finite_difference",
+      "status": "educational_simplified_not_engineering_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "One-dimensional domain",
+        "Simplified constant diffusivity",
+        "Boundary conditions set by the user"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Automated test checks stability guard and a stable run"
+      ],
+      "limitations": [
+        "No material-specific parameter database",
+        "No comparison to experimental thermal measurements"
+      ]
+    },
+    {
+      "id": "logistic_growth_demo",
+      "title": "Logistic population growth (analytical demonstration)",
+      "discipline": "population biology",
+      "kind": "analytical_model",
+      "status": "implemented_demonstration_not_empirically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Constant intrinsic growth rate",
+        "Fixed carrying capacity",
+        "Single well-mixed population"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Population starts at the supplied initial value",
+        "Population remains between initial population and carrying capacity for supported positive parameters",
+        "Automated tests cover monotonicity and boundary behaviour"
+      ],
+      "limitations": [
+        "No stochasticity, age structure, environmental variation or fitted data"
+      ]
+    },
+    {
+      "id": "first_order_reaction_demo",
+      "title": "First-order reaction A to B (analytical demonstration)",
+      "discipline": "chemistry",
+      "kind": "analytical_kinetics_model",
+      "status": "implemented_demonstration_not_empirically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Single irreversible reaction A→B",
+        "Constant first-order rate coefficient",
+        "Fixed volume and no side reactions"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Analytical solution checked against expected exponential decay",
+        "A+B mass balance is checked in every run"
+      ],
+      "limitations": [
+        "Not calibrated to a specific chemical reaction; no temperature dependence"
+      ]
+    },
+    {
+      "id": "environmental_decay_demo",
+      "title": "Single-compartment first-order environmental decay (demonstration)",
+      "discipline": "environmental modelling",
+      "kind": "analytical_compartment_model",
+      "status": "implemented_demonstration_not_empirically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Well-mixed single compartment",
+        "First-order removal",
+        "No incoming source or transport"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Non-negative remaining load",
+        "Initial load mass balance",
+        "Monotonic removal"
+      ],
+      "limitations": [
+        "Not a site-specific fate/transport or environmental impact model"
+      ]
+    },
+    {
+      "id": "one_compartment_pk_demo",
+      "title": "One-compartment concentration decay (teaching demonstration)",
+      "discipline": "pharmacokinetics education",
+      "kind": "analytical_compartment_model",
+      "status": "implemented_demonstration_not_clinically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Single instantaneous input",
+        "Single well-mixed compartment",
+        "First-order elimination"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Initial concentration equals input amount divided by volume",
+        "Concentration remains non-negative and non-increasing"
+      ],
+      "limitations": [
+        "Not for dose selection, patient care or clinical prediction; no compound or patient data"
+      ]
+    },
+    {
+      "id": "lotka_volterra_demo",
+      "title": "Lotka–Volterra predator–prey system (RK4 demonstration)",
+      "discipline": "ecology",
+      "kind": "ordinary_differential_equation_model",
+      "status": "implemented_demonstration_not_empirically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Deterministic closed predator–prey interaction",
+        "Fixed interaction coefficients",
+        "Fixed-step fourth-order Runge–Kutta integration"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Finite and non-negative populations required",
+        "Timestep and step-count limits enforced"
+      ],
+      "limitations": [
+        "No carrying capacity, stochasticity, spatial effects or field calibration"
+      ]
+    },
+    {
+      "id": "leaky_integrate_fire_demo",
+      "title": "Leaky integrate-and-fire neuron (teaching model)",
+      "discipline": "computational neuroscience",
+      "kind": "hybrid_dynamical_model",
+      "status": "implemented_demonstration_not_biologically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Single isopotential compartment",
+        "Constant input current",
+        "Threshold-triggered spike and reset"
+      ],
+      "reference_data": null,
+      "verification": [
+        "Voltage remains finite",
+        "Spike times are bounded by simulation duration",
+        "Basic threshold/reset constraints are checked"
+      ],
+      "limitations": [
+        "No ion-channel conductances, synapses, morphology or biological calibration"
+      ]
+    },
+    {
+      "id": "arrhenius_reaction_demo",
+      "title": "Temperature-dependent first-order reaction using Arrhenius equation",
+      "discipline": "physical chemistry",
+      "kind": "coupled_temperature_kinetics_model",
+      "status": "implemented_demonstration_not_empirically_validated",
+      "model_file": "../models.py",
+      "source": null,
+      "license": "prototype implementation; no external data included",
+      "assumptions": [
+        "Constant temperature",
+        "Single irreversible first-order reaction",
+        "User-supplied pre-exponential factor and activation energy"
+      ],
+      "reference_data": null,
+      "verification": [
+        "A+B mass balance",
+        "Non-negative reactant/product amounts",
+        "Rate coefficient calculated from Arrhenius relation"
+      ],
+      "limitations": [
+        "No thermal feedback, side reactions or measured parameter data"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+Virtual Lab Platform v3.2 — rapport de validation
+Date: 2026-10-12
+
+Catalogue exposé via l'API:
+- Version API: 3.2
+- Disciplines: 18
+- Composants, échantillons et matériaux: 58
+- Équipements et instruments: 70
+- Workflows: 42
+- Entrées de modèles: 43
+- Statuts des modèles: 10 implemented_demo; 33 workflow_template (L0)
+
+Intégrité:
+- Identifiants uniques des catalogues: vérifiés
+- Toutes les références de composants/équipements des workflows pointent vers une entrée existante: vérifié
+- Suite pytest: 121 tests réussis
+- py_compile: réussi
+- JavaScript node --check: réussi
+
+Limites:
+- La majorité des nouvelles entrées sont des objets d'inventaire et des gabarits L0, pas des moteurs scientifiques.
+- L0 signifie qu'aucun résultat de simulation n'est calculé par le modèle en question.
+- Les démonstrations L1 restent simplifiées et nécessitent des paramètres adaptés et des validations indépendantes pour un usage scientifique réel.

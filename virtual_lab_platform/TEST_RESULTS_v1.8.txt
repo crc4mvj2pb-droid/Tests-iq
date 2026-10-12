@@ -1,0 +1,6 @@
+Virtual Lab Platform v1.8
+- Python unittest: 87 tests passed
+- JavaScript syntax: node --check passed
+- Python compileall: passed
+- Local HTTP page and health API smoke checks: passed
+- Scope: software checks only; not experimental scientific validation

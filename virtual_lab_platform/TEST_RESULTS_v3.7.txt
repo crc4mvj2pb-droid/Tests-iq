@@ -1,0 +1,25 @@
+Virtual Lab Platform v3.7 — validation report
+Date: 2026-10-12
+
+Automated tests
+- Command: python -m pytest -q
+- Result: 146 passed
+
+Python syntax
+- Command: python -m py_compile *.py
+- Result: passed
+
+Inline JavaScript syntax
+- Extracted all non-empty inline <script> blocks from static/index.html and checked each with node --check.
+- Result: 3 inline scripts passed.
+
+HTTP/API smoke test (temporary local test port 18765)
+- GET /api/health -> HTTP 200, version 3.7
+- GET /api/version -> HTTP 200, version 3.7
+- POST /api/instruments/measure using thermometer, theoretical value 25 °C, injected bias +1 °C, matching offset correction, resolution 0.1 °C, seed 7 -> HTTP 200; status simulated_measurement; experimental_data false; indicated value 24.9 °C; expanded uncertainty k=2 approximately 1.001665 °C.
+- POST /api/instruments/measure with a beaker (no supported measurement model) -> HTTP 400, rejected as expected.
+
+Scope and limitations
+- The virtual instrument is a seeded educational simulation, not a real instrument or experimental measurement.
+- Catalogue uncertainty values are illustrative, not manufacturer-certified.
+- No real-browser interaction/layout test was performed. HTML and inline JavaScript syntax were checked, and the HTTP endpoint was exercised directly.

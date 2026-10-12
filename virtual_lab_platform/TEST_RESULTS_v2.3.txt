@@ -1,0 +1,9 @@
+Virtual Lab Platform v2.3
+Validation du paquet local
+
+Python compileall: PASS
+pytest: 97 passed
+JavaScript block 1 node --check: PASS
+JavaScript block 2 node --check: PASS
+
+Limite: les tests vérifient le code couvert, pas la validation expérimentale des modèles scientifiques. Les nouveaux SVG sont des schémas indicatifs.

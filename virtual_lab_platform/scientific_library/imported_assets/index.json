@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Registry of imported scientific files; not automatically executed or validated.",
+  "assets": [
+    {
+      "id": "sbml_601a5142c62cd150",
+      "type": "sbml_model",
+      "filename": "demo_first_order_decay.xml",
+      "stored_path": "scientific_library/imported_assets/models/demo_first_order_decay.xml",
+      "sha256": "601a5142c62cd150f35608937d81ade23543458d9248309b835aaa0f38d07763",
+      "size_bytes": 1295,
+      "imported_at": "bundled_demo",
+      "source_url": "",
+      "license": "Original demonstration file created for Virtual Lab Platform; no external source.",
+      "metadata": {
+        "model_name": "Demo — first-order conversion A to B",
+        "model_id": "first_order_decay_demo",
+        "sbml_level": "3",
+        "sbml_version": "2",
+        "compartment_count": 1,
+        "species_count": 2,
+        "reaction_count": 1,
+        "parameter_count": 1
+      },
+      "execution_status": "ready_for_subset_simulation",
+      "validation_status": "analytical first-order solution covered by automated test; not a research model"
+    }
+  ]
+}

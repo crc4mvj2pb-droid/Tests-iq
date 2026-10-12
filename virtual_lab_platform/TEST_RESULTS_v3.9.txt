@@ -1,0 +1,31 @@
+Virtual Lab Platform v3.9 — rapport de validation
+Date: 2026-10-12
+
+Tests automatisés
+- Commande: python -m pytest -q
+- Résultat: 158 passed.
+
+Syntaxe Python
+- Commande: python -m py_compile *.py
+- Résultat: passed.
+
+Syntaxe JavaScript inline
+- Extraction des blocs <script> non vides de static/index.html puis vérification par node --check.
+- Résultat: 3 blocs vérifiés, tous passés.
+
+Vérifications API sur un port de test isolé
+- GET /api/health: HTTP 200, version 3.9.
+- GET /api/version: HTTP 200, version 3.9.
+- GET /: HTTP 200; marqueurs d’interface accessibles présents.
+
+Vérifications d’interface automatisées
+- Identifiants HTML uniques.
+- États aria-pressed des catégories vérifiés.
+- Sélection clavier Entrée/Espace et restauration du focus vérifiées par tests statiques.
+- Champ de recherche nommé et régions aria-live vérifiés.
+
+Tests navigateur
+- Aucun test de clic complet dans un navigateur réel n’a été exécuté pour cette version. Les tests d’accessibilité contrôlent le code et les attributs, mais ne remplacent pas un test manuel avec lecteur d’écran ni un audit WCAG complet.
+
+Limites scientifiques
+- Les instruments virtuels et plusieurs modèles restent pédagogiques; voir les limites dans l’interface et la documentation.
