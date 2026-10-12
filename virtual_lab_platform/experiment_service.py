@@ -20,6 +20,7 @@ import lab_designer
 import linked_measurements
 import protocol_engine
 import workbench_circuit
+import workbench_transient
 from dossier import build_dossier, dossier_content_hash, legacy_model_id, verify_dossier
 from equipment_models import apply_equipment_operating_effects, apply_material_flow_model
 from version import APP_VERSION
@@ -92,6 +93,18 @@ def run_model_experiment(request: dict[str, Any]) -> dict[str, Any]:
     dossier = build_dossier(result, model_id=result["model"]["id"], title=result.get("name"), question=result.get("question"),
                             configuration=result["configuration"], engine_id=model_engine.ENGINE_ID, engine_version=model_engine.ENGINE_VERSION,
                             data_status="model_output")
+    return _save(dossier)
+
+
+TRANSIENT_KEYS = ("components", "connections", "initial_voltage_v", "initial_current_a", "duration_s", "points")
+TRANSIENT_ENGINE = (workbench_transient.ENGINE_ID, f"{workbench_transient.ENGINE_VERSION}+nodal-{electrical_circuits.ENGINE_VERSION}")
+
+
+def run_workbench_transient(request: dict[str, Any]) -> dict[str, Any]:
+    result = workbench_transient.solve_workbench_transient(request)
+    configuration = {k: request[k] for k in TRANSIENT_KEYS if k in request}
+    dossier = build_dossier(result, model_id="electrical_workbench_transient", title=request.get("name") or f"Transitoire — {result['element']['name']}",
+                            question=request.get("question") or "", configuration=configuration, engine_id=TRANSIENT_ENGINE[0], engine_version=TRANSIENT_ENGINE[1])
     return _save(dossier)
 
 
@@ -257,7 +270,15 @@ def _compare_stoichiometry(original: dict[str, Any], replayed: dict[str, Any]) -
     return _compare_values(pairs)
 
 
+def _compare_transient(original: dict[str, Any], replayed: dict[str, Any]) -> dict[str, Any]:
+    pairs = [(k, original.get(k), replayed.get(k)) for k in ("time_constant_s", "thevenin_voltage_v", "thevenin_resistance_ohm", "final_value")]
+    pairs += [(f"{key}(t={rr['time_s']:.3g})", ro.get(key), rr[key]) for ro, rr in zip(original.get("rows", []), replayed.get("rows", []))
+              for key in ("element_voltage_v", "element_current_a")]
+    return _compare_values(pairs, relative=1e-9)
+
+
 REPLAYERS: dict[str, tuple[Callable[[dict], dict], Callable[[dict, dict], dict], tuple[str, str]]] = {
+    "electrical_workbench_transient": (workbench_transient.solve_workbench_transient, _compare_transient, TRANSIENT_ENGINE),
     "electrical_workbench_dc": (lambda config: workbench_circuit.solve_workbench_circuit(_workbench_configuration(config)), _compare_workbench, WORKBENCH_ENGINE),
     "chemical_kinetics_network": (chemical_kinetics.simulate_reaction_network, _compare_kinetics, (chemical_kinetics.ENGINE_ID, chemical_kinetics.ENGINE_VERSION)),
     "chemical_stoichiometry": (reaction_stoichiometry.calculate_stoichiometry, _compare_stoichiometry, (reaction_stoichiometry.ENGINE_ID, reaction_stoichiometry.ENGINE_VERSION)),

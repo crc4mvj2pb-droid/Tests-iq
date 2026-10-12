@@ -15,6 +15,7 @@ import electrical_advanced
 import electrical_circuits
 import reaction_stoichiometry
 import workbench_circuit
+import workbench_transient
 from contracts import CONTRACT_VERSION, ContractError, check_contract, output, param, resolve_path, validate_inputs
 from models import execute_model
 import units
@@ -110,6 +111,39 @@ register(_contract(
     [output("first_frequency", "points[0].frequency_hz", "Hz"), output("peak_current_sampled", "peak_current_sampled.current_rms_a", "A")],
     ["Each point is an independent steady-state solve"], ["Logarithmic spacing"], ["invalid_parameter"], ["Phasor analysis"]),
     lambda p: electrical_advanced.sweep_series_rlc_frequency(p), {})
+
+register(_contract(
+    "series_rlc_step_response", electrical_advanced.ENGINE_VERSION, "Réponse indicielle RLC série (3 régimes)", "electrical", electrical_advanced.ENGINE_ID,
+    [param("source_voltage_v", "number", unit="V", minimum=-1e6, maximum=1e6, default=5.0),
+     param("resistance_ohm", "number", unit="Ω", minimum=0, maximum=1e12, default=10.0),
+     param("inductance_h", "number", unit="H", minimum=1e-15, maximum=1e6, default=0.01),
+     param("capacitance_f", "number", unit="F", minimum=1e-15, maximum=1e6, default=1e-6),
+     param("initial_capacitor_voltage_v", "number", unit="V", minimum=-1e9, maximum=1e9, default=0.0),
+     param("initial_current_a", "number", unit="A", minimum=-1e9, maximum=1e9, default=0.0),
+     param("duration_s", "number", unit="s", minimum=1e-15, maximum=1e9, description="Default: 10 time constants of the slowest mode"),
+     param("points", "integer", unit="1", minimum=2, maximum=5001, default=401)],
+    [output("natural_angular_frequency", "natural_angular_frequency_rad_s", "rad/s"), output("alpha", "alpha_s_inv", "1/s"),
+     output("final_capacitor_voltage", "final_capacitor_voltage_v", "V")],
+    ["Ideal DC step at t = 0", "Ideal linear R, L, C in series"], ["Underdamped, critically damped and overdamped regimes"], ["invalid_parameter"],
+    ["Second-order linear ODE (e.g. Nilsson & Riedel, ch. 8)"], ["L·C·v'' + R·C·v' + v = V", "α = R/(2L), ω0 = 1/√(LC)"]),
+    lambda p: electrical_advanced.simulate_series_rlc_step(p), {})
+
+register(_contract(
+    "workbench_rc_rl_transient", workbench_transient.ENGINE_VERSION, "Transitoire RC/RL d'un circuit de la paillasse", "electrical", workbench_transient.ENGINE_ID,
+    [param("components", "array", required=True, description="Workbench components incl. exactly one wired capacitor or inductor (qty in F or H)"),
+     param("connections", "array", required=True), param("initial_voltage_v", "number", unit="V", minimum=-1e9, maximum=1e9, default=0.0, description="Initial capacitor voltage (capacitor circuits)"),
+     param("initial_current_a", "number", unit="A", minimum=-1e9, maximum=1e9, default=0.0, description="Initial inductor current (inductor circuits)"),
+     param("duration_s", "number", unit="s", minimum=0, exclusive_minimum=True, description="Default: 5 time constants"),
+     param("points", "integer", unit="1", minimum=2, maximum=2001, default=201), param("name", "string", default=""), param("question", "string", default="")],
+    [output("time_constant", "time_constant_s", "s"), output("thevenin_voltage", "thevenin_voltage_v", "V"), output("thevenin_resistance", "thevenin_resistance_ohm", "Ω")],
+    ["Linear resistive network reduced exactly to its Thévenin equivalent", "Ideal C or L, DC source switched on at t = 0"],
+    ["Exactly one reactive element"], ["reactive_count", "reactive_across_source", "reactive_not_in_loop", "invalid_reactive_value"],
+    ["Thévenin's theorem; first-order linear ODE"], ["τ = R_th·C or L/R_th", "x(t) = x∞ + (x0 − x∞)·e^(−t/τ)"]),
+    lambda p: workbench_transient.solve_workbench_transient(p),
+    {"components": [{"instanceId": "s", "id": "dc-source", "qty": 10}, {"instanceId": "r1", "id": "resistor", "qty": 1000}, {"instanceId": "r2", "id": "resistor", "qty": 1000},
+                    {"instanceId": "c", "id": "capacitor", "qty": 1e-6, "unit": "F"}, {"instanceId": "g", "id": "ground", "qty": 0}],
+     "connections": [{"a": "s", "pinA": "N", "b": "g", "pinB": "GND"}, {"a": "s", "pinA": "P", "b": "r1", "pinB": "A"}, {"a": "r1", "pinA": "B", "b": "r2", "pinB": "A"},
+                     {"a": "r2", "pinA": "B", "b": "g", "pinB": "GND"}, {"a": "c", "pinA": "A", "b": "r1", "pinB": "B"}, {"a": "c", "pinA": "B", "b": "g", "pinB": "GND"}]})
 
 # ---- chemistry --------------------------------------------------------------------------------
 

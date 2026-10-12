@@ -77,3 +77,60 @@ def sweep_series_rlc_frequency(req: dict) -> dict:
         rows.append({k:row[k] for k in ('frequency_hz','current_rms_a','impedance_magnitude_ohm','impedance_phase_deg','real_power_w','power_factor')})
     peak=max(rows,key=lambda r:r['current_rms_a'])
     return {'model':'ideal_series_rlc_log_frequency_sweep','status':'computed','frequency_spacing':'logarithmic','points':rows,'peak_current_sampled':peak,'analytical_resonant_frequency_hz':solve_series_rlc_ac({**base,'frequency_hz':math.sqrt(start*stop)})['resonant_frequency_hz'],'assumptions':['Each point is an independent ideal steady-state sinusoidal solve.'],'limitations':['Peak current is the largest sampled point, not necessarily the exact resonance. Increase point count or refine around the analytical resonant frequency.','Not a physical measurement or component safety assessment.']}
+
+
+def simulate_series_rlc_step(req: dict) -> dict:
+    """Analytical step response of an ideal series RLC circuit driven by a DC source (v5.4).
+
+    State: capacitor voltage v_C and loop current i. With α = R/(2L) and ω0 = 1/√(LC):
+    underdamped (α < ω0), critically damped (α = ω0, within 1e-9 relative) or overdamped (α > ω0).
+    """
+    source = _finite('source_voltage_v', req.get('source_voltage_v', 5), minimum=-1e6, maximum=1e6)
+    resistance = _finite('resistance_ohm', req.get('resistance_ohm', 10), minimum=0, maximum=1e12)
+    inductance = _finite('inductance_h', req.get('inductance_h', 0.01), minimum=1e-15, maximum=1e6)
+    capacitance = _finite('capacitance_f', req.get('capacitance_f', 1e-6), minimum=1e-15, maximum=1e6)
+    v0 = _finite('initial_capacitor_voltage_v', req.get('initial_capacitor_voltage_v', 0), minimum=-1e9, maximum=1e9)
+    i0 = _finite('initial_current_a', req.get('initial_current_a', 0), minimum=-1e9, maximum=1e9)
+    count = int(_finite('points', req.get('points', 401), minimum=2, maximum=5001))
+    alpha = resistance / (2 * inductance)
+    omega0 = 1 / math.sqrt(inductance * capacitance)
+    # Default window: 10 time constants of the slowest mode (overdamped: α − √(α² − ω0²), much slower than α).
+    slowest = alpha - math.sqrt(alpha ** 2 - omega0 ** 2) if alpha > omega0 else alpha
+    default_duration = 10 / slowest if slowest > 0 else 20 * math.pi / omega0
+    duration = _finite('duration_s', req.get('duration_s', default_duration if alpha > omega0 else min(default_duration, 50 * 2 * math.pi / omega0)), minimum=1e-15, maximum=1e9)
+    a0, slope0 = v0 - source, i0 / capacitance  # v_C(0) − V and dv_C/dt(0)
+    if abs(alpha - omega0) <= 1e-9 * omega0:
+        regime = 'critically_damped'
+        b = slope0 + alpha * a0
+        vc = lambda t: source + math.exp(-alpha * t) * (a0 + b * t)
+        dvc = lambda t: math.exp(-alpha * t) * (b - alpha * (a0 + b * t))
+        omega_d = 0.0
+    elif alpha < omega0:
+        regime = 'underdamped'
+        omega_d = math.sqrt(omega0 ** 2 - alpha ** 2)
+        b = (slope0 + alpha * a0) / omega_d
+        vc = lambda t: source + math.exp(-alpha * t) * (a0 * math.cos(omega_d * t) + b * math.sin(omega_d * t))
+        dvc = lambda t: math.exp(-alpha * t) * ((b * omega_d - alpha * a0) * math.cos(omega_d * t) - (a0 * omega_d + alpha * b) * math.sin(omega_d * t))
+    else:
+        regime = 'overdamped'
+        root = math.sqrt(alpha ** 2 - omega0 ** 2)
+        s1, s2 = -alpha + root, -alpha - root
+        c1 = (slope0 - s2 * a0) / (s1 - s2)
+        c2 = a0 - c1
+        vc = lambda t: source + c1 * math.exp(s1 * t) + c2 * math.exp(s2 * t)
+        dvc = lambda t: c1 * s1 * math.exp(s1 * t) + c2 * s2 * math.exp(s2 * t)
+        omega_d = 0.0
+    rows = []
+    for k in range(count):
+        t = duration * k / (count - 1)
+        v = vc(t); i = capacitance * dvc(t)
+        rows.append({'time_s': t, 'capacitor_voltage_v': v, 'current_a': i, 'resistor_voltage_v': resistance * i,
+                     'inductor_voltage_v': source - v - resistance * i, 'stored_energy_j': 0.5 * capacitance * v * v + 0.5 * inductance * i * i})
+    return {'model': 'ideal_series_rlc_step_response', 'status': 'computed', 'regime': regime, 'alpha_s_inv': alpha,
+            'natural_angular_frequency_rad_s': omega0, 'damped_angular_frequency_rad_s': omega_d,
+            'quality_factor': (omega0 / (2 * alpha)) if alpha > 0 else None, 'duration_s': duration, 'points': rows,
+            'final_capacitor_voltage_v': source,
+            'checks': {'finite_outputs': all(math.isfinite(x) for r in rows for x in r.values()),
+                       'initial_state_reproduced': abs(rows[0]['capacitor_voltage_v'] - v0) <= 1e-9 * max(1.0, abs(v0)) and abs(rows[0]['current_a'] - i0) <= 1e-9 * max(1.0, abs(i0))},
+            'assumptions': ['Ideal DC source applied at t = 0; ideal linear R, L, C in series.', 'Initial capacitor voltage and loop current supplied explicitly.'],
+            'limitations': ['Single series loop; no parasitics, saturation or component tolerances.', 'Not SPICE; validate before hardware decisions.']}
