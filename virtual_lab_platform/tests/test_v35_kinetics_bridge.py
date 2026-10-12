@@ -23,7 +23,8 @@ def test_workbench_concentrations_can_be_loaded_into_kinetics_panel():
 
 
 def test_kinetics_panel_calls_existing_server_engine_and_exports_results():
-    assert "fetch('/api/chemistry/kinetics'" in HTML
+    # v4.6: the panel now calls the saving endpoint (behaviour covered in tests/browser/test_v46_chemistry_path.py).
+    assert "fetch('/api/chemistry/kinetics-run'" in HTML
     assert "kinEl('kinExportInline').onclick" in HTML
     assert "simulate_reaction_network(request)" in APP
 

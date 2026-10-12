@@ -25,3 +25,7 @@
 - Il n'y a toujours pas de pas adaptatif ni de solveur pour les systèmes raides. C'est prévu en v5.2.
 - Les constantes de vitesse sont fournies par l'utilisateur. Le résultat est un calcul, pas une mesure.
 - La stœchiométrie vérifie le bilan atomique, pas la plausibilité chimique ni la sécurité d'une réaction.
+- `test_v35_kinetics_bridge.py` et `test_v36_stoichiometry.py` cherchaient les appels `fetch('/api/chemistry/kinetics'` et `fetch('/api/chemistry/stoichiometry'`. Les panneaux appellent maintenant les endpoints `-run`, et ces tests vérifient ces nouveaux appels. Le comportement est testé dans le navigateur (`tests/browser/test_v46_chemistry_path.py`).
+
+## Note de traçabilité
+Le premier commit v4.6 a été publié alors que la matrice générée signalait 2 échecs : ce sont les deux tests ci-dessus. Ma chaîne de commandes ne s'arrêtait pas sur l'échec. Un commit correctif a suivi, avec la matrice régénérée sans échec.

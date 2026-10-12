@@ -1,9 +1,9 @@
 # Matrice de validation — Virtual Lab Platform v4.6
 
-Générée automatiquement par `python scripts/run_validation.py` le 2026-10-12T16:23:09+00:00.
+Générée automatiquement par `python scripts/run_validation.py` le 2026-10-12T16:24:51+00:00.
 Environnement : Python 3.13.16 · Linux-6.18.44-fc-v114-x86_64-with-glibc2.39 · Playwright 1.56.0.
 
-**Résultat global : 571 passés, 2 échoués, 0 ignorés (total 573).** Code de sortie pytest : 1.
+**Résultat global : 573 passés, 0 échoués, 0 ignorés (total 573).** Code de sortie pytest : 0.
 
 | Fonctionnalité | Étapes | Attendu | Observé | Statut | Preuve (test) |
 |---|---|---|---|---|---|

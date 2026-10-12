@@ -73,7 +73,8 @@ def test_rejects_negative_amount_and_duplicate_species():
 def test_workbench_reaction_ui_calls_server_engine_and_does_not_mutate_on_error():
     from pathlib import Path
     html = (Path(__file__).resolve().parents[1] / "static" / "index.html").read_text(encoding="utf-8")
-    assert "fetch('/api/chemistry/stoichiometry'" in html
+    # v4.6: the panel now calls the saving endpoint (behaviour covered in tests/browser/test_v46_chemistry_path.py).
+    assert "fetch('/api/chemistry/stoichiometry-run'" in html
     assert "No bench amounts were changed" in html
     assert "bilan atomique équilibré" in html
 

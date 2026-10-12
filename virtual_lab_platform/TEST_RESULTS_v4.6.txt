@@ -1,12 +1,11 @@
 Virtual Lab Platform v4.6 — rapport de tests généré
-Date : 2026-10-12T16:23:09+00:00
+Date : 2026-10-12T16:24:51+00:00
 Environnement : Python 3.13.16 · Linux-6.18.44-fc-v114-x86_64-with-glibc2.39 · Playwright 1.56.0
 Commande : python -m pytest -q -p no:cacheprovider --junitxml=/home/user/Tests-iq/virtual_lab_platform/test-artifacts/junit.xml -o junit_family=xunit1
-Résultat : 571 passés, 2 échoués, 0 ignorés (total 573) ; code de sortie 1
+Résultat : 573 passés, 0 échoués, 0 ignorés (total 573) ; code de sortie 0
 
 Échecs :
-- tests.test_v35_kinetics_bridge::test_kinetics_panel_calls_existing_server_engine_and_exports_results
-- tests.test_v36_stoichiometry::test_workbench_reaction_ui_calls_server_engine_and_does_not_mutate_on_error
+- aucun
 
 Ignorés :
 - aucun
