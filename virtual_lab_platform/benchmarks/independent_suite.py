@@ -253,6 +253,22 @@ INCIDENTS = [
 ]
 
 
+def environmental_three_half_lives():
+    k = 0.05
+    d = _run("environmental_decay", {"initial_load": 80.0, "removal_rate": k, "duration": 3 * math.log(2) / k, "points": 11})
+    return d["summary"]["final_load"], 10.0  # three half-lives: 80 → 10
+
+
+def pk_area_under_curve():
+    """AUC from 0 to ∞ = dose / clearance; the sampled curve (trapezoid) over 12 half-lives must agree."""
+    dose, volume, clearance = 100.0, 10.0, 2.0
+    half_life = math.log(2) * volume / clearance
+    d = _run("one_compartment_pk", {"input_amount": dose, "distribution_volume": volume, "clearance": clearance, "duration": 12 * half_life, "points": 1001})
+    rows = d["rows"]
+    auc = sum((b["time"] - a["time"]) * (a["concentration"] + b["concentration"]) / 2 for a, b in zip(rows, rows[1:]))
+    return auc, dose / clearance
+
+
 # ---- units (SI Brochure, 9th edition, BIPM 2019; CODATA 2018) --------------------------------
 
 def unit_case(value, from_unit, to_unit, expected):
@@ -320,6 +336,11 @@ CASES = [
           kind="analytical", source="Carslaw & Jaeger, Conduction of Heat in Solids", tol=0.05, relative=False, basis="FTCS, Δx = 1 mm : erreur O(Δx²)"),
     _case("heat_unstable_refused", "thermique", "heat_diffusion_1d", "Schéma explicite instable (α·dt/dx² > 0,5) : refus attendu", heat_unstable_refused,
           kind="analytical", source="Critère de stabilité de von Neumann", tol=0, basis="r = 4 > 0,5", expectation="refused"),
+    _case("environmental_three_half_lives", "environnement", "environmental_decay", "Décroissance du premier ordre : charge après trois demi-vies", environmental_three_half_lives,
+          kind="analytical", source="t½ = ln2/k (cinétique du premier ordre)", tol=1e-12, basis="formule fermée"),
+    _case("pk_area_under_curve", "pharmacologie", "one_compartment_pk", "Pharmacocinétique : aire sous la courbe = dose/clairance", pk_area_under_curve,
+          kind="analytical", source="Gibaldi & Perrier, Pharmacokinetics : AUC = D/CL", tol=1e-3,
+          basis="trapèzes sur 1 000 intervalles (erreur ~(kΔt)²/12 ≈ 6e-6) et queue après 12 demi-vies (2,4e-4)"),
     _case("unit_atm", "unités", "units", "1 atm = 101 325 Pa", unit_case(1.0, "atm", "Pa", 101325.0), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),
     _case("unit_ev", "unités", "units", "1 eV = 1,602 176 634e-19 J", unit_case(1.0, "eV", "J", 1.602176634e-19), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.) : e exact", tol=1e-15, basis="définition exacte"),
     _case("unit_celsius", "unités", "units", "25 °C = 298,15 K (conversion affine)", unit_case(25.0, "degC", "K", 298.15), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),
