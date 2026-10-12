@@ -19,12 +19,21 @@ def _finite_number(value: Any, name: str, *, minimum: float | None = None) -> fl
     return result
 
 
-def simulate_instrument_measurement(request: dict[str, Any]) -> dict[str, Any]:
-    """Generate a seeded instrument reading, calibration correction and uncertainty budget."""
+def simulate_instrument_measurement(request: dict[str, Any], instrument_override: dict[str, Any] | None = None,
+                                    reference_standard_uncertainty: float = 0.0) -> dict[str, Any]:
+    """Generate a seeded instrument reading, calibration correction and uncertainty budget.
+
+    instrument_override supplies an instrument definition that is not in the equipment catalogue
+    (v4.7 linked meters); reference_standard_uncertainty is the standard uncertainty of the
+    reference value itself (e.g. the engine's numerical uncertainty), added to the budget.
+    """
     instrument_id = request.get("instrument_id")
-    if not isinstance(instrument_id, str) or instrument_id not in EQUIPMENT:
+    if instrument_override is not None:
+        instrument = instrument_override
+    elif not isinstance(instrument_id, str) or instrument_id not in EQUIPMENT:
         raise ValueError("Unknown instrument_id. Choose an instrument from the equipment catalogue.")
-    instrument = EQUIPMENT[instrument_id]
+    else:
+        instrument = EQUIPMENT[instrument_id]
     if "measurement_uncertainty_sd" not in instrument or "measurement_unit" not in instrument:
         raise ValueError("The selected catalogue item has no supported measurement uncertainty model.")
 
@@ -57,8 +66,9 @@ def simulate_instrument_measurement(request: dict[str, Any]) -> dict[str, Any]:
     instrument_component = abs(calibration_gain) * instrument_sd
     calibration_component = abs(calibration_gain) * calibration_sd
     resolution_component = resolution / math.sqrt(12.0)
+    reference_component = _finite_number(reference_standard_uncertainty, "reference_standard_uncertainty", minimum=0.0)
     standard_uncertainty = math.sqrt(
-        instrument_component**2 + calibration_component**2 + resolution_component**2
+        instrument_component**2 + calibration_component**2 + resolution_component**2 + reference_component**2
     )
     expanded_uncertainty = 2.0 * standard_uncertainty
     difference = indicated_reading - true_value
@@ -83,6 +93,7 @@ def simulate_instrument_measurement(request: dict[str, Any]) -> dict[str, Any]:
             "instrument_standard_uncertainty": instrument_component,
             "calibration_standard_uncertainty": calibration_component,
             "resolution_standard_uncertainty": resolution_component,
+            "reference_model_standard_uncertainty": reference_component,
             "combined_standard_uncertainty": standard_uncertainty,
             "expanded_uncertainty_k2": expanded_uncertainty,
             "coverage_factor": 2.0,

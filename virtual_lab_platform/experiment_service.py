@@ -17,6 +17,7 @@ import reaction_stoichiometry
 import engine as model_engine
 import history
 import lab_designer
+import linked_measurements
 import protocol_engine
 import workbench_circuit
 from dossier import build_dossier, dossier_content_hash, legacy_model_id, verify_dossier
@@ -130,6 +131,59 @@ def verify(experiment_id: int) -> dict[str, Any]:
     return {"experiment_id": experiment_id, **verify_dossier(record["dossier"], record["configuration_hash"], record["dossier_hash"])}
 
 
+# ---- instruments linked to saved results (v4.7) ----------------------------------------------
+
+LINKED_KEYS = ("quantity", "instrument_id", "seed", "resolution", "instrument_bias", "calibration_offset", "calibration_gain",
+               "calibration_uncertainty_sd", "epsilon_l_per_mol_cm", "path_length_cm")
+
+
+def _verified_source(experiment_id: Any, expected_hash: str | None = None) -> dict[str, Any]:
+    if isinstance(experiment_id, bool) or not isinstance(experiment_id, int):
+        raise ServiceError("source_experiment_id must be an integer.")
+    record = _record(experiment_id)
+    integrity = verify_dossier(record["dossier"], record["configuration_hash"], record["dossier_hash"])
+    if not integrity["valid"] or integrity["level"] != "full":
+        raise ServiceError("The source dossier must pass a full integrity check before it can be measured.", 409, integrity=integrity)
+    if expected_hash is not None and record["dossier"].get("dossier_hash") != expected_hash:
+        raise ServiceError("The source dossier differs from the one originally measured; replay refused.", 409)
+    return record["dossier"]
+
+
+def quantities(experiment_id: int) -> dict[str, Any]:
+    dossier = _record(experiment_id)["dossier"]
+    found = linked_measurements.measurable_quantities(dossier)
+    units = sorted({q["unit"] for q in found})
+    return {"experiment_id": experiment_id, "model_id": dossier.get("model_id"), "quantities": found,
+            "instruments_by_unit": {u: linked_measurements.instruments_for_unit(u) for u in units}}
+
+
+def _linked_run(configuration: dict[str, Any]) -> dict[str, Any]:
+    source = _verified_source(configuration.get("source_experiment_id"), configuration.get("source_dossier_hash"))
+    try:
+        return linked_measurements.measure(source, configuration)
+    except linked_measurements.MeasurementError as exc:
+        raise ServiceError(str(exc)) from exc
+
+
+def measure_linked(request: dict[str, Any]) -> dict[str, Any]:
+    source = _verified_source(request.get("source_experiment_id"))
+    configuration = {"source_experiment_id": request["source_experiment_id"], "source_dossier_hash": source.get("dossier_hash"),
+                     **{k: request[k] for k in LINKED_KEYS if k in request}}
+    result = _linked_run(configuration)
+    title = f"Mesure simulée — {result['linked_quantity']['label']} ({result['instrument']['name']})"
+    dossier = build_dossier(result, model_id="instrument_reading", title=title, configuration=configuration,
+                            engine_id=linked_measurements.ENGINE_ID, engine_version=linked_measurements.ENGINE_VERSION,
+                            data_status="simulated_measurement")
+    return _save(dossier)
+
+
+def _compare_reading(original: dict[str, Any], replayed: dict[str, Any]) -> dict[str, Any]:
+    budget_o, budget_r = original.get("uncertainty_budget", {}), replayed.get("uncertainty_budget", {})
+    return _compare_values([("indicated reading", original.get("indicated_reading"), replayed.get("indicated_reading")),
+                            ("combined standard uncertainty", budget_o.get("combined_standard_uncertainty"), budget_r.get("combined_standard_uncertainty")),
+                            ("reference value", original.get("theoretical_value"), replayed.get("theoretical_value"))])
+
+
 # ---- replay ----------------------------------------------------------------------------------
 
 def _close(a: float, b: float, tolerance: float) -> bool:
@@ -207,6 +261,7 @@ REPLAYERS: dict[str, tuple[Callable[[dict], dict], Callable[[dict, dict], dict],
     "electrical_workbench_dc": (lambda config: workbench_circuit.solve_workbench_circuit(_workbench_configuration(config)), _compare_workbench, WORKBENCH_ENGINE),
     "chemical_kinetics_network": (chemical_kinetics.simulate_reaction_network, _compare_kinetics, (chemical_kinetics.ENGINE_ID, chemical_kinetics.ENGINE_VERSION)),
     "chemical_stoichiometry": (reaction_stoichiometry.calculate_stoichiometry, _compare_stoichiometry, (reaction_stoichiometry.ENGINE_ID, reaction_stoichiometry.ENGINE_VERSION)),
+    "instrument_reading": (lambda config: _linked_run(config), lambda o, r: _compare_reading(o, r), (linked_measurements.ENGINE_ID, linked_measurements.ENGINE_VERSION)),
 }
 
 
