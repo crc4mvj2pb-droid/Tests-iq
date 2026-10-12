@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from version import APP_VERSION  # noqa: E402
 
-EXCLUDED_DIRS = {"__pycache__", ".pytest_cache", "test-artifacts", "dist", ".git"}
+EXCLUDED_DIRS = {"__pycache__", ".pytest_cache", "test-artifacts", "dist", ".git", "backups", "logs"}
 EXCLUDED_SUFFIXES = {".pyc", ".sqlite3-journal"}
 # The user's history database and its migration backups are local data, never packaged.
 EXCLUDED_PREFIXES = ("virtual_lab_history.sqlite3",)

@@ -44,6 +44,8 @@ def live_server(tmp_path, monkeypatch):
     for module in (scientific_imports, sbml_engine):
         monkeypatch.setattr(module, "BASE", tmp_path); monkeypatch.setattr(module, "ASSET_DIR", library)
     monkeypatch.setattr(scientific_imports, "INDEX", library / "index.json")
+    import maintenance  # v9.0: backups made during browser tests go to the temporary folder
+    monkeypatch.setattr(maintenance, "backup_dir", lambda: tmp_path / "backups")
     server = ThreadingHTTPServer(("127.0.0.1", 0), app.Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
