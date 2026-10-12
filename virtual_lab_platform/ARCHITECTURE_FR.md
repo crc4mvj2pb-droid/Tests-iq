@@ -24,3 +24,9 @@ L'unité `a.u.` désigne des unités arbitraires ou « unités du modèle ». El
 
 ## Format d'erreur unique
 Toute réponse d'erreur contient `{error, error_code, error_params?}`. Le code est précis quand le moteur en fournit un (par exemple `out_of_range`, `unknown_parameter` ou `floating_network`). Sinon, il dépend du statut HTTP (`invalid_request`, `not_found`, `conflict`…).
+
+## Expériences multi-modèles (v5.8, `pipelines.py`)
+Une expérience multi-modèles est une liste d'étapes. Chaque étape exécute un modèle à contrat (`model`) ou un adaptateur explicite (`adapter`).
+- Les liaisons `{from: "étape.sortie", to: "entrée"}` convertissent les unités avec `units.py` et refusent les dimensions incompatibles.
+- La maturité de l'expérience est la plus basse de ses étapes, avec la liste des étapes limitantes.
+- Routes : `GET /api/pipelines/examples`, `POST /api/pipelines/run`. Le dossier est rejouable (`model_id = multi_model_pipeline`).

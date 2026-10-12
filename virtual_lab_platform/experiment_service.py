@@ -18,6 +18,7 @@ import engine as model_engine
 import history
 import lab_designer
 import linked_measurements
+import pipelines
 import protocol_engine
 import workbench_circuit
 import workbench_transient
@@ -127,6 +128,19 @@ def run_stoichiometry(request: dict[str, Any]) -> dict[str, Any]:
     dossier = build_dossier(result, model_id="chemical_stoichiometry", title=request.get("name") or f"Stœchiométrie — {request.get('reaction_name') or request.get('reaction_id', 'réaction')}",
                             question=request.get("question") or "", configuration=configuration,
                             engine_id=reaction_stoichiometry.ENGINE_ID, engine_version=reaction_stoichiometry.ENGINE_VERSION)
+    return _save(dossier)
+
+
+PIPELINE_KEYS = ("name", "steps", "report")
+
+
+def run_pipeline(request: dict[str, Any]) -> dict[str, Any]:
+    """Multi-model experiment (v5.8): every step's inputs, conversions and outputs are kept in the dossier."""
+    configuration = {k: request[k] for k in PIPELINE_KEYS if k in request}
+    result = pipelines.run_pipeline(configuration)
+    dossier = build_dossier(result, model_id="multi_model_pipeline", title=request.get("name") or "Expérience multi-modèles",
+                            question=request.get("question") or "", configuration=configuration,
+                            engine_id=pipelines.ENGINE_ID, engine_version=pipelines.ENGINE_VERSION)
     return _save(dossier)
 
 
@@ -277,11 +291,23 @@ def _compare_transient(original: dict[str, Any], replayed: dict[str, Any]) -> di
     return _compare_values(pairs, relative=1e-9)
 
 
+def _compare_pipeline(original: dict[str, Any], replayed: dict[str, Any]) -> dict[str, Any]:
+    pairs = [(f"final {name}", (original.get("final_outputs") or {}).get(name, {}).get("value"), out["value"])
+             for name, out in replayed["final_outputs"].items()]
+    original_steps = {s["step"]: s for s in original.get("steps", [])}
+    for step in replayed["steps"]:
+        before = original_steps.get(step["step"], {}).get("outputs", {})
+        pairs += [(f"{step['step']}.{name}", (before.get(name) or {}).get("value"), out["value"]) for name, out in step["outputs"].items()]
+    pairs.append(("pipeline maturity", (original.get("maturity") or {}).get("level"), replayed["maturity"]["level"]))
+    return _compare_values(pairs, relative=1e-9)
+
+
 REPLAYERS: dict[str, tuple[Callable[[dict], dict], Callable[[dict, dict], dict], tuple[str, str]]] = {
     "electrical_workbench_transient": (workbench_transient.solve_workbench_transient, _compare_transient, TRANSIENT_ENGINE),
     "electrical_workbench_dc": (lambda config: workbench_circuit.solve_workbench_circuit(_workbench_configuration(config)), _compare_workbench, WORKBENCH_ENGINE),
     "chemical_kinetics_network": (chemical_kinetics.simulate_reaction_network, _compare_kinetics, (chemical_kinetics.ENGINE_ID, chemical_kinetics.ENGINE_VERSION)),
     "chemical_stoichiometry": (reaction_stoichiometry.calculate_stoichiometry, _compare_stoichiometry, (reaction_stoichiometry.ENGINE_ID, reaction_stoichiometry.ENGINE_VERSION)),
+    "multi_model_pipeline": (pipelines.run_pipeline, _compare_pipeline, (pipelines.ENGINE_ID, pipelines.ENGINE_VERSION)),
     "instrument_reading": (lambda config: _linked_run(config), lambda o, r: _compare_reading(o, r), (linked_measurements.ENGINE_ID, linked_measurements.ENGINE_VERSION)),
 }
 
