@@ -43,8 +43,9 @@ def import_sbml(filename: Any, content: Any, source_url: Any = "") -> dict:
     if not isinstance(content, str) or not content.strip(): raise ValueError("Provide the text content of an SBML/XML file.")
     raw = content.encode("utf-8")
     if len(raw) > MAX_FILE_BYTES: raise ValueError(f"SBML file exceeds the {MAX_FILE_BYTES}-byte import limit.")
-    head = content[:20000].casefold()
-    if "<!doctype" in head or "<!entity" in head: raise ValueError("DOCTYPE and ENTITY declarations are not accepted.")
+    # v9.1: the whole text is checked (a long comment before the DOCTYPE bypassed the former 20 000-character check).
+    import security
+    if security.has_dtd(content): raise ValueError("DOCTYPE and ENTITY declarations are not accepted.")
     try: doc = ET.fromstring(raw)
     except ET.ParseError as exc: raise ValueError(f"Invalid XML/SBML: {exc}") from None
     if doc.tag.rsplit("}", 1)[-1] != "sbml": raise ValueError("The XML root element is not SBML.")

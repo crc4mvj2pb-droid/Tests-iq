@@ -68,7 +68,9 @@ def browser():
 
 @pytest.fixture
 def page(browser, live_server, request):
-    context = browser.new_context(accept_downloads=True, viewport={"width": 1400, "height": 1000}, locale="fr-FR")
+    # v9.1: the page sends a Content-Security-Policy without 'unsafe-eval'; Playwright's wait_for_function relies on eval,
+    # so the test harness bypasses the CSP. tests/browser/test_v91_csp.py checks the interface under the real policy.
+    context = browser.new_context(accept_downloads=True, viewport={"width": 1400, "height": 1000}, locale="fr-FR", bypass_csp=True)
     context.add_init_script("try{localStorage.setItem('vl-lang','fr')}catch(e){}")
     pg = context.new_page()
     pg.console_errors = []
