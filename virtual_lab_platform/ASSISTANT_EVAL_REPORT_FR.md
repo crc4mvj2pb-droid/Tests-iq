@@ -1,6 +1,6 @@
-# Évaluation de l'assistant — Virtual Lab Platform v9.1
+# Évaluation de l'assistant — Virtual Lab Platform v9.2
 
-Généré par `python scripts/run_assistant_eval.py` le 2026-10-12T23:14:26+00:00 (Python 3.13.16).
+Généré par `python scripts/run_assistant_eval.py` le 2026-10-12T23:21:34+00:00 (Python 3.13.16).
 Assistant évalué : à règles et déterministe (pas un modèle de langage). Jeu de cas fixé avant la première exécution (`evaluation/assistant_eval_set.json`, empreinte vérifiée par les tests). Les valeurs attendues viennent de formules fermées calculées dans `assistant_eval.py`.
 
 ## Synthèse
