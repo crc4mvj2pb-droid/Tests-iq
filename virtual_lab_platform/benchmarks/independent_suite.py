@@ -269,6 +269,22 @@ def pk_area_under_curve():
     return auc, dose / clearance
 
 
+def lumped_cooling_time():
+    """Time for a hot body to cool from 350 K to 310 K in 290 K air: t = τ·ln((T0 − T_amb)/(T − T_amb))."""
+    r, c = 0.5, 400.0
+    d = _run("lumped_thermal_transient", {"power_w": 0.0, "ambient_temperature_k": 290.0, "initial_temperature_k": 350.0, "thermal_resistance_k_per_w": r,
+                                         "thermal_capacitance_j_per_k": c, "duration_s": r * c * math.log(60.0 / 20.0), "points": 3})
+    return d["final_temperature_k"], 310.0
+
+
+def two_layer_wall_interface():
+    """Interface temperature of a two-layer wall written as a voltage divider of thermal resistances."""
+    r1, r2 = 0.1 / (1.0 * 2.0), 0.05 / (0.05 * 2.0)  # L/(k·A)
+    d = _run("plane_wall_conduction", {"layers": [{"thickness_m": 0.1, "conductivity_w_mk": 1.0}, {"thickness_m": 0.05, "conductivity_w_mk": 0.05}],
+                                       "area_m2": 2.0, "hot_temperature_k": 300.0, "cold_temperature_k": 260.0})
+    return d["temperatures"][1]["temperature_k"], 300.0 - 40.0 * r1 / (r1 + r2)
+
+
 # ---- units (SI Brochure, 9th edition, BIPM 2019; CODATA 2018) --------------------------------
 
 def unit_case(value, from_unit, to_unit, expected):
@@ -341,6 +357,10 @@ CASES = [
     _case("pk_area_under_curve", "pharmacologie", "one_compartment_pk", "Pharmacocinétique : aire sous la courbe = dose/clairance", pk_area_under_curve,
           kind="analytical", source="Gibaldi & Perrier, Pharmacokinetics : AUC = D/CL", tol=1e-3,
           basis="trapèzes sur 1 000 intervalles (erreur ~(kΔt)²/12 ≈ 6e-6) et queue après 12 demi-vies (2,4e-4)"),
+    _case("lumped_cooling_time", "thermique", "lumped_thermal_transient", "Refroidissement newtonien : température après t = τ·ln(3)", lumped_cooling_time,
+          kind="analytical", source="Loi de refroidissement de Newton (Incropera et al., §5.2)", tol=1e-12, basis="formule fermée"),
+    _case("two_layer_wall_interface", "thermique", "plane_wall_conduction", "Mur à deux couches : température d'interface (diviseur de résistances)", two_layer_wall_interface,
+          kind="analytical", source="Résistances thermiques en série (Incropera et al., §3.1)", tol=1e-12, basis="formule fermée"),
     _case("unit_atm", "unités", "units", "1 atm = 101 325 Pa", unit_case(1.0, "atm", "Pa", 101325.0), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),
     _case("unit_ev", "unités", "units", "1 eV = 1,602 176 634e-19 J", unit_case(1.0, "eV", "J", 1.602176634e-19), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.) : e exact", tol=1e-15, basis="définition exacte"),
     _case("unit_celsius", "unités", "units", "25 °C = 298,15 K (conversion affine)", unit_case(25.0, "degC", "K", 298.15), kind="published_benchmark", source="BIPM, Brochure SI (9e éd.)", tol=1e-15, basis="définition exacte"),

@@ -1,12 +1,12 @@
-# Banc d'essai indépendant — Virtual Lab Platform v7.0
+# Banc d'essai indépendant — Virtual Lab Platform v7.1
 
-Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:20:50+00:00 (Python 3.13.16).
+Généré par `python scripts/run_benchmarks.py` le 2026-10-12T21:31:00+00:00 (Python 3.13.16).
 Les références sont calculées dans `benchmarks/independent_suite.py` : formule fermée, table publiée ou intégrateur écrit à part. Ce fichier n'est importé par aucun test unitaire de moteur. Les tolérances ont été fixées avant la première exécution, à partir de l'erreur connue de chaque méthode (colonne « Base de la tolérance »).
 
 ## Synthèse
 
-- **35 cas**, 17 moteurs ou modules, 10 domaines (biochimie, chimie, environnement, neurosciences, pharmacologie, thermique, unités, écologie, électricité, épidémiologie).
-- Conformes : 31 · limites connues reproduites : 2 · refus attendus obtenus : 2.
+- **37 cas**, 19 moteurs ou modules, 10 domaines (biochimie, chimie, environnement, neurosciences, pharmacologie, thermique, unités, écologie, électricité, épidémiologie).
+- Conformes : 33 · limites connues reproduites : 2 · refus attendus obtenus : 2.
 - Échecs : 0 · limites modifiées : 0 · non refusés : 0 · erreurs : 0.
 - Verdict : **tous les cas ont le résultat attendu**.
 
@@ -44,6 +44,8 @@ Les références sont calculées dans `benchmarks/independent_suite.py` : formul
 | Schéma explicite instable (α·dt/dx² > 0,5) : refus attendu | thermique | `heat_diffusion_1d` | analytical — Critère de stabilité de von Neumann | refus : `ValueError: Explicit heat solver unstable: alpha*dt/dx^2 = 4 > 0.5. Reduce dt_s or increase nodes spacing.` | — | — | 0 (relative) | r = 4 > 0,5 | refus attendu obtenu |
 | Décroissance du premier ordre : charge après trois demi-vies | environnement | `environmental_decay` | analytical — t½ = ln2/k (cinétique du premier ordre) | 10 | 10 | 1.776356839e-16 | 1e-12 (relative) | formule fermée | conforme |
 | Pharmacocinétique : aire sous la courbe = dose/clairance | pharmacologie | `one_compartment_pk` | analytical — Gibaldi & Perrier, Pharmacokinetics : AUC = D/CL | 49.98808117 | 50 | 0.0002383766031 | 0.001 (relative) | trapèzes sur 1 000 intervalles (erreur ~(kΔt)²/12 ≈ 6e-6) et queue après 12 demi-vies (2,4e-4) | conforme |
+| Refroidissement newtonien : température après t = τ·ln(3) | thermique | `lumped_thermal_transient` | analytical — Loi de refroidissement de Newton (Incropera et al., §5.2) | 310 | 310 | 0 | 1e-12 (relative) | formule fermée | conforme |
+| Mur à deux couches : température d'interface (diviseur de résistances) | thermique | `plane_wall_conduction` | analytical — Résistances thermiques en série (Incropera et al., §3.1) | 296.3636364 | 296.3636364 | 0 | 1e-12 (relative) | formule fermée | conforme |
 | 1 atm = 101 325 Pa | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 101325 | 101325 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 1 eV = 1,602 176 634e-19 J | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) : e exact | 1.602176634e-19 | 1.602176634e-19 | 0 | 1e-15 (relative) | définition exacte | conforme |
 | 25 °C = 298,15 K (conversion affine) | unités | `units` | published_benchmark — BIPM, Brochure SI (9e éd.) | 298.15 | 298.15 | 0 | 1e-15 (relative) | définition exacte | conforme |

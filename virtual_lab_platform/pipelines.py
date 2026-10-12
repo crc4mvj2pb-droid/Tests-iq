@@ -61,7 +61,9 @@ ADAPTERS: dict[str, dict[str, Any]] = {
         "outputs": {"temperature_k": "K", "thermal_time_constant_s": "s"},
         "equations": ["T = T_amb + P·R_th", "τ_th = R_th·C_th"], "reference_ids": ["incropera_2007"],
         "assumptions": ["Uniform body temperature (lumped capacitance)", "Steady state: valid only for durations ≫ τ_th"],
-        "maturity": {"level": "computable", "evidence": [], "note": "Relation simple non vérifiée contre une référence indépendante (prévu en v7.1)."},
+        "maturity": {"level": "verified", "evidence": [{"kind": "independent_solver", "test": "tests/test_v71_thermal.py::test_steady_heating_adapter_is_the_long_time_limit_of_the_transient",
+                                                       "description": "Limite stationnaire de l'intégration indépendante du transitoire", "tolerance": "1e-9 relatif"}],
+                     "note": "Vérifié en v7.1 (était « calculable » en v5.8)."},
     },
     "beer_lambert": {
         "title": "Absorbance par la loi de Beer–Lambert", "function": _beer_lambert,

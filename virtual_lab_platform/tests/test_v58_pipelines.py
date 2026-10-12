@@ -40,7 +40,9 @@ def test_verified_chain_matches_the_analytical_composition():
     assert r["steps"][1]["inputs"]["temperature_k"] == 310.0  # the kinetics step records the temperature it was run at
 
 
-def test_joule_heating_chain_is_computable_because_of_its_weakest_step():
+def test_joule_heating_chain_is_computable_because_of_its_weakest_step(monkeypatch):
+    # v7.1 verified the heating adapter; its v5.8 level (computable) is restored here to keep testing the weakest-link rule.
+    monkeypatch.setitem(pipelines.ADAPTERS["lumped_steady_heating"], "maturity", {"level": "computable", "evidence": []})
     r = run_pipeline(example("joule_heating_kinetics"))
     power = 12.0 ** 2 / 48.0
     temperature = 298.15 + power * 4.0

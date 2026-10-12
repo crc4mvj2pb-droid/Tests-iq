@@ -24,7 +24,8 @@ def test_weakest_step_limits_maturity_and_incompatible_units_are_refused(page, e
     page.click("#plRun")
     page.wait_for_selector("#plResult [data-pl-maturity]")
     text = page.inner_text("#plResult [data-pl-maturity]")
-    assert page.get_attribute("#plResult [data-pl-maturity]", "data-pl-maturity") == "computable" and "heating" in text
+    # v7.1 verified the heating adapter: the chain is now fully verified (the weakest-link rule itself is tested in tests/test_v58_pipelines.py).
+    assert page.get_attribute("#plResult [data-pl-maturity]", "data-pl-maturity") == "verified" and "limitante" not in text
     spec = json.loads(page.input_value("#plSpec"))
     spec["steps"][3]["inputs"]["reactions"][0]["reactants"] = {"A": 2}
     page.fill("#plSpec", json.dumps(spec))

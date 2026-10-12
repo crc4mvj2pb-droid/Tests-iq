@@ -16,6 +16,7 @@ import electrical_circuits
 import reaction_stoichiometry
 import workbench_circuit
 import workbench_transient
+import thermal
 from contracts import CONTRACT_VERSION, ContractError, check_contract, output, param, resolve_path, validate_inputs
 from models import execute_model
 import references
@@ -189,6 +190,42 @@ register(_contract(
     lambda p: reaction_stoichiometry.calculate_stoichiometry(p),
     {"reactants": {"H2": 2, "O2": 1}, "products": {"H2O": 2},
      "species": [{"id": "H2", "amount_mol": 4, "formula": "H2"}, {"id": "O2", "amount_mol": 1, "formula": "O2"}, {"id": "H2O", "amount_mol": 0, "formula": "H2O"}]})
+
+# ---- thermal (v7.1) --------------------------------------------------------------------------
+
+register(_contract(
+    "lumped_thermal_transient", thermal.ENGINE_VERSION, "Échauffement d'un corps à une capacité thermique", "thermal", thermal.ENGINE_ID,
+    [param("power_w", "number", unit="W", minimum=-1e7, maximum=1e7, default=3.0),
+     param("ambient_temperature_k", "number", unit="K", minimum=0, exclusive_minimum=True, maximum=5000, default=298.15),
+     param("thermal_resistance_k_per_w", "number", unit="K/W", minimum=0, exclusive_minimum=True, maximum=1e6, default=4.0),
+     param("thermal_capacitance_j_per_k", "number", unit="J/K", minimum=0, exclusive_minimum=True, maximum=1e9, default=5.0),
+     param("initial_temperature_k", "number", unit="K", minimum=0, exclusive_minimum=True, maximum=5000),
+     param("duration_s", "number", unit="s", minimum=0, exclusive_minimum=True, maximum=1e9),
+     param("points", "integer", unit="1", minimum=2, maximum=5001, default=201),
+     param("convection_coefficient_w_m2k", "number", unit="W/(m^2·K)", minimum=0, exclusive_minimum=True, maximum=1e6),
+     param("characteristic_length_m", "number", unit="m", minimum=0, exclusive_minimum=True, maximum=100),
+     param("conductivity_w_mk", "number", unit="W/(m·K)", minimum=0, exclusive_minimum=True, maximum=1e4)],
+    [output("steady_temperature", "steady_temperature_k", "K"), output("time_constant", "time_constant_s", "s"), output("final_temperature", "final_temperature_k", "K")],
+    ["Uniform body temperature (lumped capacitance)", "Constant P, R_th, C_th and ambient temperature"],
+    ["Bi = h·L_c/k < 0.1 (warning otherwise)", "Initial temperature defaults to ambient"],
+    ["invalid_parameter", "incomplete_biot_inputs"], ["Incropera et al., Fundamentals of Heat and Mass Transfer, §5.1–5.3"],
+    ["C·dT/dt = P − (T − T_amb)/R_th", "T(t) = T_ss + (T0 − T_ss)·e^(−t/τ)", "T_ss = T_amb + P·R_th", "τ = R_th·C_th", "Bi = h·L_c/k"]),
+    thermal.lumped_transient, {"power_w": 10.0, "thermal_resistance_k_per_w": 2.0, "thermal_capacitance_j_per_k": 50.0})
+
+register(_contract(
+    "plane_wall_conduction", thermal.ENGINE_VERSION, "Conduction stationnaire dans un mur composite", "thermal", thermal.ENGINE_ID,
+    [param("layers", "array", required=True, description="[{name, thickness_m, conductivity_w_mk}] from the hot side to the cold side"),
+     param("area_m2", "number", unit="m^2", minimum=0, exclusive_minimum=True, maximum=1e6, default=1.0),
+     param("hot_temperature_k", "number", unit="K", minimum=0, exclusive_minimum=True, maximum=5000, default=293.15),
+     param("cold_temperature_k", "number", unit="K", minimum=0, exclusive_minimum=True, maximum=5000, default=273.15),
+     param("h_hot_w_m2k", "number", unit="W/(m^2·K)", minimum=0, exclusive_minimum=True, maximum=1e6),
+     param("h_cold_w_m2k", "number", unit="W/(m^2·K)", minimum=0, exclusive_minimum=True, maximum=1e6)],
+    [output("heat_rate", "heat_rate_w", "W"), output("heat_flux", "heat_flux_w_m2", "W/m^2"), output("u_value", "u_value_w_m2k", "W/(m^2·K)")],
+    ["Steady state", "1D conduction, constant conductivities", "Perfect contact between layers"], ["Up to 20 layers"],
+    ["invalid_parameter", "invalid_layers"], ["Fourier's law; Incropera et al., §3.1 (thermal resistances in series)"],
+    ["q = ΔT/ΣR", "R_layer = L/(k·A)", "R_conv = 1/(h·A)"]),
+    thermal.plane_wall, {"layers": [{"name": "brick", "thickness_m": 0.2, "conductivity_w_mk": 0.7}, {"name": "insulation", "thickness_m": 0.05, "conductivity_w_mk": 0.04}],
+                         "h_hot_w_m2k": 8.0, "h_cold_w_m2k": 25.0})
 
 # ---- catalogue models (models.py) -----------------------------------------------------------
 

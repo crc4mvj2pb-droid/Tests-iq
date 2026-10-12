@@ -79,6 +79,12 @@ MATURITY: dict[str, dict[str, Any]] = {
     "linked_virtual_instrument": {"level": "verified", "evidence": [_ev("statistical_property", "tests/test_v47_linked_instruments.py::test_expanded_uncertainty_has_about_95_percent_coverage",
                                                                        "Couverture de l'intervalle k = 2 sur 2 000 lectures simulées", "94–97 %")],
                                   "note": "Vérifie le modèle de mesure simulée, pas un instrument réel."},
+    "lumped_thermal_transient": {"level": "verified", "evidence": [
+        _ev("independent_solver", "tests/test_v71_thermal.py::test_lumped_transient_against_independent_integration", "Intégration RK4 indépendante de C·dT/dt = P − (T − T_amb)/R", "1e-9 relatif"),
+        _ev("conserved_quantity", "tests/test_v71_thermal.py::test_lumped_energy_balance", "Bilan d'énergie fourni = perdu + stocké", "1e-5 relatif")]},
+    "plane_wall_conduction": {"level": "verified", "evidence": [
+        _ev("independent_solver", "tests/test_v71_thermal.py::test_composite_wall_against_finite_differences", "Différences finies de l'équation de conduction stationnaire, 3 couches", "1e-9 relatif"),
+        _ev("analytical", "tests/test_v71_thermal.py::test_single_layer_hand_calculation", "q = kAΔT/L calculé à la main", "1e-12 relatif")]},
     "model_fit": {"level": "verified", "evidence": [
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_puromycin_fit_reproduces_bates_and_watts", "Estimations et erreurs types de Bates & Watts (1988), Puromycine", "5e-4 relatif"),
         _ev("published_benchmark", "tests/test_v63_fitting.py::test_bod_fit_reproduces_the_published_estimates", "Estimations publiées, DBO", "2e-4 relatif"),

@@ -73,6 +73,13 @@
     ],
     "arrhenius_reaction": [
       "arrhenius_1889"
+    ],
+    "lumped_thermal_transient": [
+      "incropera_2007"
+    ],
+    "plane_wall_conduction": [
+      "fourier_1822",
+      "incropera_2007"
     ]
   }
 }
