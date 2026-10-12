@@ -27,7 +27,7 @@ class ContractError(ValueError):
         self.params = params
 
 
-def param(name: str, ptype: str, *, unit: str | None = None, minimum: float | None = None, maximum: float | None = None,
+def param(name: str, ptype: str, *, unit: str | None = None, unit_from: str | None = None, minimum: float | None = None, maximum: float | None = None,
           exclusive_minimum: bool = False, default: Any = None, required: bool = False, choices: list | None = None,
           description: str = "") -> dict[str, Any]:
     """Build one parameter specification."""
@@ -36,6 +36,8 @@ def param(name: str, ptype: str, *, unit: str | None = None, minimum: float | No
     spec = {"name": name, "type": ptype, "description": description, "required": required}
     if unit is not None:
         spec["unit"] = unit
+    if unit_from is not None:  # the unit is the value of another (string) parameter, e.g. concentration_unit
+        spec["unit_from"] = unit_from
     if minimum is not None:
         spec["minimum"] = minimum
         spec["exclusive_minimum"] = exclusive_minimum
@@ -63,8 +65,10 @@ def check_contract(contract: dict[str, Any]) -> list[str]:
         if p.get("name") in names:
             problems.append(f"parameter {p.get('name')}: duplicated")
         names.add(p.get("name"))
-        if p.get("type") in ("number", "integer") and not p.get("unit"):
+        if p.get("type") in ("number", "integer") and not p.get("unit") and not p.get("unit_from"):
             problems.append(f"parameter {p['name']}: numeric parameter without unit")
+        if p.get("unit_from") and p["unit_from"] not in {q.get("name") for q in contract.get("parameters", [])}:
+            problems.append(f"parameter {p['name']}: unit_from refers to unknown parameter {p['unit_from']}")
         if p.get("type") == "enum" and not p.get("choices"):
             problems.append(f"parameter {p['name']}: enum without choices")
         if "default" in p and p.get("type") in ("number", "integer"):
@@ -141,7 +145,8 @@ def validate_inputs(contract: dict[str, Any], inputs: Any, *, converter=None) ->
         if isinstance(value, dict) and set(value) == {"value", "unit"} and spec["type"] in ("number", "integer"):
             if converter is None:
                 raise ContractError(f"{name}: quantities with units are not accepted here.", "invalid_type", name=name)
-            value = converter(value["value"], value["unit"], spec["unit"], name)
+            target = spec.get("unit") or inputs.get(spec["unit_from"], specs[spec["unit_from"]].get("default"))
+            value = converter(value["value"], value["unit"], target, name)
         normalized[name] = _check_value(spec, value)
     return normalized
 

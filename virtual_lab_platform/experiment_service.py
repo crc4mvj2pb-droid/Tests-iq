@@ -95,7 +95,7 @@ def run_model_experiment(request: dict[str, Any]) -> dict[str, Any]:
     return _save(dossier)
 
 
-KINETICS_KEYS = ("species", "reactions", "duration", "dt", "temperature_k", "allow_unbalanced")
+KINETICS_KEYS = ("species", "reactions", "duration", "dt", "temperature_k", "allow_unbalanced", "concentration_unit", "method", "rtol", "atol", "max_steps")
 STOICHIOMETRY_KEYS = ("reaction_id", "reaction_name", "reactants", "products", "species")
 
 

@@ -52,6 +52,8 @@ def test_every_unit_declared_by_a_contract_is_understood():
         for item in contract["parameters"] + contract["outputs"]:
             if item.get("unit"):
                 parse(item["unit"])
+            if item.get("unit_from"):  # unit given by another parameter: its default must be a valid unit
+                parse(next(p for p in contract["parameters"] if p["name"] == item["unit_from"])["default"])
 
 
 def test_constants_are_versioned_sourced_and_internally_consistent():
@@ -113,3 +115,13 @@ def test_kinetics_declares_concentration_unit_and_derives_rate_constant_units():
     for bad in ("mol/s", "kg", "nonsense"):
         with pytest.raises(chemical_kinetics.ChemicalKineticsError):
             chemical_kinetics.simulate_reaction_network(kin(concentration_unit=bad))
+
+
+def test_dependent_unit_quantities_are_converted_into_the_referenced_unit():
+    from contracts import validate_inputs
+    contract = model_registry.get_contract("mass_action_kinetics")
+    base = dict(model_registry.REGISTRY["mass_action_kinetics"]["example"])
+    out = validate_inputs(contract, {**base, "concentration_unit": "mmol/L", "atol": {"value": 1e-9, "unit": "mol/L"}}, converter=units.contract_converter)
+    assert out["atol"] == pytest.approx(1e-6)
+    with pytest.raises(ContractError):
+        validate_inputs(contract, {**base, "atol": {"value": 1, "unit": "s"}}, converter=units.contract_converter)
